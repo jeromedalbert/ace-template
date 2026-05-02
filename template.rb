@@ -133,6 +133,11 @@ module Template
   end
 
   def setup_generators
+    insert_into_file 'config/application.rb',
+                     partial('config/application_generators.rb', :prepend_nl, indent: 4),
+                     before: %r{  end\nend}
+    directory 'lib/generators'
+
     gsub_file 'config/application.rb',
               /config.autoload_lib.*/,
               'config.autoload_lib(ignore: %w[assets tasks templates])'
@@ -183,8 +188,8 @@ module Template
     directory 'spec/support'
     directory 'lib/templates/rspec'
     gsub_file 'config/application.rb',
-              %r{    config.generators.*\n},
-              partial('config/application_rspec.rb', indent: 4)
+              /( *g\..*\n)(    end)/,
+              '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
 
     remove_comments 'spec/spec_helper.rb'
     gsub_file 'spec/spec_helper.rb', %r{=begin\n(.*\n)*=end\n}, ''
