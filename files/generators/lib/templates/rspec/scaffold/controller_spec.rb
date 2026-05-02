@@ -59,7 +59,7 @@ describe <%= controller_class_name %>Controller do
 
     context 'when params are valid' do
       before do
-        patch :create, params: {
+        patch :update, params: {
           id: <%= singular_table_name %>.id, <%= singular_table_name %>: attributes_for(:<%= singular_table_name %>)
         }
       end
