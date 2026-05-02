@@ -5,10 +5,9 @@ accessories:
     host: <%%= ENV['DB_HOST'] %>
     port: 5432
     env:
-      clear:
-        POSTGRES_DB: <%%= ENV['DB_NAME'] %>
-        POSTGRES_USER: <%%= ENV['DB_USERNAME'] %>
       secret:
+        - POSTGRES_DB
+        - POSTGRES_USER
         - POSTGRES_PASSWORD
     directories:
       - data:/var/lib/postgresql/data

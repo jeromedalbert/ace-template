@@ -34,7 +34,7 @@ TODO:
 
 ### With Kamal, on your own server
 
-1. Open `.env.production` and set values for the following variables:
+1. Open `.kamal/secrets.production` and set values for the following variables:
     - `SERVER_IP`: your server's IP address
     - `KAMAL_REGISTRY_USERNAME`: your Docker Hub username
     - `KAMAL_REGISTRY_PASSWORD`: your Docker Hub password

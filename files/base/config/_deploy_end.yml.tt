@@ -1,5 +1,3 @@
 <% if template_options[:worker] -%>
 primary_role: worker
 <% end -%>
-healthcheck:
-  max_attempts: 10

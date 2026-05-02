@@ -228,18 +228,25 @@ module Template
 
   def configure_kamal
     return if !File.exist?('bin/kamal')
-    remove_file '.env.erb'
-    template '.env.production.tt'
+
+    remove_file '.kamal/secrets'
+    template '.kamal/secrets.production.tt'
+    insert_into_file '.gitignore', ".kamal/secrets*\n", after: ".env.sample\n"
+    insert_into_file '.dockerignore', ".kamal/secrets*\n", after: ".env.sample\n"
+
     insert_into_file 'bin/kamal', partial('bin/kamal.rb', :append_nl), before: 'load Gem.bin_path'
     create_file 'config/deploy.production.yml', "{}\n"
 
     remove_comments 'config/deploy.yml'
     gsub_file 'config/deploy.yml', "\nimage:", 'image:'
+    gsub_file 'config/deploy.yml', /^proxy:\n(  .*\n)*/ do |match|
+      match.lines.map { |line| "# #{line}" }.join
+    end
     gsub_file 'config/deploy.yml', 'your-user', "<%= ENV['KAMAL_REGISTRY_USERNAME'] %>"
-    gsub_file 'config/deploy.yml', /servers:\n(  .*\n)*/, partial('config/deploy_servers.yml.tt')
+    gsub_file 'config/deploy.yml', /^servers:\n(  .*\n)*/, partial('config/deploy_servers.yml.tt')
     gsub_file 'config/deploy.yml',
               '- RAILS_MASTER_KEY',
-              %q(<%= Dotenv.parse(".env.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
+              %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
     if postgresql? || redis?
       append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
     end
