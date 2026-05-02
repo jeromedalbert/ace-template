@@ -3,8 +3,21 @@
 <%%= form_with model: <%= model_resource_name %>, local: true do |form| %>
   <%- attributes.each do |attribute| -%>
   <div class="form-group">
+<% if attribute.password_digest? -%>
+    <%%= form.label :password %>
+    <%%= form.password_field :password, class: 'form-control' %>
+  </div>
+
+  <div class="form-group">
+    <%%= form.label :password_confirmation %>
+    <%%= form.password_field :password_confirmation, class: 'form-control' %>
+<% elsif attribute.attachments? -%>
     <%%= form.label :<%= attribute.column_name %> %>
-    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, id: :<%= model_resource_name %>_<%= attribute.column_name %>, class: 'form-control' %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, multiple: true, class: 'form-control' %>
+<% else -%>
+    <%%= form.label :<%= attribute.column_name %> %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, class: 'form-control' %>
+<% end -%>
   </div>
 
   <%- end -%>

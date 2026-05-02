@@ -1,7 +1,5 @@
-<div>
-  <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
-  <%%= image_tag <%= attribute.singular_name %>, width: 100 %>
-  <%- else -%>
-  <%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %>
-  <%- end -%>
-</div>
+<%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+<%%= image_tag <%= attribute.singular_name %>, class: 'attachment' %>
+<%- else -%>
+<div><%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %></div>
+<%- end -%>
