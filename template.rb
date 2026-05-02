@@ -40,7 +40,7 @@ module Template
     insert_into_file 'Gemfile',
                      partial('Gemfile_dev_test_gems.rb', indent: 2),
                      after: "group :development, :test do\n"
-    append_to_file 'Gemfile', partial('Gemfile_test_gems.rb', :prepend_nl)
+    append_to_file 'Gemfile', partial('Gemfile_test_gems.rb.tt', :prepend_nl)
     append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
@@ -197,7 +197,6 @@ module Template
     run 'rails generate rspec:install'
     copy_file '.rspec', force: true
     empty_directory 'spec/factories'
-    directory 'spec/support'
     gsub_file 'config/application.rb',
               /( *g\..*\n)(    end)/,
               '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
@@ -211,10 +210,13 @@ module Template
     gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\nRSpec.configure"
     gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
     insert_into_file 'spec/rails_helper.rb',
-                     partial('spec/rails_helper_requires.rb', :prepend_nl),
+                     partial('spec/rails_helper_requires.rb.tt', :prepend_nl),
                      after: "require 'rspec/rails'\n"
     add_before_end 'spec/rails_helper.rb',
                    partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2)
+
+    directory 'spec/support'
+    copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
 
     commit 'Configure RSpec'
   end
