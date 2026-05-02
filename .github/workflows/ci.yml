@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ruby-version: [3.3.5]
+        ruby-version: [3.4.1]
         ci_node_total: [4]
         ci_node_index: [0, 1, 2, 3]
     services:
