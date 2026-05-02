@@ -3,9 +3,9 @@ require 'active_support/core_ext/string'
 
 module Template
   HELP_BANNER = <<~EOS
-    ######################
-    ### Rails Template ###
-    ######################
+    ####################
+    ### Ace Template ###
+    ####################
 
     Usage:
       rails new APP_PATH -m /path/to/template.rb [-o option1,option2,...] [-i] [rails options]
@@ -83,12 +83,12 @@ module Template
 
     if __FILE__.match?(%r{^https?://})
       require 'tmpdir'
-      base_dir = Dir.mktmpdir('rails-template-')
+      base_dir = Dir.mktmpdir('ace-template-')
       at_exit { FileUtils.remove_entry(base_dir) }
-      run "git clone https://github.com/jeromedalbert/rails-template #{base_dir}",
+      run "git clone https://github.com/jeromedalbert/ace-template #{base_dir}",
           capture: true,
           verbose: false
-      if (branch = __FILE__[%r{rails-template/(.+)/template.rb}, 1])
+      if (branch = __FILE__[%r{ace-template/(.+)/template.rb}, 1])
         Dir.chdir(base_dir) { run "git checkout #{branch}", capture: true, verbose: false }
       end
     end

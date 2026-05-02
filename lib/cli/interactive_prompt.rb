@@ -44,6 +44,10 @@ module CLI
       clear_prompt if @prompt
 
       @prompt = <<~EOS
+        ####################
+        ### Ace Template ###
+        ####################
+
         Select the options you want to enable:
         #{gray('(Use ↑/↓ or j/k to navigate, Space to select/deselect, and Enter to finish)')}
 
