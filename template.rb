@@ -461,7 +461,6 @@ module Template
       gsub_file find_file('db/migrate/*_add_user_to_bananas.rb'),
                 /add_.*/,
                 'add_belongs_to :bananas, :user'
-      @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
       inject_into_class 'app/models/user.rb',
                         'User',
@@ -482,6 +481,9 @@ module Template
       gsub_file 'app/controllers/bananas_controller.rb',
                 /@banana = Banana.new\(.*\n/,
                 partial('banana/app/controllers/bananas_controller_create.rb')
+      gsub_file 'spec/controllers/bananas_controller_spec.rb',
+                /  let\(:banana\) { .*\n/,
+                partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
     end
 
     if template_options[:pundit]
