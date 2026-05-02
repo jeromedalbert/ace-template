@@ -35,13 +35,13 @@ module Template
     gsub_file 'Gemfile', /(group :development, :test do)/, "\n\\1"
 
     insert_into_file 'Gemfile',
-                     partial('gemfile_general_gems.rb', :append_nl),
+                     partial('Gemfile_general_gems.rb', :append_nl),
                      before: 'group :development, :test do'
     insert_into_file 'Gemfile',
-                     partial('gemfile_dev_test_gems.rb', indent: 2),
+                     partial('Gemfile_dev_test_gems.rb', indent: 2),
                      after: "group :development, :test do\n"
-    append_to_file 'Gemfile', partial('gemfile_test_gems.rb', :prepend_nl)
-    append_to_file 'Gemfile', partial('gemfile_production_gems.rb', :prepend_nl)
+    append_to_file 'Gemfile', partial('Gemfile_test_gems.rb', :prepend_nl)
+    append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
     gsub_file 'Gemfile', /gem "puma".*\n/, '' if template_options[:worker]
