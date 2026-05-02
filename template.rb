@@ -24,7 +24,7 @@ module Template
           #   - solid_dev: set up Solid adapters for development
           #   - squash: squash all commits into a single "Initial commit"
           #   - vcr: add VCR gem to record test HTTP requests
-          #   - worker: removes web code (requires --api)
+          #   - worker: removes web code (requires Rails --api option)
   EOS
   REQUIRED_RAILS_VERSIONS = '>= 8.0'
   SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'
