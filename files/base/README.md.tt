@@ -53,20 +53,26 @@ TODO:
 
 ```bash
 DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %> # Name must be unique
-fly secrets set SECRET_KEY_BASE=$(ruby -rsecurerandom -e "puts SecureRandom.hex(64)")
+# Optional: set any extra env vars with fly secrets set MY_VAR=value
 fly deploy
 fly apps open
 ```
 
 ### With Heroku
 
+<% if postgresql? -%>
+Heroku does not work well out of the box with Rails 8's default multiple databases.
+The instructions below only work for a single production database (for example
+if the app was generated with `--skip-solid`).
+<% end -%>
+
 ```bash
 heroku create <%= app_uniqueish_name %> # Name must be unique
 <% if postgresql? -%>
 heroku addons:add heroku-postgresql
-# Wait for Postgres addon state to be "created". This can take a while...
-watch -n 10 heroku addons:info heroku-postgresql
+watch -n 10 heroku addons:info heroku-postgresql # Wait for Postgres addon state to be "created". This can take a while...
 <% end -%>
+# Optional: set any extra env vars with heroku config:set MY_VAR=value
 git push heroku main
 heroku run rake db:migrate
 heroku open
