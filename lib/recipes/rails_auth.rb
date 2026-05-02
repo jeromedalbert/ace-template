@@ -1,6 +1,6 @@
 module ConfigureRailsAuth
   def perform
-    run 'rails generate authentication'
+    run 'rails generate authentication', capture: true
     format_code
 
     configure_authentication_concern
