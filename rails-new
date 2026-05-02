@@ -8,11 +8,13 @@ if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
     Template options:
       -o, [--template-options=option1,option2,...]
           # Available options:
+          #
           #   - banana: scaffolds a dummy Banana resource for demo purposes
-          #   - devise
+          #   - devise: adds Devise authentication
           #   - generators: adds custom generators for improved scaffolding
+          #   - pundit: adds Pundit authorization (requires devise)
           #   - redis
-          #   - worker: removes web code
+          #   - worker: removes web code (requires --api)
   EOS
   exit
 elsif app_path.start_with?('-')
