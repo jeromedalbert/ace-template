@@ -7,8 +7,9 @@ TEMPLATE_OPTIONS = <<~EOS
         # Available options:
         #
         #   - banana: scaffold a dummy Banana resource for demo purposes
-        #   - devise: add Devise authentication and Pundit authorization
+        #   - devise: add Devise authentication
         #   - generators: add custom generators for improved scaffolding
+        #   - pundit: add Pundit authorization
         #   - redis
         #   - squash: squash all commits into a single "Initial commit"
         #   - vcr: add VCR gem to record test HTTP requests

@@ -341,17 +341,18 @@ module Template
     inject_into_class(
       'app/controllers/application_controller.rb',
       'ApplicationController',
-      partial('pundit/app/controllers/application_controller_start.rb', :append_nl, indent: 2)
+      "  include Pundit::Authorization\n\n"
     )
     insert_into_file(
       'app/controllers/application_controller.rb',
       partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
-      before: /  def authenticate/
+      before: /^(  def authenticate.*|end)/m
     )
     add_before_end(
       'app/controllers/application_controller.rb',
       partial('files/pundit/app/controllers/application_controller_end.rb', :prepend_nl, indent: 2)
     )
+    format_code 'app/controllers/application_controller.rb'
 
     commit 'Configure Pundit'
   end
@@ -520,15 +521,12 @@ module Template
       gsub_file 'spec/controllers/bananas_controller_spec.rb',
                 /  let\(:banana\) { .*\n/,
                 partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
-    end
-
-    if template_options[:pundit]
       gsub_file 'app/controllers/bananas_controller.rb',
-                /@banana = Banana.find.*\n/,
+                /@banana = Banana.find\(.*\n/,
                 partial('banana/app/controllers/bananas_controller_load.rb')
-
-      copy_file_from 'banana', 'app/policies/banana_policy.rb'
     end
+
+    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
 
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
@@ -587,7 +585,6 @@ module TemplateHelpers
         options.split(',').map { |option| [option.to_sym, true] }.to_h
       end
 
-    @template_options[:pundit] = true if @template_options[:devise]
     @template_options
   end
 
