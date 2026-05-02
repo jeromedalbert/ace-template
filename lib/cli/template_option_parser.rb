@@ -129,17 +129,18 @@ module CLI
       check_incompatible_option(:skip_bundle)
       check_incompatible_option(:skip_git)
 
+      check_incompatible_options(:active_storage, rails_option: :skip_active_storage)
       check_incompatible_options(:auth, rails_option: :skip_active_record)
       check_incompatible_options(:banana, rails_option: :skip_active_record)
+
+      check_incompatible_options(:rails_tests, rails_option: :skip_test)
+      check_incompatible_options(:rails_fixtures, rails_option: :skip_test)
 
       check_incompatible_options(:solid_dev, rails_option: :skip_solid)
       check_incompatible_options(:solid_single, rails_option: :skip_solid)
 
       check_incompatible_options(:worker, rails_option: :skip_active_job)
       check_required_option(:worker, required_rails_option: :api)
-
-      check_incompatible_options(:active_storage, rails_option: :skip_active_storage)
-      check_incompatible_options(:rails_tests, rails_option: :skip_test)
     end
 
     def check_incompatible_option(rails_option)

@@ -1,7 +1,7 @@
 <% if dotenv? -%>
 gem 'dotenv-rails'
 <% end -%>
-<% if tests? -%>
+<% if factory_bot? -%>
 gem 'factory_bot_rails'
 <% end -%>
 gem 'listen'
@@ -9,8 +9,9 @@ gem 'listen'
 gem 'rspec-rails'
 <% end -%>
 <% if rubocop? -%>
-gem 'rubocop', require: false
-  <%- if tests? -%>
+# Use master branch while waiting for next version that fixes some CLI options
+gem 'rubocop', require: false, github: 'rubocop/rubocop', branch: 'master'
+  <%- if factory_bot? -%>
 gem 'rubocop-factory_bot', require: false
   <%- end -%>
   <%- if template_options[:rails_tests] -%>

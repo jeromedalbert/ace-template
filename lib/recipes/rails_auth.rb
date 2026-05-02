@@ -114,6 +114,7 @@ module ConfigureRailsAuth
                      before: '  normalizes :email'
 
     add_test_file 'models/user', from: 'auth/rails_auth'
+    add_test_data_file 'users', from: 'auth/tests'
   end
 
   def configure_routes
@@ -160,7 +161,7 @@ module ConfigureRailsAuth
     insert_blank_line 'app/models/current.rb', 'attribute :session'
 
     if tests?
-      copy_file 'auth/tests/factories/sessions.rb', "#{test_folder}/factories/sessions.rb"
+      add_test_data_file 'sessions', from: 'auth/tests'
       remove_file 'test/test_helpers/session_test_helper.rb' if template_options[:rails_tests]
       insert_into_file controller_test_helper_file_path,
                        partial('auth/rails_auth/tests/helpers/controller_helpers.rb.tt', indent: 2),

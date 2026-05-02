@@ -1,0 +1,99 @@
+require 'test_helper'
+
+<%% module_namespacing do -%>
+class <%%= controller_class_name %>ControllerTest < ActionDispatch::IntegrationTest
+  <%- if template_options[:rails_fixtures] -%>
+  setup do
+    @<%%= singular_table_name %> = <%%= fixture_name %>(:one)
+  end
+
+  <%- end -%>
+  test 'index' do
+    get <%%= index_helper(type: :path) %>
+
+    assert_response :ok
+  end
+
+  test 'show' do
+    <%- if factory_bot? -%>
+    create_<%%= singular_table_name %>
+
+    <%- end -%>
+    get <%%= show_helper(type: :path) %>
+
+    assert_response :ok
+  end
+
+  test 'new' do
+    get <%%= new_helper(type: :path) %>
+
+    assert_response :ok
+  end
+
+  test 'edit' do
+    <%- if factory_bot? -%>
+    create_<%%= singular_table_name %>
+
+    <%- end -%>
+    get <%%= edit_helper(type: :path) %>
+
+    assert_response :ok
+  end
+
+  test 'create' do
+    <%- if factory_bot? -%>
+    post <%%= index_helper(type: :path) %>, params: { <%%= singular_table_name %>: attributes_for(:<%%= singular_table_name %>) }
+    <%- else -%>
+    post <%%= index_helper(type: :path) %>, params: { <%%= singular_table_name %>: @<%%= singular_table_name %>.dup.attributes }
+    <%- end -%>
+
+    assert_redirected_to <%%= show_helper("#{class_name}.last") %>
+  end
+
+  test 'create with invalid params' do
+    post <%%= index_helper(type: :path) %>, params: { <%%= singular_table_name %>: { <%%= attributes.first&.column_name || 'my_attribute' %>: '' } }
+
+    assert_response :unprocessable_content
+  end
+
+  test 'update' do
+    <%- if factory_bot? -%>
+    create_<%%= singular_table_name %>
+
+    patch <%%= show_helper(type: :path) %>, params: { <%%= singular_table_name %>: attributes_for(:<%%= singular_table_name %>) }
+    <%- else -%>
+    patch <%%= show_helper(type: :path) %>, params: { <%%= singular_table_name %>: @<%%= singular_table_name %>.dup.attributes }
+    <%- end -%>
+
+    assert_redirected_to <%%= show_helper %>
+  end
+
+  test 'update with invalid params' do
+    <%- if factory_bot? -%>
+    create_<%%= singular_table_name %>
+
+    <%- end -%>
+    patch <%%= show_helper(type: :path) %>, params: { <%%= singular_table_name %>: { <%%= attributes.first&.column_name || 'my_attribute' %>: '' } }
+
+    assert_response :unprocessable_content
+  end
+
+  test 'destroy' do
+    <%- if factory_bot? -%>
+    create_<%%= singular_table_name %>
+
+    <%- end -%>
+    delete <%%= show_helper(type: :path) %>
+
+    assert_redirected_to <%%= index_helper(type: :path) %>
+  end
+  <%- if factory_bot? -%>
+
+  private
+
+  def create_<%%= singular_table_name %>
+    @<%%= singular_table_name %> = create(:<%%= singular_table_name %>)
+  end
+  <%- end -%>
+end
+<%% end -%>

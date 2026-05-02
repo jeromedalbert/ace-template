@@ -61,21 +61,22 @@ module ScaffoldBanana
 
   def configure_user_banana_tests
     return if !tests?
-
-    copy_file 'banana/tests/factories/bananas.rb',
-              "#{test_folder}/factories/bananas.rb",
-              force: true
+    add_test_data_file 'bananas', from: 'banana/tests'
 
     if rspec?
       gsub_file 'spec/controllers/bananas_controller_spec.rb',
                 /  let\(:banana\) { .*\n/,
-                partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
-    else
-      inject_into_class(
-        'test/controllers/bananas_controller_test.rb',
-        'BananasControllerTest',
-        partial('banana/test/controllers/bananas_controller_test_top.rb', :append_nl, indent: 2)
-      )
+                partial('banana/spec/controllers/bananas_controller_spec.rb.tt', indent: 2)
+      return
+    end
+
+    gsub_file(
+      'test/controllers/bananas_controller_test.rb',
+      /(BananasControllerTest.*\n)(  setup .*\n\n)?/,
+      '\1' +
+        partial('banana/test/controllers/bananas_controller_test_top.rb.tt', :append_nl, indent: 2)
+    )
+    if factory_bot?
       gsub_file 'test/controllers/bananas_controller_test.rb',
                 %r{  def create_banana.*  end\n}m,
                 partial('files/banana/test/controllers/bananas_controller_test_end.rb', indent: 2)

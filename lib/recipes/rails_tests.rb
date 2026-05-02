@@ -1,15 +1,17 @@
 remove_comments 'test/test_helper.rb'
-delete_line 'test/test_helper.rb', %r{    fixtures :all}
+delete_line 'test/test_helper.rb', %r{    fixtures :all} if factory_bot?
 format_code 'test/test_helper.rb'
 insert_into_file 'test/test_helper.rb',
                  partial('tests/rails/test/test_helper_top.rb.tt', :prepend_nl),
                  after: "require 'rails/test_help'\n"
-insert_into_file 'test/test_helper.rb',
-                 partial('tests/rails/test/test_helper_test_case.rb', :prepend_nl, indent: 4),
-                 before: /^  end/
+if factory_bot?
+  insert_into_file 'test/test_helper.rb',
+                   partial('tests/rails/test/test_helper_test_case.rb', :prepend_nl, indent: 4),
+                   before: /^  end/
+end
 append_to_file 'test/test_helper.rb', partial('tests/rails/test/test_helper_end.rb', :prepend_nl)
 
-empty_directory_with_keep_file 'test/factories'
+empty_directory_with_keep_file 'test/factories' if factory_bot?
 
 copy_file 'tests/rails/test/test_helpers/controller_test_helper.rb',
           'test/test_helpers/controller_test_helper.rb'

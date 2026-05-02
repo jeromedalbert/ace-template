@@ -37,8 +37,6 @@ class EndToEndTest < Minitest::Test
     @env = nil
   end
 
-  private
-
   def run_command(command, capture_errors: false, keypresses: nil)
     method = capture_errors ? :capture2e : :capture2
     command = "#{@env} #{command}" if @env
@@ -48,25 +46,6 @@ class EndToEndTest < Minitest::Test
     raise_failed(output) if !status.success? && !capture_errors
 
     output
-  end
-
-  def raise_failed(output)
-    decoration = '#' * 30
-    message = 'Command failed.'
-
-    message = <<~EOS if output.present?
-      #{message}
-
-      #{decoration}###############{decoration}
-      #{decoration} STDOUT START #{decoration}
-      #{decoration}###############{decoration}\n
-      #{output}
-      #{decoration}#############{decoration}
-      #{decoration} STDOUT END #{decoration}
-      #{decoration}#############{decoration}
-    EOS
-
-    raise message
   end
 
   def run_rails_new(options = '', capture_errors: false, keypresses: nil, version: nil)
@@ -85,22 +64,6 @@ class EndToEndTest < Minitest::Test
 
     Dir.chdir('tmp/myapp') if Dir.exist?('tmp/myapp')
     output
-  end
-
-  def ensure_rails_installed(version)
-    run_command("gem install rails -v #{version} --conservative")
-  end
-
-  def reuse_app?
-    if ENV['REUSE_APP']
-      if Dir.exist?('tmp/myapp')
-        return true
-      else
-        puts "my_app is missing. Running `rails new`...\n\n"
-      end
-    end
-
-    false
   end
 
   def assert_command_success(command)
@@ -150,12 +113,81 @@ class EndToEndTest < Minitest::Test
     refute_path_exists dir_path
   end
 
+  def assert_test_file(test_file_partial_path, *contents, &)
+    suffix = rspec? ? '_spec.rb' : '_test.rb'
+
+    assert_file("#{test_folder}/#{test_file_partial_path}#{suffix}", *contents, &)
+  end
+
+  def assert_test_data_file(name, *contents, &)
+    ext = factory_bot? ? 'rb' : 'yml'
+
+    assert_file("#{test_folder}/#{test_data_folder}/#{name}.#{ext}", *contents, &)
+  end
+
   def assert_commit(commit_message)
     assert_includes commits, commit_message
   end
 
   def commits
     @commits ||= run_command('git log --pretty=format:%s').split("\n")
+  end
+
+  def rspec?
+    @rspec ||= Dir.exist?('spec')
+  end
+
+  def factory_bot?
+    @factory_bot ||= File.read('Gemfile').include?('factory_bot')
+  end
+
+  def css_framework?
+    @css_framework ||= Dir['**/tailwind/application.css', '**/application.bootstrap.scss'].any?
+  end
+
+  def test_folder
+    rspec? ? 'spec' : 'test'
+  end
+
+  def test_data_folder
+    factory_bot? ? 'factories' : 'fixtures'
+  end
+
+  private
+
+  def raise_failed(output)
+    decoration = '#' * 30
+    message = 'Command failed.'
+
+    message = <<~EOS if output.present?
+      #{message}
+
+      #{decoration}###############{decoration}
+      #{decoration} STDOUT START #{decoration}
+      #{decoration}###############{decoration}\n
+      #{output}
+      #{decoration}#############{decoration}
+      #{decoration} STDOUT END #{decoration}
+      #{decoration}#############{decoration}
+    EOS
+
+    raise message
+  end
+
+  def ensure_rails_installed(version)
+    run_command("gem install rails -v #{version} --conservative")
+  end
+
+  def reuse_app?
+    if ENV['REUSE_APP']
+      if Dir.exist?('tmp/myapp')
+        return true
+      else
+        puts "my_app is missing. Running `rails new`...\n\n"
+      end
+    end
+
+    false
   end
 end
 

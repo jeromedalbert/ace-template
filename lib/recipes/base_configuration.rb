@@ -80,7 +80,11 @@ module SetupBaseConfiguration
 
     if !rspec?
       delete_line '.rubocop.yml', "  - rubocop-rspec\n  - rubocop-rspec_rails"
-      gsub_file '.rubocop.yml', %r{RSpec/(.*\n)*\n}, ''
+      gsub_file '.rubocop.yml', %r{(RSpec/.*\n(  .*\n)*)+\n}, ''
+    end
+    if !factory_bot?
+      delete_line '.rubocop.yml', '  - rubocop-factory_bot'
+      gsub_file '.rubocop.yml', %r{(FactoryBot/.*\n(  .*\n)*)+\n}, ''
     end
     if template_options[:rails_tests]
       insert_into_file '.rubocop.yml',

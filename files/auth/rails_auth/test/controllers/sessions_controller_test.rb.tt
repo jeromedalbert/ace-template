@@ -8,9 +8,16 @@ class SessionsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test 'create' do
+    <%- if factory_bot? -%>
     create(:user, email: 'john@test.com', password: 'abc123')
 
     post session_path, params: { email: 'john@test.com', password: 'abc123' }
+    <%- else -%>
+    user = users(:john)
+    user.update!(password: 'abc123')
+
+    post session_path, params: { email: user.email, password: 'abc123' }
+    <%- end -%>
 
     assert_redirected_to root_path
     assert cookies[:session_id]

@@ -1,6 +1,12 @@
 def authenticate(user = nil)
+  <%- if factory_bot? -%>
   user ||= build(:user)
   session = create(:session, user: user)
+  <%- else -%>
+  user ||= users(:john)
+  session = sessions(:john)
+  session.update!(user: user) if session.user != user
+  <%- end -%>
 
   <%- if rspec? -%>
   cookies.signed[:session_id] = session.id

@@ -1,5 +1,9 @@
 def authenticate(user = nil)
+  <%- if factory_bot? -%>
   user ||= create(:user)
+  <%- else -%>
+  user ||= users(:john)
+  <%- end -%>
 
   sign_in user
 

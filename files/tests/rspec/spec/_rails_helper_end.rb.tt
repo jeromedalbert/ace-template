@@ -1,2 +1,4 @@
 config.include ActiveSupport::Testing::TimeHelpers
+<% if factory_bot? -%>
 config.include FactoryBot::Syntax::Methods
+<% end -%>

@@ -82,16 +82,27 @@ module EndToEnd
     end
 
     def test_rails_options
-      output = run_rails_new('-o rails-creds,rails-tests,auth=rails,banana,generators')
+      output = run_rails_new('-o rails-creds,rails-fixtures,rails-tests,auth=rails,banana')
 
       assert_template_done(output)
       assert_app_works
       assert_rails_creds_option
       assert_rails_tests_option
+      assert_rails_fixtures
       assert_auth_rails_option
       assert_banana_option
       assert_banana_linked_to_user
-      assert_generators_option
+    end
+
+    def test_rails_fixtures_option_with_rspec
+      output = run_rails_new('-o rails-fixtures,auth=rails,banana')
+
+      assert_template_done(output)
+      assert_app_works
+      assert_rails_fixtures
+      assert_auth_rails_option
+      assert_banana_option
+      assert_banana_linked_to_user
     end
 
     def test_worker_option
@@ -336,10 +347,6 @@ module EndToEnd
       assert_commit 'Set up views'
     end
 
-    def rspec?
-      @rspec ||= Dir.exist?('spec')
-    end
-
     def assert_app_works
       assert_command_success 'bin/rails boot'
       assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
@@ -363,15 +370,9 @@ module EndToEnd
       assert_dir 'app/views/bananas'
       assert_file 'config/routes.rb', 'resources :bananas'
 
-      if rspec?
-        assert_file 'spec/controllers/bananas_controller_spec.rb'
-        assert_file 'spec/models/banana_spec.rb'
-        assert_file 'spec/factories/bananas.rb'
-      else
-        assert_file 'test/controllers/bananas_controller_test.rb'
-        assert_file 'test/models/banana_test.rb'
-        assert_file 'test/factories/bananas.rb'
-      end
+      assert_test_file 'controllers/bananas_controller'
+      assert_test_file 'models/banana'
+      assert_test_data_file 'bananas'
 
       assert_equal '0', run_command("bin/rails runner 'puts Banana.count'").strip
     end
@@ -413,24 +414,17 @@ module EndToEnd
         assert_match(/delete ['"]logout/, content)
       end
 
+      assert_test_file 'models/user'
+      assert_test_data_file 'users'
+      assert_test_data_file 'sessions'
       if rspec?
-        assert_file 'spec/models/user_spec.rb'
-        assert_file 'spec/factories/users.rb'
-        assert_file 'spec/factories/sessions.rb'
         assert_file 'spec/rails_helper.rb', 'Current.reset'
         assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
       else
-        assert_file 'test/models/user_test.rb'
-        assert_file 'test/factories/users.rb'
-        assert_file 'test/factories/sessions.rb'
         assert_file 'test/test_helpers/controller_test_helper.rb', 'def authenticate'
       end
 
       assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
-    end
-
-    def css_framework?
-      @css_framework ||= Dir['**/tailwind/application.css', '**/application.bootstrap.scss'].any?
     end
 
     def assert_banana_in_header
@@ -440,10 +434,10 @@ module EndToEnd
     def assert_banana_linked_to_user
       assert_file 'app/models/banana.rb', 'belongs_to :user'
       assert_file 'app/models/user.rb', 'has_many :bananas'
-      if rspec?
-        assert_file 'spec/factories/bananas.rb', 'association :user'
+      if factory_bot?
+        assert_test_data_file 'bananas', 'association :user'
       else
-        assert_file 'test/factories/bananas.rb', 'association :user'
+        assert_test_data_file 'bananas', 'user: john'
       end
 
       assert_file 'app/controllers/bananas_controller.rb', 'current_user.bananas'
@@ -624,12 +618,20 @@ module EndToEnd
         assert_includes content, 'minitest/reporters'
         assert_includes content, 'mocha'
         assert_includes content, 'webmock'
-        assert_includes content, 'FactoryBot'
+        assert_includes content, 'FactoryBot' if factory_bot?
       end
-      assert_dir 'test/factories'
+      assert_dir "test/#{test_data_folder}"
       assert_dir 'test/test_helpers'
 
       assert_commit 'Configure tests'
+    end
+
+    def assert_rails_fixtures
+      refute_gemfile 'factory_bot_rails'
+      refute_gemfile 'rubocop-factory_bot'
+
+      assert_dir "#{test_folder}/fixtures"
+      refute_dir "#{test_folder}/factories"
     end
   end
 end

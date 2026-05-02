@@ -28,6 +28,7 @@ module ConfigureDevise
                    partial('auth/devise/app/models/user.rb', :prepend_nl, indent: 2)
 
     add_test_file 'models/user', from: 'auth/devise'
+    add_test_data_file 'users', from: 'auth/tests'
   end
 
   def configure_controllers
@@ -38,7 +39,7 @@ module ConfigureDevise
 
     if tests?
       insert_into_file controller_test_helper_file_path,
-                       partial('auth/devise/tests/helpers/controller_helpers.rb', indent: 2),
+                       partial('auth/devise/tests/helpers/controller_helpers.rb.tt', indent: 2),
                        before: /end\n/
     end
   end

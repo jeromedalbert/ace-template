@@ -1,0 +1,9 @@
+setup do
+  <%- if factory_bot? -%>
+  @user = create(:user)
+  authenticate(@user)
+  <%- else -%>
+  @banana = bananas(:cavendish)
+  authenticate(@banana.user)
+  <%- end -%>
+end

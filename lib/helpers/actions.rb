@@ -18,7 +18,7 @@ module Actions
     run command.join(' '), capture: true, abort_on_failure: false
 
     if !@formatted_gemfile
-      format_rubocop('Gemfile --only Bundler/OrderedGems --config /dev/null')
+      format_rubocop('Gemfile --only Bundler/OrderedGems --force-default-config')
       @formatted_gemfile = true
     end
   end
@@ -123,6 +123,16 @@ module Actions
     file_path = file_partial_path + (rspec? ? '_spec.rb' : '_test.rb')
 
     template "#{source_folder}/#{file_path}", "#{test_folder}/#{file_path}", force: true
+  end
+
+  def add_test_data_file(name, from:)
+    return if !tests?
+    test_data_folder = factory_bot? ? 'factories' : 'fixtures'
+    ext = factory_bot? ? 'rb' : 'yml'
+
+    copy_file "#{from}/#{test_data_folder}/#{name}.#{ext}",
+              "#{test_folder}/#{test_data_folder}/#{name}.#{ext}",
+              force: true
   end
 
   def copy_file_from(folder, file_path, ...)

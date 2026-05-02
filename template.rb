@@ -28,6 +28,7 @@ module Template
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       rails-creds              # Use Rails credentials to manage secrets
+      rails-fixtures           # Use Rails fixtures for test data
       rails-tests              # Use Rails test cases backed by Minitest
       redis                    # Add Redis
       solid-dev                # Set up Solid adapters for development
@@ -202,12 +203,11 @@ module Template
   end
 
   def configure_auth
-    if tests?
-      copy_file 'auth/tests/factories/users.rb', "#{test_folder}/factories/users.rb", force: true
-      if rspec?
-        add_before_end 'spec/rails_helper.rb',
-                       partial('auth/tests/spec/rails_helper.rb', :prepend_nl, indent: 2)
-      end
+    if rspec?
+      add_before_end(
+        'spec/rails_helper.rb',
+        partial('auth/tests/spec/rails_helper.rb', :prepend_nl, indent: 2)
+      )
     end
 
     apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'

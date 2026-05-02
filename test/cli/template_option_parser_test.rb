@@ -118,6 +118,16 @@ module CLI
       assert_raises(SystemExit) { @parser.parse(%w[new -o banana]) }
     end
 
+    def test_active_storage_option_with_rails_skip_active_storage_option
+      @parser = TemplateOptionParser.new(build_app(skip_active_storage: true))
+
+      expect_error(
+        'active-storage template option is incompatible with Rails --skip-active-storage option'
+      )
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o active-storage]) }
+    end
+
     def test_auth_option_with_rails_skip_active_record_option
       @parser = TemplateOptionParser.new(build_app(skip_active_record: true))
 
@@ -132,6 +142,22 @@ module CLI
       expect_error('banana template option is incompatible with Rails --skip-active-record option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o banana]) }
+    end
+
+    def test_rails_tests_option_with_rails_skip_test_option
+      @parser = TemplateOptionParser.new(build_app(skip_test: true))
+
+      expect_error('rails-tests template option is incompatible with Rails --skip-test option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o rails-tests]) }
+    end
+
+    def test_rails_fixtures_option_with_rails_skip_test_option
+      @parser = TemplateOptionParser.new(build_app(skip_test: true))
+
+      expect_error('rails-fixtures template option is incompatible with Rails --skip-test option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o rails-fixtures]) }
     end
 
     def test_solid_dev_option_with_rails_skip_solid_option
@@ -162,24 +188,6 @@ module CLI
       expect_error('worker template option is incompatible with Rails --skip-active-job option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o worker]) }
-    end
-
-    def test_active_storage_option_with_rails_skip_active_storage_option
-      @parser = TemplateOptionParser.new(build_app(skip_active_storage: true))
-
-      expect_error(
-        'active-storage template option is incompatible with Rails --skip-active-storage option'
-      )
-
-      assert_raises(SystemExit) { @parser.parse(%w[new -o active-storage]) }
-    end
-
-    def test_rails_tests_option_with_rails_skip_test_option
-      @parser = TemplateOptionParser.new(build_app(skip_test: true))
-
-      expect_error('rails-tests template option is incompatible with Rails --skip-test option')
-
-      assert_raises(SystemExit) { @parser.parse(%w[new -o rails-tests]) }
     end
 
     private

@@ -1,0 +1,10 @@
+<% if factory_bot? -%>
+let(:user) { create(:user) }
+let(:banana) { create(:banana, user: user) }
+
+before { authenticate(user) }
+<% else -%>
+let(:banana) { bananas(:cavendish) }
+
+before { authenticate(banana.user) }
+<% end -%>

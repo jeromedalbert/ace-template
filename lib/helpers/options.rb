@@ -59,7 +59,7 @@ module Options
   end
 
   def factory_bot?
-    true
+    tests? && !template_options[:rails_fixtures]
   end
 
   def template_defaults?
