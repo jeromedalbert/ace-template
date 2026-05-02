@@ -708,7 +708,8 @@ module Template
 
     File.write 'Procfile.dev', "worker: bin/jobs\n"
     gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
-    gsub_file 'Dockerfile', /CMD .*/, 'CMD ["bin/jobs"]'
+    gsub_file 'Dockerfile', /# Start server.*/, '# Start background jobs'
+    gsub_file 'Dockerfile', /EXPOSE .*\nCMD .*/, 'CMD ["bin/jobs"]'
     gsub_file 'bin/docker-entrypoint', 'running the rails server', 'processing jobs'
     gsub_file 'bin/docker-entrypoint', %r{if .*bin/rails.*then}, 'if [ $1 == "bin/jobs" ]; then'
 
