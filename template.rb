@@ -223,26 +223,30 @@ module Template
     gsub_file 'config/database.yml', '"', "'"
 
     insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
-
-    if template_options[:solid_dev]
-      database_yml_content =
-        File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
-      databases =
-        Regexp.last_match(0).remove(' &primary_production').gsub(/primary_production/, 'default')
-      File.write 'config/database.yml', database_yml_content
-      insert_into_file 'config/database.yml',
-                       "databases: &databases\n#{databases}\n",
-                       before: 'development:'
-      gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
-    end
+    configure_solid_dev if template_options[:solid_dev]
 
     commit 'Configure database'
+  end
+
+  def configure_solid_dev
+    database_yml_content =
+      File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
+    databases_config =
+      Regexp.last_match(0).remove(' &primary_production').gsub(/primary_production/, 'default')
+
+    File.write 'config/database.yml', database_yml_content
+    insert_into_file 'config/database.yml',
+                     "databases: &databases\n#{databases_config}\n",
+                     before: 'development:'
+
+    gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
   end
 
   def configure_sqlite
     return if !template_options[:solid_dev]
 
-    FileUtils.touch('a')
+    configure_solid_dev
+    gsub_file 'config/database.yml', %r{(    database: storage/)production}, '\1<%= Rails.env %>'
 
     commit 'Configure database'
   end
