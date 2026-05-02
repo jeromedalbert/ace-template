@@ -2,7 +2,7 @@
 
   <div class="flex justify-between items-center mb-8">
     <h1 class="font-bold text-4xl"><%= human_name.pluralize %></h1>
-    <%%= link_to "New <%= human_name.downcase %>", <%= new_helper(type: :path) %>, class: "rounded-lg py-3 px-5 bg-blue-600 text-white block font-medium" %>
+    <%%= link_to "New <%= human_name.downcase %>", <%= new_helper(type: :path) %>, class: "rounded-md px-3.5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white block font-medium" %>
   </div>
 
   <table class="min-w-full divide-y divide-gray-200">
@@ -40,9 +40,9 @@
           </td>
           <%- end -%>
           <td class="pl-6 py-4 text-right font-medium">
-            <%%= link_to "Show", <%= singular_table_name %>, class: "ml-2 rounded-lg py-2 px-4 bg-gray-100 inline-block font-medium" %>
-            <%%= link_to "Edit", <%= edit_helper(singular_table_name, type: :path) %>, class: "ml-2 rounded-lg py-2 px-4 bg-gray-100 inline-block font-medium" %>
-            <%%= link_to "Destroy", <%= singular_table_name %>, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "ml-2 rounded-lg py-2 px-4 bg-gray-100 inline-block font-medium" %>
+            <%%= link_to "Show", <%= singular_table_name %>, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
+            <%%= link_to "Edit", <%= edit_helper(singular_table_name, type: :path) %>, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
+            <%%= link_to "Destroy", <%= singular_table_name %>, data: { turbo_method: :delete, turbo_confirm: "Are you sure?" }, class: "ml-2 rounded-md px-3.5 py-2.5 bg-gray-100 hover:bg-gray-50 inline-block font-medium" %>
           </td>
         </tr>
       <%% end %>

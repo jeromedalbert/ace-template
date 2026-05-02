@@ -7,7 +7,7 @@
 
     <% flash.each do |flash_name, flash_msg| %>
       <p
-        class="py-2 px-3 font-medium rounded-lg inline-block
+        class="py-2 px-3 font-medium rounded-md inline-block
         <%= ApplicationHelper::TAILWIND_ALERT_CLASSES[flash_name] %>"
       >
         <%= flash_msg %>

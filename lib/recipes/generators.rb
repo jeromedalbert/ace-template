@@ -33,11 +33,9 @@ module SetupGenerators
       'lib/templates/erb/scaffold/show.html.erb'
     )
     gsub_file 'lib/templates/erb/scaffold/show.html.erb',
-              %r{    <div.*button_to "Destroy.*.   </div>\n}m,
+              %r{  <div.*button_to "Destroy.*  </div>\n}m,
               ''
-    gsub_file 'lib/templates/erb/scaffold/show.html.erb',
-              %r{    <%% if notice.*    <%% end %>\n\n}m,
-              ''
+    gsub_file 'lib/templates/erb/scaffold/show.html.erb', %r{  <%% if notice.*  <%% end %>\n\n}m, ''
 
     get_rails_file(
       'tailwindcss-rails',
