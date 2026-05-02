@@ -1,5 +1,4 @@
 require 'bundler'
-require 'open3'
 
 module Actions
   def run(command, config = {})
@@ -27,16 +26,24 @@ module Actions
     run "bundle exec rubocop -A #{options}", capture: true
   end
 
+  def show_help
+    delete_created_app
+
+    puts "\n#{Template::HELP_BANNER}\n"
+
+    exit
+  end
+
+  def delete_created_app
+    remove_dir(destination_root, verbose: false) if @app_created
+  end
+
   def emit_template_error(message)
     delete_created_app
 
     say("\n[ERROR] #{message}\n\n", :red)
 
     abort
-  end
-
-  def delete_created_app
-    remove_dir(destination_root) if Time.now - File.ctime(destination_root) <= 10
   end
 
   def emit_critical_error(message)

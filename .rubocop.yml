@@ -72,6 +72,10 @@ Minitest/RefutePredicate:
 Performance/StringIdentifierArgument:
   Enabled: false
 
+Security/Eval:
+  Exclude:
+    - 'test/cli/template_option_parser_test.rb'
+
 Style/ClassMethodsDefinitions:
   Enabled: true
 Style/CollectionMethods:

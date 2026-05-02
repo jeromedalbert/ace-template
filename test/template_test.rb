@@ -21,24 +21,7 @@ class TemplateTest < Minitest::Test
     output = run_rails_new('-o foo', capture_errors: true)
 
     assert_includes output, 'Invalid template option: foo'
-  end
-
-  def test_worker_option_without_api_option
-    output = run_rails_new('-o worker', capture_errors: true)
-
-    assert_match(/worker .* option requires .* --api option/, output)
-  end
-
-  def test_solid_dev_option_with_skip_solid_option
-    output = run_rails_new('-o solid_dev --skip-solid', capture_errors: true)
-
-    assert_match(/solid_dev .* option is incompatible with Rails --skip-solid/, output)
-  end
-
-  def test_solid_dev_option_with_incompatible_database_option
-    output = run_rails_new('-o solid_dev --database trilogy', capture_errors: true)
-
-    assert_match(/solid_dev .* option .* only works for .*/, output)
+    assert_app_deleted
   end
 
   def test_all_and_tailwind_options
@@ -290,6 +273,10 @@ class TemplateTest < Minitest::Test
     secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
     File.write('.kamal/secrets.production', secrets)
     assert_command_success 'bin/kamal config'
+  end
+
+  def assert_app_deleted
+    refute_equal 'myapp', File.basename(Dir.pwd)
   end
 
   def assert_active_storage_option

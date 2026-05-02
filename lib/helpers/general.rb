@@ -51,6 +51,14 @@ module General
 
     prepend.to_s + indent(file_content, indent) + append.to_s
   end
+
+  def help_banner
+    Template::HELP_BANNER
+  end
+
+  def supported_databases
+    Template::SUPPORTED_DATABASES
+  end
 end
 
 extend General

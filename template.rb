@@ -1,4 +1,3 @@
-require 'active_support'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string'
 
@@ -9,7 +8,11 @@ module Template
     ######################
 
     Usage:
-      rails new APP_PATH -m /path/to/template.rb [-o option1,option2,...] [rails options]
+      rails new APP_PATH -m /path/to/template.rb [-o option1,option2,...] [-i] [rails options]
+
+    Description:
+      Generates a Rails application with curated defaults. For more customization,
+      you can provide template options manually with `-o` or interactively with `-i`.
 
     Template Options:
       active_storage           # Install active storage
@@ -23,8 +26,8 @@ module Template
                                # (defaults to rollbar)
       generators               # Add improved scaffolding generators and templates
       noskip                   # Do not skip Action Mailbox, Action Text, Jbuilder, and Rails' test framework
-      omakase                  # active_storage, auth, banana, squash, and vcr options
       pundit                   # Add Pundit authorization
+      quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       redis                    # Add Redis
       solid_dev                # Set up Solid adapters for development
       squash                   # Squash all commits into a single "Initial commit"
@@ -35,6 +38,7 @@ module Template
       rails new myapp -m /path/to/template.rb
       rails new myapp -m /path/to/template.rb -o banana
       rails new myapp -m /path/to/template.rb -o banana,auth,errors=sentry --css tailwind
+      rails new myapp -m /path/to/template.rb -i
   EOS
   REQUIRED_RAILS_VERSIONS = '>= 8.0'
   SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'
@@ -65,9 +69,10 @@ module Template
 
   def initialize
     set_source_paths
+    set_app_created
 
-    apply 'lib/helpers/actions.rb', verbose: false
     apply 'lib/helpers/general.rb', verbose: false
+    apply 'lib/helpers/actions.rb', verbose: false
     apply 'lib/helpers/options.rb', verbose: false
 
     parse_template_options
@@ -89,6 +94,10 @@ module Template
     end
 
     source_paths.prepend("#{base_dir}/files/base", "#{base_dir}/files", base_dir)
+  end
+
+  def set_app_created
+    @app_created = Time.now - File.ctime(destination_root) <= 10
   end
 
   def configure_gemfile
@@ -136,7 +145,8 @@ module Template
 
   def emit_pre_bundle_message
     message = "Generating app `#{app_name}`"
-    message << " with template options `#{@raw_template_options}`" if @raw_template_options
+
+    message << " with template options `#{@selected_options_string}`" if @selected_options_string
 
     emit_info message
   end

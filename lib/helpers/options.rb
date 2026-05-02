@@ -1,12 +1,13 @@
+require_relative '../cli/template_option_parser'
+
 module Options
   attr_accessor :template_options
 
   def parse_template_options
-    parse_options
+    result = CLI::TemplateOptionParser.new(self).parse(ARGV)
 
-    imply_options
-    set_options_defaults
-    ensure_compatible_options
+    @template_options = result.template_options
+    @selected_options_string = result.selected_options_string
   end
 
   def asset_pipeline?
@@ -75,111 +76,6 @@ module Options
 
     self.options = old_rails_options
     @required_railties = old_required_railties
-  end
-
-  private
-
-  def parse_options
-    @template_options = {}
-    @raw_template_options =
-      Thor::Options
-        .new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
-        .parse(ARGV)
-        .dig('template_options')
-    return if @raw_template_options.nil?
-
-    show_help if @raw_template_options.in?(%w[h help template_options])
-    ensure_valid_app_path
-    allowed_options = Template::HELP_BANNER.scan(/^  ([a-z_]+).*#/).flatten
-
-    @raw_template_options
-      .split(',')
-      .each do |option|
-        option_key, option_value = option.split('=')
-        if !option_key.underscore.in?(allowed_options)
-          emit_template_error("Invalid template option: #{option_key}")
-        end
-        @template_options[option_key.underscore.to_sym] = option_value || true
-      end
-  end
-
-  def show_help
-    delete_created_app
-
-    puts "\n#{Template::HELP_BANNER}\n"
-
-    exit
-  end
-
-  def ensure_valid_app_path
-    emit_template_error 'First argument must be the app path' if app_path.start_with?('-')
-  end
-
-  def imply_options
-    if @template_options[:all]
-      @template_options.merge!(
-        auth: true,
-        dependabot: true,
-        errors: true,
-        generators: true,
-        omakase: true,
-        pundit: true,
-        redis: true,
-        solid_dev: true
-      )
-    end
-
-    if @template_options[:omakase]
-      @template_options.merge!(
-        active_storage: true,
-        auth: true,
-        banana: true,
-        squash: true,
-        vcr: true
-      )
-    end
-
-    @template_options[:solid_dev] = true if @template_options[:worker] && solid?
-  end
-
-  def set_options_defaults
-    set_multi_option_default(:auth, 'rails')
-    set_multi_option_default(:errors, 'rollbar')
-  end
-
-  def set_multi_option_default(option, default)
-    if @template_options.key?(option) && !@template_options[option].is_a?(String)
-      @template_options[option] = default
-    end
-  end
-
-  def ensure_compatible_options
-    if options[:skip_bundle]
-      emit_template_error 'This template is incompatible with Rails --skip-bundle option'
-    end
-    if options[:skip_git]
-      emit_template_error 'This template is incompatible with Rails --skip-git option'
-    end
-
-    if @template_options[:active_storage] && skip_active_storage?
-      emit_template_error 'active_storage template option is incompatible with Rails --skip-active-storage option'
-    end
-
-    if @template_options[:worker]
-      emit_template_error 'worker template option requires Rails --api option' if !options[:api]
-      if options[:skip_active_job]
-        emit_template_error 'worker template option is incompatible with Rails --skip-active-job option'
-      end
-    end
-
-    if @template_options[:solid_dev]
-      if skip_solid?
-        emit_template_error 'solid_dev template option is incompatible with Rails --skip-solid option'
-      elsif !options[:database].in?(Template::SUPPORTED_DATABASES)
-        emit_template_error 'solid_dev template option currently only works for ' \
-                              "#{Template::SUPPORTED_DATABASES.to_sentence}."
-      end
-    end
   end
 end
 

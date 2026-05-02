@@ -3,7 +3,11 @@ require 'active_support/core_ext/object'
 require 'bundler'
 require 'minitest/autorun'
 require 'minitest/reporters'
+require 'mocha/minitest'
 require 'open3'
+require 'rails/generators/rails/app/app_generator'
+require 'tty-cursor'
+require 'tty-reader'
 
 Minitest::Reporters.use! [Minitest::Reporters::DefaultReporter.new]
 
