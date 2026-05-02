@@ -114,11 +114,6 @@ module Template
 
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
-    if !File.exist?('bin/dev')
-      @single_server = true
-      get 'https://raw.githubusercontent.com/rails/jsbundling-rails/main/lib/install/dev', 'bin/dev'
-      chmod 'bin/dev', '+x'
-    end
     generate_binstub('syntax_tree', 'stree')
 
     template 'README.md.tt', force: true
