@@ -6,10 +6,12 @@ TEMPLATE_OPTIONS = <<~EOS
     -o, [--template-options=option1,option2,...]
         # Available options:
         #
+        #   - all: all options except worker
         #   - banana: scaffold a dummy Banana resource for demo purposes
         #   - dependabot: enable GitHub Dependabot
         #   - devise: add Devise authentication
         #   - generators: add custom generators for improved scaffolding
+        #   - omakase: banana, devise, squash, and vcr options
         #   - pundit: add Pundit authorization
         #   - redis
         #   - squash: squash all commits into a single "Initial commit"

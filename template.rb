@@ -610,6 +610,19 @@ module TemplateHelpers
         options.split(',').map { |option| [option.to_sym, true] }.to_h
       end
 
+    if @template_options[:all]
+      @template_options.merge!(
+        dependabot: true,
+        generators: true,
+        omakase: true,
+        pundit: true,
+        redis: true
+      )
+    end
+    if @template_options[:omakase]
+      @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
+    end
+
     @template_options
   end
 
