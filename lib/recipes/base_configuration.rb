@@ -163,10 +163,10 @@ module SetupBaseConfiguration
 
     if File.exist?('config/ci.rb')
       gsub_file 'config/ci.rb', 'Style: Ruby', 'Style: Rubocop' if rubocop?
-      insert_into_file(
+      gsub_file(
         'config/ci.rb',
-        %(  step 'Style: SyntaxTree', 'bin/stree check $(git ls-files "*.rb" Gemfile Rakefile)'\n),
-        after: %r{bin/rubocop.*\n}
+        /( *)(step .*rubocop.*\n)/,
+        %(\\1\\2\\1step 'Style: SyntaxTree', 'bin/stree check $(git ls-files "*.rb" Gemfile Rakefile)'\n)
       )
     end
   end
