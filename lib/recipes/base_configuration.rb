@@ -105,7 +105,7 @@ module SetupBaseConfiguration
     copy_file '.rubocop.yml', force: true
 
     if !rspec?
-      delete_line '.rubocop.yml', "  - rubocop-rspec\n  - rubocop-rspec_rails"
+      delete_lines '.rubocop.yml', "  - rubocop-rspec\n  - rubocop-rspec_rails"
       gsub_file '.rubocop.yml', %r{(RSpec/.*\n(  .*\n)*)+\n}, ''
     end
     if !factory_bot?
@@ -174,7 +174,7 @@ module SetupBaseConfiguration
   def configure_double_quotes
     if template_options[:double]
       gsub_file '.streerc', 'plugin/single_quotes,', '' if ace_template_defaults?
-      delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*} if rubocop?
+      delete_lines '.rubocop.yml', %r{Style/StringLiterals.*\n  .*} if rubocop?
     end
   end
 end

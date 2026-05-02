@@ -17,7 +17,7 @@ module ConfigureDevise
   def configure_migration
     migration_file = find_file('db/migrate/*_devise_create_users.rb')
 
-    delete_line migration_file, /^ *##.*\n(^ *#.*\n)+/
+    delete_lines migration_file, /^ *##.*\n(^ *#.*\n)+/
     gsub_file migration_file, /.*class/m, 'class'
     gsub_file migration_file, %r{ *# add_index.*. end}m, '  end'
   end

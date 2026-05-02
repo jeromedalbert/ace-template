@@ -1,5 +1,5 @@
 remove_comments 'config/cable.yml'
-delete_line 'config/cable.yml', /development:\n(  .*\n)*/
+delete_lines 'config/cable.yml', /development:\n(  .*\n)*/
 gsub_file 'config/cable.yml', 'production:', 'production: &production'
 append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
 

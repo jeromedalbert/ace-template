@@ -182,6 +182,7 @@ module Actions
   def delete_line(file_path, line_pattern)
     gsub_file file_path, /^#{line_pattern}\n/, ''
   end
+  alias_method :delete_lines, :delete_line
 
   def move_line(file_path, line_pattern, *nl_opts, **opts)
     line = File.read(file_path)[/^#{line_pattern}/]

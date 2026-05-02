@@ -35,10 +35,10 @@ if ci?
   gsub_file '.github/workflows/ci.yml',
             %r{ *run: bin/rails db:test.*\n},
             partial('tests/rspec/spec/.github/workflows/ci.yml', indent: 8)
-  delete_line '.github/workflows/ci.yml', /\n  system-test:.*/m
+  delete_lines '.github/workflows/ci.yml', /\n  system-test:.*/m
 
   if File.exist?('config/ci.rb')
-    delete_line 'config/ci.rb', /.*Tests: System.*/
+    delete_lines 'config/ci.rb', /(  # .*\n)?.*Tests: System.*\n/
     gsub_file 'config/ci.rb', 'bin/rails test', 'bin/rspec'
   end
 end
