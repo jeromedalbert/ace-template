@@ -4,7 +4,7 @@ class EndToEndTest < Minitest::Test
   def setup
     Dir.chdir("#{__dir__}/..")
 
-    FileUtils.rm_rf('myapp') if !ENV['REUSE_APP']
+    FileUtils.rm_rf('tmp/myapp') if !ENV['REUSE_APP']
 
     @commits = nil
     @env = nil
@@ -42,12 +42,12 @@ class EndToEndTest < Minitest::Test
   end
 
   def run_rails_new(options = '', capture_errors: false)
-    command = "rails new myapp -m #{File.expand_path('template.rb')}"
+    command = "rails new tmp/myapp -m #{File.expand_path('template.rb')}"
     command << " #{options}" if options.present?
 
     output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
 
-    Dir.chdir('myapp') if Dir.exist?('myapp')
+    Dir.chdir('tmp/myapp') if Dir.exist?('tmp/myapp')
     output
   end
 
