@@ -106,6 +106,8 @@ Layout/ClassStructure:
     - public_methods
     - protected_methods
     - private_methods
+Layout/EmptyLineBetweenDefs:
+  AllowAdjacentOneLineDefs: true
 Layout/LineLength:
   Max: 100
 Layout/SpaceInsideHashLiteralBraces:
