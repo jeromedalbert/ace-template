@@ -53,9 +53,9 @@ module Template
   private
 
   def initialize
-    apply 'lib/helpers/actions.rb'
-    apply 'lib/helpers/general.rb'
-    apply 'lib/helpers/options.rb'
+    apply 'lib/helpers/actions.rb', verbose: false
+    apply 'lib/helpers/general.rb', verbose: false
+    apply 'lib/helpers/options.rb', verbose: false
 
     parse_template_options
   end
