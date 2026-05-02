@@ -14,7 +14,7 @@ module Template
           #   - banana: scaffold a dummy Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
-          #   - errors[=rollbar,sentry]: add error monitoring service (defaults to rollbar)
+          #   - errors[=rollbar|sentry]: add error monitoring service (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
           #   - omakase: banana, devise, squash, and vcr options
           #   - pundit: add Pundit authorization
@@ -673,13 +673,21 @@ module Template
   end
 
   def configure_errors
-    if template_options[:errors] == 'rollbar'
+    case template_options[:errors]
+    when 'rollbar'
       run 'rails generate rollbar'
       remove_comments 'config/initializers/rollbar.rb'
       format_code 'config/initializers/rollbar.rb'
       inject_into_class 'app/jobs/application_job.rb',
                         'ApplicationJob',
                         "  include Rollbar::ActiveJob\n"
+    when 'sentry'
+      run 'rails generate sentry --no-inject-meta'
+      remove_comments 'config/initializers/sentry.rb'
+      delete_line 'config/initializers/sentry.rb', /^ *config.enable_tracing.*/
+      gsub_file 'config/initializers/sentry.rb',
+                '[:active_support_logger]',
+                '[:active_support_logger, :http_logger]'
     end
   end
 

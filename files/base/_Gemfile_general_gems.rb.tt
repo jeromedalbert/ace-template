@@ -12,3 +12,6 @@ gem 'redis'
 <% if template_options[:errors] == 'rollbar' -%>
 gem 'rollbar'
 <% end -%>
+<% if template_options[:errors] == 'sentry' -%>
+gem 'sentry-rails'
+<% end -%>
