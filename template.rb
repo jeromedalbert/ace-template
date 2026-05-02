@@ -87,7 +87,6 @@ module Template
   def setup_base_configuration
     setup_base_files
     setup_config_files
-    setup_generators
     configure_spring
 
     commit 'Set up base configuration'
@@ -125,22 +124,7 @@ module Template
       gsub_file 'config/application.rb', '"action_cable/engine"', "'action_cable/engine'"
     end
 
-    insert_into_file 'config/environments/development.rb',
-                     partial('config/environments/development.rb', :prepend_nl, indent: 2),
-                     before: /end\n\z/
-
     copy_file 'config/initializers/redis.rb' if redis?
-  end
-
-  def setup_generators
-    insert_into_file 'config/application.rb',
-                     partial('config/application_generators.rb', :prepend_nl, indent: 4),
-                     before: %r{  end\nend}
-    directory 'lib/generators'
-
-    gsub_file 'config/application.rb',
-              /config.autoload_lib.*/,
-              'config.autoload_lib(ignore: %w[assets tasks templates])'
   end
 
   def configure_spring
@@ -186,7 +170,6 @@ module Template
     copy_file '.rspec', force: true
     empty_directory 'spec/factories'
     directory 'spec/support'
-    directory 'lib/templates/rspec'
     gsub_file 'config/application.rb',
               /( *g\..*\n)(    end)/,
               '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
@@ -281,6 +264,28 @@ module Template
     end
 
     configure_worker if template_options[:worker]
+    configure_generators
+  end
+
+  def configure_generators
+    add_generators
+    # scaffold_banana if template_options[:banana]
+
+    if template_options[:generators]
+      commit('Set up generators')
+    else
+      run 'git reset HEAD --hard'
+    end
+  end
+
+  def add_generators
+    gsub_file 'config/application.rb',
+              /config.autoload_lib.*/,
+              'config.autoload_lib(ignore: %w[assets generators tasks templates])'
+
+    template_from 'generators', 'config/initializers/generators.rb.tt'
+    directory_from 'generators', 'lib/generators'
+    directory_from 'generators', 'lib/templates'
   end
 
   def configure_devise
@@ -307,7 +312,7 @@ module Template
                       'ApplicationController',
                       "  alias_method :authenticate, :authenticate_user!\n\n"
     insert_into_file 'spec/support/controller_helpers.rb',
-                     partial('devise/spec/support/controller_helpers.rb', :prepend_nl, indent: 2),
+                     partial('devise/spec/support/controller_helpers.rb', indent: 2),
                      before: /end\n\n/
     insert_into_file 'spec/rails_helper.rb',
                      partial('devise/spec/rails_helper.rb', indent: 2),

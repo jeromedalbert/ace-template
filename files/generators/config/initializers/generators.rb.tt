@@ -1,0 +1,22 @@
+<% if !template_options[:worker] -%>
+require './lib/generators/rails/resource_route_generator'
+
+<% end -%>
+Rails.application.config.generators do |g|
+  <%- if template_options[:worker] -%>
+  g.resource_route false
+  g.scaffold_controller false
+  <%- else -%>
+  g.helper false
+  g.scaffold_controller :scaffold_controller_custom
+
+  g.controller_specs true
+  g.request_specs false
+  g.routing_specs false
+  g.view_specs false
+  <%- end -%>
+
+  g.after_generate do |files|
+    system("bundle exec stree write #{files.join(' ')} &> /dev/null")
+  end
+end

@@ -1,6 +1,7 @@
+require 'rails/generators'
 require 'rails/generators/rails/resource_route/resource_route_generator'
 
-class Rails::ResourceRouteCustomGenerator < Rails::Generators::ResourceRouteGenerator
+class Rails::ResourceRouteGenerator < Rails::Generators::ResourceRouteGenerator
   alias_method :original_add_resource_route, :add_resource_route
 
   def add_resource_route
@@ -29,7 +30,7 @@ class Rails::ResourceRouteCustomGenerator < Rails::Generators::ResourceRouteGene
     blank_line_before_route =
       namespaced_route? || !@first_paragraphs.include?("\n\n") || @first_paragraphs.end_with?('end')
 
-    File.write('config/routes.rb', "Rails.application.routes.draw do\nend")
+    File.write('config/routes.rb', "Rails.application.routes.draw do\nend\n")
     original_add_resource_route
 
     insert_into_file 'config/routes.rb',
