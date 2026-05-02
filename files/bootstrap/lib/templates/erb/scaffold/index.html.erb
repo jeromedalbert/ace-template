@@ -17,7 +17,17 @@
         <%% @<%= plural_table_name%>.each do |<%= singular_table_name %>| %>
           <tr>
             <%- attributes.each do |attribute| -%>
-            <td><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
+            <td>
+              <%- if attribute.attachment? -%>
+                <%%= render 'attachment', attribute: <%= singular_table_name %>.<%= attribute.column_name %> %>
+              <%- elsif attribute.attachments? -%>
+                <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
+                  <%%= render 'attachment', attribute: <%= attribute.singular_name %> %>
+                <%% end %>
+              <%- else -%>
+                <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+              <%- end -%>
+            </td>
             <%- end -%>
             <td>
               <%%= link_to 'Show', <%= singular_table_name %> %>

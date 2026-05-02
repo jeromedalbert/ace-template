@@ -392,12 +392,18 @@ module Template
                        'ApplicationHelper',
                        partial('bootstrap/app/helpers/application_helper.rb', indent: 2)
 
-    copy_file_from 'bootstrap', 'app/views/pages/home.html.erb', force: true
     directory_from 'bootstrap', 'lib/templates/erb/scaffold'
-    directory_from 'bootstrap', 'app/views/devise' if template_options[:devise]
+    get 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
+        'lib/templates/erb/scaffold/partial.html.erb'
+    gsub_file 'lib/templates/erb/scaffold/partial.html.erb',
+              /<%%= link_to (.*).filename, .* %>/,
+              "<%%= render 'attachment', attribute: \1 %>"
 
     copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
     copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
+
+    copy_file_from 'bootstrap', 'app/views/pages/home.html.erb', force: true
+    directory_from 'bootstrap', 'app/views/devise' if template_options[:devise]
 
     directory_from 'bootstrap', 'app/assets/stylesheets/base'
     directory_from 'bootstrap', 'app/assets/stylesheets/components'
