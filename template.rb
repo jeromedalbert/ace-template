@@ -176,10 +176,16 @@ module Template
     return if !postgresql?
 
     gsub_file 'config/database.yml',
+              "database: #{app_name}_production_cache",
+              "url: <%= ENV['DATABASE_URL']&.+('_cache') %>"
+    gsub_file 'config/database.yml',
+              "database: #{app_name}_production_queue",
+              "url: <%= ENV['DATABASE_URL']&.+('_queue') %>"
+    gsub_file 'config/database.yml',
               "database: #{app_name}_production",
               "url: <%= ENV['DATABASE_URL'] %>"
-    gsub_file 'config/database.yml', %r{  username: .*\n}, ''
-    gsub_file 'config/database.yml', %r{  password: .*\n}, ''
+    delete_line 'config/database.yml', /^ *username: .*/
+    delete_line 'config/database.yml', /^ *password: .*/
     gsub_file 'config/database.yml', '"', "'"
 
     commit 'Configure database'
@@ -694,6 +700,10 @@ module TemplateHelpers
 
   def add_before_end(file_path, content)
     insert_into_file file_path, content, before: /^end\n\z/
+  end
+
+  def delete_line(file_path, line_regex)
+    gsub_file file_path, /^#{line_regex}/, ''
   end
 
   def timezone
