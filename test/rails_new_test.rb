@@ -10,6 +10,7 @@ class RailsNewTest < Minitest::Test
     assert_match(/rails new myapp -m .*template.rb/, output)
     assert_match 'Done!', output
     assert status.success?
+
     assert_path_exists 'myapp'
     assert_defaults
   end
