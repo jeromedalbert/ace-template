@@ -117,7 +117,17 @@ module Template
       get 'https://raw.githubusercontent.com/rails/jsbundling-rails/main/lib/install/dev', 'bin/dev'
       chmod 'bin/dev', '+x'
     end
+    generate_binstub('syntax_tree', 'stree')
+
     template 'README.md.tt', force: true
+  end
+
+  def generate_binstub(gem_name, bin_name = gem_name)
+    run "bundle binstubs #{gem_name}"
+
+    gsub_file "bin/#{bin_name}", /# (.*\n)*?require/, 'require'
+    gsub_file "bin/#{bin_name}", /\n\n/, "\n"
+    format_code "bin/#{bin_name}"
   end
 
   def setup_config_files
