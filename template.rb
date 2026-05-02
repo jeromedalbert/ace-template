@@ -312,6 +312,10 @@ module Template
     insert_into_file 'app/policies/application_policy.rb',
                      partial('pundit/app/policies/application_policy.rb', :append_nl, indent: 2),
                      before: %r{  class Scope}
+    gsub_file 'app/policies/application_policy.rb', /\n *private.*. end/m, '  end'
+    inject_into_class 'app/policies/application_policy.rb',
+                      'Scope',
+                      "    attr_reader :user, :scope\n\n"
 
     inject_into_class(
       'app/controllers/application_controller.rb',

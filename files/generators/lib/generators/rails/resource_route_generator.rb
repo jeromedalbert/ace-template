@@ -33,10 +33,12 @@ class Rails::ResourceRouteGenerator < Rails::Generators::ResourceRouteGenerator
     File.write('config/routes.rb', "Rails.application.routes.draw do\nend\n")
     original_add_resource_route
 
-    insert_into_file 'config/routes.rb',
-                     "#{@first_paragraphs}\n#{"\n" if blank_line_before_route}",
-                     after: "Rails.application.routes.draw do\n",
-                     verbose: false
+    insert_into_file(
+      'config/routes.rb',
+      "#{@first_paragraphs}\n#{"\n" if blank_line_before_route}",
+      after: "Rails.application.routes.draw do\n",
+      verbose: false
+    )
     insert_into_file 'config/routes.rb', "\n#{@last_paragraph}", before: /^end/, verbose: false
   end
 end

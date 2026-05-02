@@ -24,6 +24,7 @@ AllCops:
   NewCops: enable
   Exclude:
     - 'bin/**/*'
+    - 'lib/templates/**/*'
     - 'tmp/**/*'
     - 'vendor/**/*'
 
