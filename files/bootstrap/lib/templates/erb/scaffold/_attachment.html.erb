@@ -1,5 +1,0 @@
-<% if attribute.image? -%>
-    <%%= image_tag  <%= attribute %>, width: 100 if <%= attribute %>.attached? %>
-<% else -%>
-    <%%= link_to <%= attribute %>.filename, <%= attribute %> if <%= attribute %>.attached? %>
-<% end -%>

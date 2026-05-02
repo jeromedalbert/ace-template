@@ -395,9 +395,18 @@ module Template
     directory_from 'bootstrap', 'lib/templates/erb/scaffold'
     get 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
         'lib/templates/erb/scaffold/partial.html.erb'
-    gsub_file 'lib/templates/erb/scaffold/partial.html.erb',
-              /<%%= link_to (.*).filename, .* %>/,
-              "<%%= render 'attachment', attribute: \1 %>"
+    gsub_file(
+      'lib/templates/erb/scaffold/partial.html.erb',
+      /(.*if attribute.attachment\?.*\n).*\n/,
+      '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachment.html.erb', indent: 4)
+    )
+    gsub_file(
+      'lib/templates/erb/scaffold/partial.html.erb',
+      /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
+      '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
+    )
+    remove_file 'lib/templates/erb/scaffold/_partial_attachment.html.erb', verbose: false
+    remove_file 'lib/templates/erb/scaffold/_partial_attachments.html.erb', verbose: false
 
     copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
     copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'

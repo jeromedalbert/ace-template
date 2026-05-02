@@ -18,15 +18,23 @@
           <tr>
             <%- attributes.each do |attribute| -%>
             <td>
-              <%- if attribute.attachment? -%>
-                <%%= render 'attachment', attribute: <%= singular_table_name %>.<%= attribute.column_name %> %>
-              <%- elsif attribute.attachments? -%>
-                <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
-                  <%%= render 'attachment', attribute: <%= attribute.singular_name %> %>
-                <%% end %>
+            <%- if attribute.attachment? -%>
+              <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+              <%%= image_tag <%= singular_table_name %>.<%= attribute.column_name %>, width: 100 if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
               <%- else -%>
-                <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+              <%%= link_to <%= singular_table_name %>.<%= attribute.column_name %>.filename, attribute if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
               <%- end -%>
+            <%- elsif attribute.attachments? -%>
+              <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
+                <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+                <%%= image_tag <%= attribute.singular_name %>, width: 100 %>
+                <%- else -%>
+                <%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %>
+                <%- end -%>
+              <%% end %>
+            <%- else -%>
+              <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+            <%- end -%>
             </td>
             <%- end -%>
             <td>
