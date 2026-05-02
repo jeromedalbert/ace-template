@@ -44,10 +44,10 @@ module Template
     append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
-    gsub_file 'Gemfile', /gem "puma".*\n/, '' if template_options[:worker]
+    delete_line 'Gemfile', /gem "puma".*/ if template_options[:worker]
 
     if !Bundler.current_ruby.windows? && !Bundler.current_ruby.jruby?
-      gsub_file 'Gemfile', /gem "tzinfo-data".*\n/, ''
+      delete_line 'Gemfile', /gem "tzinfo-data".*/
     end
     if Bundler.current_ruby.mri? || Bundler.current_ruby.windows?
       gsub_file 'Gemfile', /(  gem "debug"), platforms: .*,/, "\\1,"
@@ -323,7 +323,7 @@ module Template
                      after: /root to: .*\n/
 
     migration_file = find_file('db/migrate/*_devise_create_users.rb')
-    gsub_file migration_file, /^ *##.*\n(^ *#.*\n)+\n/, ''
+    delete_line migration_file, /^ *##.*\n(^ *#.*\n)+/
     gsub_file migration_file, /.*class/m, 'class'
     gsub_file migration_file, %r{ *# add_index.*. end}m, '  end'
 
@@ -576,7 +576,7 @@ module Template
     remove_file 'config/initializers/cors.rb'
     remove_file 'spec/support/controller_helpers.rb'
 
-    gsub_file 'Procfile.dev', /^web: .*\n/, ''
+    delete_line 'Procfile.dev', /^web: .*/
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
 
     commit 'Remove web code'
@@ -663,7 +663,7 @@ module TemplateHelpers
   end
 
   def remove_comments(file, remove_yml_extra_lines: true)
-    gsub_file file, /^ *#.*\n/, ''
+    delete_line file, /^ *#.*/
 
     gsub_file file, /\n{3,}/, "\n\n"
     if File.extname(file) == '.yml' && remove_yml_extra_lines
@@ -703,7 +703,7 @@ module TemplateHelpers
   end
 
   def delete_line(file_path, line_regex)
-    gsub_file file_path, /^#{line_regex}/, ''
+    gsub_file file_path, /^#{line_regex}\n/, ''
   end
 
   def timezone
