@@ -9,9 +9,6 @@ if factory_bot?
                    partial('tests/rails/test/test_helper_test_case.rb', :prepend_nl, indent: 4),
                    before: /^  end/
 end
-if ace_template_defaults?
-  append_to_file 'test/test_helper.rb', partial('tests/rails/test/test_helper_end.rb', :prepend_nl)
-end
 
 empty_directory_with_keep_file 'test/factories' if factory_bot?
 
