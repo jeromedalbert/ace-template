@@ -14,7 +14,7 @@ Rake::TestTask.new('test:unit') do |t|
 end
 
 desc 'Run a smoke test'
-task 'test:smoke' do
+task 'test:smoke' => 'default' do
   sh 'bin/test test/end_to_end/template_test.rb -n test_template', verbose: false
 end
 
