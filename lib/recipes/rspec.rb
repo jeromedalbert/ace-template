@@ -1,4 +1,4 @@
-remove_dir 'test' if Dir.exist?('test') && skip_some_rails_defaults?
+remove_dir 'test' if Dir.exist?('test') && template_defaults?
 
 run 'rails generate rspec:install'
 copy_file '.rspec', force: true

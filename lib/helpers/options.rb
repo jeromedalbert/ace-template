@@ -46,8 +46,8 @@ module Options
     !skip_solid?
   end
 
-  def skip_some_rails_defaults?
-    !template_options[:noskip]
+  def template_defaults?
+    !template_options[:omakase]
   end
 
   def db

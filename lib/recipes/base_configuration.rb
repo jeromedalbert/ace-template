@@ -44,7 +44,7 @@ module SetupBaseConfiguration
               /^ *#\n *# config.*  end\n/m,
               partial('config/application_end.rb', :prepend_nl, append: "  end\n", indent: 4)
 
-    if skip_some_rails_defaults?
+    if template_defaults?
       with_rails_options(skip_action_mailbox: true, skip_action_text: true, skip_test: true) do
         gsub_file 'config/application.rb',
                   /require 'rails(.+\n)*/,

@@ -14,7 +14,7 @@ append_to_file 'Gemfile', partial('Gemfile_test_gems.rb.tt', :prepend_nl)
 append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
 gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, '' if rubocop?
-delete_line 'Gemfile', /gem "jbuilder".*/ if skip_some_rails_defaults?
+delete_line 'Gemfile', /gem "jbuilder".*/ if template_defaults?
 if template_options[:worker]
   delete_line 'Gemfile', /gem "puma".*/
   delete_line 'Gemfile', /gem "thruster".*/

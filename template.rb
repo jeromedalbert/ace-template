@@ -16,7 +16,7 @@ module Template
 
     Template Options:
       active_storage           # Install active storage
-      all                      # All options except double, noskip, and worker
+      all                      # All options except double, omakase, and worker
       auth[=rails|devise]      # Add authentication
                                # (defaults to rails)
       banana                   # Scaffold an example Banana resource for demo purposes
@@ -25,7 +25,7 @@ module Template
       errors[=rollbar|sentry]  # Add error monitoring service
                                # (defaults to rollbar)
       generators               # Add improved scaffolding generators and templates
-      noskip                   # Do not skip Action Mailbox, Action Text, Jbuilder, and Rails' test framework
+      omakase                  # Use Rails defaults
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       redis                    # Add Redis
