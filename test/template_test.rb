@@ -50,13 +50,13 @@ class TemplateTest < Minitest::Test
 
     assert_template_done(output)
     assert_app_works
+    assert_auth_rails_option
     assert_banana_option
     assert_banana_in_header
     assert_banana_linked_to_user
-    assert_tailwind_css_option
+    assert_css_tailwind_option
     assert_dependabot_option
-    assert_rails_auth_auth_option
-    assert_rollbar_errors_option
+    assert_errors_rollbar_option
     assert_generators_option
     assert_pundit_option
     assert_redis_option
@@ -70,10 +70,10 @@ class TemplateTest < Minitest::Test
 
     assert_template_done(output)
     assert_app_works
-    assert_bootstrap_css_option
-    assert_devise_auth_option
+    assert_auth_devise_option
+    assert_css_bootstrap_option
     assert_double_option
-    assert_sentry_errors_option
+    assert_errors_sentry_option
   end
 
   def test_worker_option
@@ -295,6 +295,42 @@ class TemplateTest < Minitest::Test
     assert_command_success 'bin/kamal config'
   end
 
+  def assert_auth_rails_option
+    assert_file 'app/models/user.rb', 'validates :email,'
+    assert_file 'app/models/current.rb'
+
+    assert_file 'app/controllers/concerns/authentication.rb',
+                'before_action :resume_session',
+                'helper_method :current_user',
+                'alias_method :authenticate'
+
+    assert_file 'app/controllers/sessions_controller.rb'
+    refute_file 'app/controllers/sessions_controller.rb', 'allow_unauthenticated_access'
+    assert_file 'app/controllers/registrations_controller.rb'
+
+    assert_file 'app/views/sessions/new.html.erb'
+    assert_file 'app/views/registrations/new.html.erb'
+
+    assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
+    assert_file 'app/views/pages/home.html.erb', /sign up.* to start managing your bananas/m
+
+    assert_file 'config/routes.rb' do |content|
+      assert_includes content, 'resource :session'
+      assert_includes content, 'resource :registrations'
+      assert_match(/get ['"]login/, content)
+      assert_match(/get ['"]signup/, content)
+      assert_match(/delete ['"]logout/, content)
+    end
+
+    assert_file 'spec/models/user_spec.rb'
+    assert_file 'spec/factories/users.rb'
+    assert_file 'spec/factories/sessions.rb'
+    assert_file 'spec/rails_helper.rb', 'Current.reset'
+    assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+
+    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
+  end
+
   def assert_banana_option
     assert_file 'app/models/banana.rb', 'validates :name'
     assert_file 'app/controllers/bananas_controller.rb'
@@ -324,7 +360,7 @@ class TemplateTest < Minitest::Test
     assert_file 'app/policies/banana_policy.rb'
   end
 
-  def assert_tailwind_css_option
+  def assert_css_tailwind_option
     assert_file 'app/views/layouts/application.html.erb' do |content|
       assert_match(/<main class=.* mx-auto/, content)
       assert_includes content, "render partial: 'layouts/header'"
@@ -348,42 +384,7 @@ class TemplateTest < Minitest::Test
     assert_file '.github/dependabot.yml'
   end
 
-  def assert_rails_auth_auth_option
-    assert_file 'app/models/user.rb', 'validates :email,'
-    assert_file 'app/models/current.rb'
-
-    assert_file 'app/controllers/concerns/authentication.rb',
-                'before_action :resume_session',
-                'helper_method :current_user',
-                'alias_method :authenticate'
-
-    assert_file 'app/controllers/sessions_controller.rb'
-    refute_file 'app/controllers/sessions_controller.rb', 'allow_unauthenticated_access'
-    assert_file 'app/controllers/registrations_controller.rb'
-
-    assert_file 'app/views/sessions/new.html.erb'
-    assert_file 'app/views/registrations/new.html.erb'
-
-    assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
-    assert_file 'app/views/pages/home.html.erb', /sign up.* to start managing your bananas/m
-
-    assert_file 'config/routes.rb' do |content|
-      assert_includes content, 'resource :session'
-      assert_includes content, 'resource :registrations'
-      assert_match(/get ['"]login/, content)
-      assert_match(/get ['"]signup/, content)
-      assert_match(/delete ['"]logout/, content)
-    end
-
-    assert_file 'spec/models/user_spec.rb'
-    assert_file 'spec/factories/users.rb'
-    assert_file 'spec/rails_helper.rb', 'Current.reset'
-    # assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
-
-    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
-  end
-
-  def assert_rollbar_errors_option
+  def assert_errors_rollbar_option
     assert_gemfile 'rollbar'
 
     assert_file 'config/initializers/rollbar.rb'
@@ -437,7 +438,35 @@ class TemplateTest < Minitest::Test
     assert_file 'spec/support/vcr.rb'
   end
 
-  def assert_bootstrap_css_option
+  def assert_auth_devise_option
+    assert_gemfile 'devise'
+
+    assert_file 'app/models/user.rb'
+    assert_file 'app/models/current.rb'
+
+    assert_file 'app/controllers/application_controller.rb',
+                'def authenticate',
+                'Current.user = current_user'
+
+    assert_dir 'app/views/devise'
+    assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
+
+    assert_file 'config/routes.rb' do |content|
+      assert_includes content, 'devise_for :users'
+      assert_match(/get ['"]login/, content)
+      assert_match(/get ['"]signup/, content)
+      assert_match(/delete ['"]logout/, content)
+    end
+
+    assert_file 'spec/models/user_spec.rb'
+    assert_file 'spec/factories/users.rb'
+    assert_file 'spec/rails_helper.rb', 'Current.reset'
+    assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+
+    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
+  end
+
+  def assert_css_bootstrap_option
     assert_file 'app/views/layouts/application.html.erb' do |content|
       assert_match(%r{render partial: .*layouts/header}, content)
       assert_match(%r{render partial: .*layouts/flash_messages}, content)
@@ -472,41 +501,13 @@ class TemplateTest < Minitest::Test
     assert_commit 'Set up Bootstrap'
   end
 
-  def assert_devise_auth_option
-    assert_gemfile 'devise'
-
-    assert_file 'app/models/user.rb'
-    assert_file 'app/models/current.rb'
-
-    assert_file 'app/controllers/application_controller.rb',
-                'def authenticate',
-                'Current.user = current_user'
-
-    assert_dir 'app/views/devise'
-    assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
-
-    assert_file 'config/routes.rb' do |content|
-      assert_includes content, 'devise_for :users'
-      assert_match(/get ['"]login/, content)
-      assert_match(/get ['"]signup/, content)
-      assert_match(/delete ['"]logout/, content)
-    end
-
-    assert_file 'spec/models/user_spec.rb'
-    assert_file 'spec/factories/users.rb'
-    assert_file 'spec/rails_helper.rb', 'Current.reset'
-    assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
-
-    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
-  end
-
   def assert_double_option
     assert_quote_style :double
 
     assert_commit 'Style strings with double quotes'
   end
 
-  def assert_sentry_errors_option
+  def assert_errors_sentry_option
     assert_gemfile 'sentry'
     assert_file 'config/initializers/sentry.rb'
 
