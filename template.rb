@@ -226,6 +226,10 @@ module Template
     end
   end
 
+  def configure_sqlite
+    return if template_options[:solid_dev]
+  end
+
   def configure_rspec
     run 'rails generate rspec:install'
     copy_file '.rspec', force: true
