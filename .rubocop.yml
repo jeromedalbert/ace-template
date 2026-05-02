@@ -24,7 +24,6 @@ AllCops:
   NewCops: enable
   Exclude:
     - 'files/**/*'
-  TargetRubyVersion: 3.3
 
 Bundler/OrderedGems:
   Enabled: true
