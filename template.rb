@@ -14,10 +14,11 @@ module Template
       -o, [--template-options=option1,option2,...]
           # Available options:
           #
-          #   - all: all options except worker
+          #   - all: all options except double and worker
           #   - banana: scaffold an example Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
+          #   - double: use double-quoted strings
           #   - errors[=rollbar|sentry]: add error monitoring service
           #                              (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
@@ -149,8 +150,9 @@ module Template
     remove_comments 'config/database.yml'
     remove_comments 'config/routes.rb'
 
-    gsub_file 'config/routes.rb', /\n\n/, "\n"
     gsub_file '.gitignore', /$^\n^#.*/, ''
+    gsub_file 'config/routes.rb', /\n\n/, "\n"
+    format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
 
     copy_file '.irbrc'
     copy_file '.rubocop.yml', force: true
@@ -251,7 +253,7 @@ module Template
     gsub_file 'config/database.yml',
               /database: #{app_name}_production_(.*)/,
               "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
-    gsub_file 'config/database.yml', '"', "'"
+    format_quotes('config/database.yml', style: :single)
 
     delete_line 'config/database.yml', /^ *username:.*/
     delete_line 'config/database.yml', /^ *password:.*/
@@ -419,6 +421,8 @@ module Template
     configure_generators
     configure_errors if template_options[:errors]
     configure_worker if template_options[:worker]
+
+    configure_double_quotes if template_options[:double]
   end
 
   def configure_devise
@@ -729,6 +733,27 @@ module Template
     commit 'Remove web code'
   end
 
+  def configure_double_quotes
+    gsub_file '.streerc', 'plugin/single_quotes,', ''
+    delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*}
+
+    format_code
+    format_quotes(
+      %w[
+        .irbrc
+        .rubocop.yml
+        config/database.yml
+        config/locales/en.yml
+        config/queue.yml
+        app/views/layouts/*.html.erb
+        lib/templates/erb/scaffold/*.html.erb
+      ],
+      style: :double
+    )
+
+    commit 'Style strings with double quotes'
+  end
+
   def finalize
     FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
     run 'rake db:drop'
@@ -903,6 +928,17 @@ module TemplateHelpers
 
   def delete_line(file_path, line_regex)
     gsub_file file_path, /^#{line_regex}\n/, ''
+  end
+
+  def format_quotes(files, style:)
+    from, to =
+      if style == :single
+        %w[" ']
+      elsif style == :double
+        %w[' "]
+      end
+
+    Dir[*files].each { |file| gsub_file file, from, to }
   end
 
   def timezone
