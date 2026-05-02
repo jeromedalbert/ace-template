@@ -4,13 +4,26 @@ class Rails::ScaffoldControllerCustomGenerator < Rails::Generators::ScaffoldCont
   source_root Rails::Generators::ScaffoldControllerGenerator.source_root
 
   def clean_up_controller
-    file =
+    @file =
       File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
 
-    gsub_file file, /^ *#.*\n/, ''
-    gsub_file file, ', status: :see_other', '', verbose: false
-    gsub_file file, ':unprocessable_entity', ':unprocessable_content', verbose: false
-    gsub_file file, 'set_', 'load_', verbose: false
-    gsub_file file, '.destroy!', ".destroy!\n", verbose: false
+    gsub_file @file, /^ *#.*\n/, ''
+    gsub_file @file, ', status: :see_other', '', verbose: false
+    gsub_file @file, ':unprocessable_entity', ':unprocessable_content', verbose: false
+    gsub_file @file, '.destroy!', ".destroy!\n", verbose: false
+    gsub_file @file, /before_action :set_.*\n/, '', verbose: false
+    gsub_file @file, 'def set_', 'def load_', verbose: false
+
+    method_call = "load_#{singular_table_name}"
+    add_to_method_start 'show', method_call
+    add_to_method_start 'edit', method_call
+    add_to_method_start 'update', "#{method_call}\n"
+    add_to_method_start 'destroy', "#{method_call}\n"
+  end
+
+  private
+
+  def add_to_method_start(method, content)
+    gsub_file @file, "def #{method}\n", "def #{method}\n  #{content}\n", verbose: false
   end
 end

@@ -448,27 +448,34 @@ module Template
   end
 
   def scaffold_banana
-    cmd = 'rails generate scaffold Banana name length:integer weight:integer'
-    cmd += ' user:belongs_to' if template_options[:devise]
-    run cmd
-    if template_options[:devise]
-      gsub_file find_file('db/migrate/*_create_bananas.rb'), ', foreign_key: true', ''
-    end
+    run 'rails generate scaffold Banana name length:integer weight:integer'
+    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
 
-    insert_into_file 'app/models/banana.rb',
-                     partial('banana/app/models/banana.rb', :prepend_nl, indent: 2),
-                     before: /end\n\z/
+    inject_into_class 'app/models/banana.rb',
+                      'Banana',
+                      partial('banana/app/models/banana.rb.tt', indent: 2)
     template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
 
     if template_options[:devise]
+      run 'rails generate migration AddUserToBananas user:belongs_to'
+      gsub_file find_file('db/migrate/*_add_user_to_bananas.rb'),
+                /add_.*/,
+                'add_belongs_to :bananas, :user'
+      @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
+
       inject_into_class 'app/models/user.rb',
                         'User',
                         partial('banana/app/models/user.rb', :append_nl, indent: 2)
       copy_file_from 'banana', 'spec/models/user_spec.rb'
+      @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
       inject_into_class 'app/controllers/bananas_controller.rb',
                         'BananasController',
-                        partial('banana/app/controllers/bananas_controller_start.rb', indent: 2)
+                        partial(
+                          'banana/app/controllers/bananas_controller_start.rb',
+                          :append_nl,
+                          indent: 2
+                        )
       gsub_file 'app/controllers/bananas_controller.rb',
                 /@bananas = .*\n/,
                 partial('banana/app/controllers/bananas_controller_index.rb')
@@ -488,7 +495,6 @@ module Template
       copy_file_from 'banana', 'app/policies/banana_policy.rb'
     end
 
-    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
     match = file.match(/(?<spaces> *)(<!-- |  )(?<link><li.*li>)/)
