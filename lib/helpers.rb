@@ -8,10 +8,6 @@ module Helpers
     abort
   end
 
-  def solid?
-    !skip_solid?
-  end
-
   def parse_template_options
     @template_options = {}
     raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
@@ -61,6 +57,10 @@ module Helpers
     end
   end
 
+  def solid?
+    !skip_solid?
+  end
+
   def set_multi_option_default(option, default)
     if @template_options.key?(option) && !@template_options[option].is_a?(String)
       @template_options[option] = default
@@ -89,6 +89,14 @@ module Helpers
 
   def ci?
     !skip_ci?
+  end
+
+  def active_record?
+    !skip_active_record?
+  end
+
+  def kamal?
+    !skip_kamal?
   end
 
   def partial(file_path, *nl_opts, **opts)

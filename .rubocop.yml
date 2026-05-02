@@ -68,6 +68,9 @@ Minitest/MultipleAssertions:
 Minitest/RefutePredicate:
   Enabled: false
 
+Performance/StringIdentifierArgument:
+  Enabled: false
+
 Style/ClassMethodsDefinitions:
   Enabled: true
 Style/CollectionMethods:

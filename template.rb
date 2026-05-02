@@ -60,33 +60,7 @@ module Template
   end
 
   def configure_gemfile
-    uncomment_lines 'Gemfile', /gem "image_processing"/ if options[:active_storage]
-    uncomment_lines 'Gemfile', /gem "bcrypt"/ if template_options[:auth] == 'rails'
-    remove_comments 'Gemfile'
-    gsub_file 'Gemfile', /(^ *(gem|group) .*$)\n\n/, "\\1\n"
-    gsub_file 'Gemfile', /group :development, :test do/, "\n\\0"
-
-    insert_into_file 'Gemfile',
-                     partial('Gemfile_general_gems.rb', :append_nl),
-                     before: 'group :development, :test do'
-    insert_into_file 'Gemfile',
-                     partial('Gemfile_dev_test_gems.rb', indent: 2),
-                     after: "group :development, :test do\n"
-    append_to_file 'Gemfile', partial('Gemfile_test_gems.rb.tt', :prepend_nl)
-    append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
-
-    gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
-    if template_options[:worker]
-      delete_line 'Gemfile', /gem "puma".*/
-      delete_line 'Gemfile', /gem "thruster".*/
-    end
-
-    if !Bundler.current_ruby.windows? && !Bundler.current_ruby.jruby?
-      delete_line 'Gemfile', /gem "tzinfo-data".*/
-    end
-    if Bundler.current_ruby.mri? || Bundler.current_ruby.windows?
-      gsub_file 'Gemfile', /(  gem "debug"), platforms: .*,/, '\1,'
-    end
+    apply 'lib/recipes/gemfile.rb'
   end
 
   def check_supported_software
@@ -141,505 +115,57 @@ module Template
   end
 
   def setup_base_configuration
-    setup_base_files
-    setup_config_files
-    configure_spring
-    configure_ci if ci?
-
-    commit 'Set up base configuration'
-  end
-
-  def setup_base_files
-    remove_comments 'app/controllers/application_controller.rb'
-    remove_comments 'app/jobs/application_job.rb'
-    remove_comments 'config/locales/en.yml'
-    remove_comments 'config/database.yml'
-    remove_comments 'config/routes.rb'
-
-    gsub_file '.gitignore', /$^\n^#.*/, ''
-    gsub_file 'config/routes.rb', /\n\n/, "\n"
-    format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
-
-    copy_file '.irbrc'
-    copy_file '.rubocop.yml', force: true
-    copy_file '.streerc'
-    remove_file '.github/dependabot.yml' if !template_options[:dependabot]
-
-    generate_binstub('syntax_tree', 'stree')
-    template 'README.md.tt', force: true
-    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
-    gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
-
-    empty_directory_with_keep_file 'app/services'
-  end
-
-  def generate_binstub(gem_name, bin_name = gem_name)
-    run "bundle binstubs #{gem_name}"
-
-    gsub_file "bin/#{bin_name}", /# (.*\n)*?require/, 'require'
-    gsub_file "bin/#{bin_name}", /\n\n/, "\n"
-    format_code "bin/#{bin_name}"
-  end
-
-  def setup_config_files
-    gsub_file 'config/application.rb',
-              /^ *#\n *# config.*  end\n/m,
-              partial('config/application_end.rb', :prepend_nl, append: "  end\n", indent: 4)
-
-    add_before_end 'config/environments/development.rb',
-                   partial('config/environments/development_end.rb', :prepend_nl, indent: 2)
-
-    gsub_file 'config/environments/production.rb',
-              '.logger(STDOUT)',
-              '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
-    format_code('config/environments/production.rb')
-
-    copy_file 'config/recurring.yml', force: true if solid?
-    copy_file 'config/initializers/lograge.rb'
-    copy_file 'config/initializers/redis.rb' if redis?
-
-    setup_solid_dev_config if template_options[:solid_dev]
-  end
-
-  def setup_solid_dev_config
-    remove_comments 'config/cable.yml'
-    delete_line 'config/cable.yml', /development:\n(  .*\n)*/
-    gsub_file 'config/cable.yml', 'production:', 'production: &production'
-    append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
-
-    gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
-    gsub_file 'config/cache.yml', /development:\n/, "\\0  database: cache\n"
-
-    insert_into_file(
-      'config/environments/development.rb',
-      partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
-      after: /config.active_job.*\n\n/
-    )
-  end
-
-  def configure_spring
-    run 'bundle exec spring binstub --all'
-    run 'bundle exec spring stop'
-    ENV['DISABLE_SPRING'] = 'true'
-    format_code 'bin/*'
-
-    copy_file 'config/spring.rb'
-    gsub_file 'config/environments/test.rb', 'enable_reloading = false', 'enable_reloading = true'
-  end
-
-  def configure_ci
-    github_ci_content =
-      URI.parse(
-        rails_file('rails', 'railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt')
-      ).open
-    self.options = options.merge(skip_test: false)
-    github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
-    File.write '.github/workflows/ci.yml', github_ci_content
-
-    remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
-    gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
-    gsub_file '.github/workflows/ci.yml', '[ main ]', '[main]'
-    gsub_file '.github/workflows/ci.yml', /Scan for common Rails .*/, 'Run Brakeman'
-    gsub_file '.github/workflows/ci.yml',
-              /Scan for .* JavaScript dependencies/,
-              'Audit JavaScript dependencies'
-    gsub_file '.github/workflows/ci.yml', /Lint code .*/, 'Run Rubocop'
-    insert_into_file '.github/workflows/ci.yml',
-                     partial('.github/workflows/ci.yml', :prepend_nl, indent: 6),
-                     after: %r{run: bin/rubocop.*\n}
+    apply 'lib/recipes/base_configuration.rb'
   end
 
   def configure_dotenv
-    remove_file 'config/credentials.yml.enc'
-    remove_file 'config/master.key'
-
-    template '.env.sample.tt'
-    insert_into_file '.gitignore', "!/.env.sample\n", after: ".env*\n"
-    insert_into_file '.dockerignore', "!/.env.sample\n", after: ".env*\n"
-
-    gsub_file 'bin/setup', /^ *# (.*Copying sample files.*)\n( *# .*\n)*/, <<-EOS
-  \\1
-  FileUtils.cp '.env.sample', '.env' unless File.exist?('.env')
-    EOS
-    commit 'Replace Rails credentials with Dotenv'
+    apply 'lib/recipes/dotenv.rb'
   end
 
   def configure_database
-    return if skip_active_record?
-
-    if server_db?
-      configure_server_db
-    elsif sqlite3?
-      configure_sqlite
-    end
-  end
-
-  def configure_server_db
-    gsub_file 'config/database.yml',
-              /database: #{app_name}_production$/,
-              "url: <%= ENV['DATABASE_URL'] %>"
-    gsub_file 'config/database.yml',
-              /database: #{app_name}_production_(.*)/,
-              "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
-    format_quotes('config/database.yml', style: :single)
-
-    delete_line 'config/database.yml', /^ *username:.*/
-    delete_line 'config/database.yml', /^ *password:.*/
-    insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
-    configure_solid_dev_db if template_options[:solid_dev]
-
-    commit 'Configure database'
-  end
-
-  def configure_solid_dev_db
-    database_yml_content =
-      File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, "  <<: *databases\n")
-    databases_config =
-      Regexp.last_match(0).remove(' &primary_production').gsub('primary_production', 'default')
-
-    File.write 'config/database.yml', database_yml_content
-    insert_into_file 'config/database.yml',
-                     "databases: &databases\n#{databases_config}\n",
-                     before: 'development:'
-
-    gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
-  end
-
-  def configure_sqlite
-    return if !template_options[:solid_dev]
-
-    configure_solid_dev_db
-    gsub_file 'config/database.yml', %r{(    database: storage/)production}, '\1<%= Rails.env %>'
-
-    commit 'Configure database'
+    apply 'lib/recipes/database.rb' if active_record?
   end
 
   def configure_rspec
-    run 'rails generate rspec:install'
-    copy_file '.rspec', force: true
-    empty_directory_with_keep_file 'spec/factories'
-    gsub_file 'config/application.rb',
-              /( *g\..*\n)(    end)/,
-              '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
-
-    remove_comments 'spec/spec_helper.rb'
-    gsub_file 'spec/spec_helper.rb', %r{=begin\n(.*\n)*=end\n}, ''
-    format_code 'spec/spec_helper.rb'
-
-    uncomment_lines 'spec/rails_helper.rb', /config.infer_spec_type_from_file_location!/
-    remove_comments 'spec/rails_helper.rb'
-    format_code 'spec/rails_helper.rb'
-    gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\n\\0"
-    gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
-    insert_into_file 'spec/rails_helper.rb',
-                     partial('spec/rails_helper_requires.rb.tt', :prepend_nl),
-                     after: "require 'rspec/rails'\n"
-    add_before_end 'spec/rails_helper.rb',
-                   partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2)
-
-    directory 'spec/support'
-    copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
-
-    if ci?
-      gsub_file '.github/workflows/ci.yml',
-                %r{ *run: bin/rails db:test.*\n},
-                partial('spec/.github/workflows/ci.yml', indent: 8)
-    end
-
-    commit 'Configure RSpec'
+    apply 'lib/recipes/rspec.rb'
   end
 
   def configure_kamal
-    return if skip_kamal?
-
-    remove_file '.kamal/secrets'
-    template '.kamal/secrets.production.tt'
-    insert_into_file '.gitignore', ".kamal/secrets*\n", after: ".env.sample\n"
-    insert_into_file '.dockerignore', ".kamal/secrets*\n", after: ".env.sample\n"
-
-    insert_into_file 'bin/kamal', partial('bin/kamal.rb', :append_nl), before: 'load Gem.bin_path'
-    create_file 'config/deploy.production.yml', "{}\n"
-
-    remove_comments 'config/deploy.yml'
-    gsub_file 'config/deploy.yml', "\nimage:", 'image:'
-    gsub_file 'config/deploy.yml', /^proxy:\n(  .*\n)*/ do |match|
-      match.lines.map { |line| "# #{line}" }.join
-    end
-    remove_comments 'config/deploy.yml' if template_options[:worker]
-    gsub_file 'config/deploy.yml', 'your-user', "<%= ENV['KAMAL_REGISTRY_USERNAME'] %>"
-    gsub_file 'config/deploy.yml', /^servers:\n(  .*\n)*/, partial('config/deploy_servers.yml.tt')
-    gsub_file 'config/deploy.yml',
-              '- RAILS_MASTER_KEY',
-              %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
-    gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
-    gsub_file 'config/deploy.yml', %r{("bin/rails dbconsole)"}, '\1 --include-password"'
-    if !template_options[:worker]
-      gsub_file 'config/deploy.yml',
-                /logs: app logs -f/,
-                '\0 --grep-options="--invert-match --extended-regexp" --grep="^[^ ]+ \{"'
-    end
-    if server_db? || redis?
-      append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
-    end
-    append_to_file 'config/deploy.yml', partial('config/deploy_end.yml.tt', :prepend_nl)
-
-    gsub_file 'config/environments/production.rb', 'assume_ssl = true', 'assume_ssl = false'
-    gsub_file 'config/environments/production.rb', 'force_ssl = true', 'force_ssl = false'
-
-    template 'db/production.sql.tt' if db.mysql? && solid?
-
-    commit 'Configure Kamal'
+    apply 'lib/recipes/kamal.rb' if kamal?
   end
 
   def setup_views
-    return if skip_asset_pipeline?
-    define_layout
-    add_homepage
-    setup_icons
-
-    commit 'Set up views'
-  end
-
-  def define_layout
-    application_content =
-      File.read('app/views/layouts/application.html.erb').sub(
-        %r{  <head>\n(.*)  </head>}m,
-        "  <head>\n    <%= render partial: 'layouts/head' %>\n  </head>"
-      )
-    head_content = Regexp.last_match(1).gsub(/^ */, '')
-
-    File.write 'app/views/layouts/application.html.erb', application_content
-    File.write 'app/views/layouts/_head.html.erb', head_content
-  end
-
-  def add_homepage
-    insert_into_file 'config/routes.rb',
-                     "  root to: 'pages#home'\n\n",
-                     after: "Rails.application.routes.draw do\n"
-
-    copy_file 'app/controllers/pages_controller.rb'
-    template 'app/views/pages/home.html.erb.tt'
-
-    if !template_options[:banana] || template_options[:auth]
-      copy_file 'spec/controllers/pages_controller_spec.rb'
-    end
-  end
-
-  def setup_icons
-    copy_file 'public/icon.png', force: true
-    copy_file 'public/icon.svg', force: true
-
-    if File.exist?('app/views/pwa/manifest.json.erb')
-      gsub_file 'app/views/pwa/manifest.json.erb', '"red"', '"#e8e8e8"'
-    end
+    apply 'lib/recipes/views.rb' if asset_pipeline?
   end
 
   def configure_optional_features
     configure_auth if template_options[:auth]
-    configure_pundit if template_options[:pundit]
+    apply 'lib/recipes/pundit.rb' if template_options[:pundit]
 
-    if asset_pipeline?
-      setup_tailwind if options[:css] == 'tailwind'
-      setup_bootstrap if options[:css] == 'bootstrap'
+    if asset_pipeline? && options[:css].in?(%w[tailwind bootstrap])
+      apply "lib/recipes/#{options[:css]}.rb"
     end
 
     configure_generators
-    install_active_storage if options[:active_storage]
-    configure_errors if template_options[:errors]
-    configure_worker if template_options[:worker]
-
-    configure_double_quotes if template_options[:double]
+    apply 'lib/recipes/active_storage.rb' if options[:active_storage]
+    apply 'lib/recipes/errors.rb' if template_options[:errors]
+    apply 'lib/recipes/worker.rb' if template_options[:worker]
+    apply 'lib/recipes/double_quotes.rb' if template_options[:double]
   end
 
   def configure_auth
-    configure_devise if template_options[:auth] == 'devise'
-    apply 'rails_auth' if template_options[:auth] == 'rails'
+    apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'
+    apply 'lib/recipes/bootstrap.rb' if template_options[:auth] == 'devise'
 
     add_before_end 'spec/rails_helper.rb',
                    partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)
   end
 
-  def configure_devise
-    run 'rails generate devise:install'
-    run 'rails generate devise User'
-
-    remove_comments 'app/models/user.rb'
-    add_before_end 'app/models/user.rb',
-                   partial('auth/devise/app/models/user.rb', :prepend_nl, indent: 2)
-    remove_file 'spec/models/user_spec.rb'
-    copy_file_from 'auth/devise', 'spec/factories/users.rb', force: true
-    gsub_file 'config/routes.rb', "  devise_for :users\n", ''
-    insert_into_file 'config/routes.rb',
-                     partial('auth/devise/config/routes.rb', :prepend_nl, indent: 2),
-                     after: /root to: .*\n/
-    copy_file_from 'auth/devise', 'app/models/current.rb', force: true
-
-    migration_file = find_file('db/migrate/*_devise_create_users.rb')
-    delete_line migration_file, /^ *##.*\n(^ *#.*\n)+/
-    gsub_file migration_file, /.*class/m, 'class'
-    gsub_file migration_file, %r{ *# add_index.*. end}m, '  end'
-
-    add_before_end(
-      'app/controllers/application_controller.rb',
-      partial('files/auth/devise/app/controllers/application_controller.rb', :prepend_nl, indent: 2)
-    )
-    insert_into_file 'spec/support/controller_helpers.rb',
-                     partial('auth/devise/spec/support/controller_helpers.rb', indent: 2),
-                     before: /end\n/
-    add_before_end 'spec/rails_helper.rb', partial('auth/devise/spec/rails_helper.rb', indent: 2)
-
-    commit 'Configure Devise'
-  end
-
-  def configure_pundit
-    run 'rails g pundit:install'
-    insert_into_file 'app/policies/application_policy.rb',
-                     partial('pundit/app/policies/application_policy.rb', :append_nl, indent: 2),
-                     before: %r{  class Scope}
-    gsub_file 'app/policies/application_policy.rb', /\n *private.*. end/m, '  end'
-    inject_into_class 'app/policies/application_policy.rb',
-                      'Scope',
-                      "    attr_reader :user, :scope\n\n"
-
-    inject_into_class 'app/controllers/application_controller.rb',
-                      'ApplicationController',
-                      "  include Pundit::Authorization\n\n"
-    insert_into_file(
-      'app/controllers/application_controller.rb',
-      "  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized\n\n",
-      before: /^(  def authenticate.*|end)/m
-    )
-    if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
-      add_before_end 'app/controllers/application_controller.rb', "  private\n"
-    end
-    add_before_end(
-      'app/controllers/application_controller.rb',
-      partial('files/pundit/app/controllers/application_controller_end.rb', :prepend_nl, indent: 2)
-    )
-    format_code 'app/controllers/application_controller.rb'
-
-    commit 'Configure Pundit'
-  end
-
-  def setup_tailwind
-    gsub_file 'app/views/layouts/application.html.erb',
-              %r{  <body>.*</body>\n}m,
-              partial('tailwind/app/views/layouts/application.html.erb', indent: 2)
-    template_from 'tailwind', 'app/views/layouts/_header.html.erb.tt'
-
-    copy_file_from 'tailwind', 'app/views/layouts/_flash_messages.html.erb'
-    inject_into_module 'app/helpers/application_helper.rb',
-                       'ApplicationHelper',
-                       partial('tailwind/app/helpers/application_helper.rb', indent: 2)
-
-    copy_file_from 'tailwind', 'lib/templates/erb/scaffold/index.html.erb'
-
-    get_rails_file(
-      'tailwindcss-rails',
-      'lib/generators/tailwindcss/scaffold/templates/show.html.erb.tt',
-      'lib/templates/erb/scaffold/show.html.erb'
-    )
-    gsub_file 'lib/templates/erb/scaffold/show.html.erb',
-              %r{    <div.*button_to "Destroy.*.   </div>\n}m,
-              ''
-    gsub_file 'lib/templates/erb/scaffold/show.html.erb',
-              %r{    <%% if notice.*    <%% end %>\n\n}m,
-              ''
-
-    get_rails_file(
-      'tailwindcss-rails',
-      'lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
-      'lib/templates/erb/scaffold/_form.html.erb'
-    )
-    gsub_file 'lib/templates/erb/scaffold/_form.html.erb',
-              %r{  <%% if.*errors.any.*  <%% end %>\n}m,
-              partial('tailwind/lib/templates/erb/scaffold/_form.html.erb', indent: 2)
-
-    get_rails_file(
-      'tailwindcss-rails',
-      'lib/generators/tailwindcss/scaffold/templates/partial.html.erb.tt',
-      'lib/templates/erb/scaffold/partial.html.erb'
-    )
-    gsub_file(
-      'lib/templates/erb/scaffold/partial.html.erb',
-      /(.*if attribute.attachment\?.*\n).*\n/,
-      '\1' + partial('tailwind/lib/templates/erb/scaffold/partial_attachment.html.erb', indent: 4)
-    )
-    gsub_file(
-      'lib/templates/erb/scaffold/partial.html.erb',
-      /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
-      '\1' + partial('tailwind/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
-    )
-
-    copy_file_from 'tailwind', 'app/views/shared/_base_errors.html.erb'
-    copy_file_from 'tailwind', 'config/initializers/field_errors.rb'
-    insert_into_file 'config/tailwind.config.js',
-                     partial('tailwind/config/tailwind.config.js', indent: 2),
-                     before: '  theme: {'
-
-    template_from 'tailwind', 'app/views/pages/home.html.erb.tt', force: true
-    directory_from 'tailwind', 'app/views/devise' if template_options[:auth] == 'devise'
-
-    commit 'Set up Tailwind'
-  end
-
-  def setup_bootstrap
-    gsub_file 'app/views/layouts/application.html.erb',
-              %r{  <body>.*</body>\n}m,
-              partial('bootstrap/app/views/layouts/application.html.erb', indent: 2)
-    template_from 'bootstrap', 'app/views/layouts/_header.html.erb.tt'
-
-    copy_file_from 'bootstrap', 'app/views/layouts/_flash_messages.html.erb'
-    inject_into_module 'app/helpers/application_helper.rb',
-                       'ApplicationHelper',
-                       partial('bootstrap/app/helpers/application_helper.rb', indent: 2)
-
-    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/_form.html.erb'
-    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/edit.html.erb'
-    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/index.html.erb'
-    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/new.html.erb'
-    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/show.html.erb'
-
-    get_rails_file(
-      'rails',
-      'railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
-      'lib/templates/erb/scaffold/partial.html.erb'
-    )
-    gsub_file(
-      'lib/templates/erb/scaffold/partial.html.erb',
-      /(.*if attribute.attachment\?.*\n).*\n/,
-      '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachment.html.erb', indent: 4)
-    )
-    gsub_file(
-      'lib/templates/erb/scaffold/partial.html.erb',
-      /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
-      '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
-    )
-
-    copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
-    copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
-
-    template_from 'bootstrap', 'app/views/pages/home.html.erb.tt', force: true
-    directory_from 'bootstrap', 'app/views/devise' if template_options[:auth] == 'devise'
-
-    directory_from 'bootstrap', 'app/assets/stylesheets/base'
-    directory_from 'bootstrap', 'app/assets/stylesheets/components'
-    copy_file_from 'bootstrap', 'app/assets/stylesheets/main.scss'
-    create_file 'app/assets/stylesheets/pages/_index.scss'
-    append_to_file 'app/assets/stylesheets/application.bootstrap.scss',
-                   partial(
-                     'bootstrap/app/assets/stylesheets/application.bootstrap.scss',
-                     :prepend_nl
-                   )
-
-    commit 'Set up Bootstrap'
-  end
-
   def configure_generators
     return if !template_options[:generators] && !template_options[:banana]
 
-    add_generators
-    scaffold_banana if template_options[:banana]
+    apply 'lib/recipes/generators.rb'
+    apply 'lib/recipes/banana.rb' if template_options[:banana]
 
     commit('Set up generators', files: @generator_files.join(' ')) if template_options[:generators]
     commit('Create Banana resource', files: @banana_files.join(' ')) if template_options[:banana]
@@ -647,172 +173,6 @@ module Template
     if !template_options[:generators]
       run 'git reset HEAD --hard && git clean -fd', capture: true, verbose: false
     end
-  end
-
-  def add_generators
-    template_from 'generators', 'config/initializers/generators.rb.tt', verbose: false
-    directory_from 'generators', 'lib/generators', verbose: false
-    directory_from 'generators', 'lib/templates', verbose: false
-
-    gsub_file 'config/application.rb',
-              /config.autoload_lib.*/,
-              'config.autoload_lib(ignore: %w[assets generators tasks templates])',
-              verbose: false
-    gsub_file '.github/workflows/ci.yml', 'Rakefile)', 'Rakefile | grep -v templates)'
-
-    @generator_files = %w[config/initializers lib config/application.rb .github/workflows/ci.yml]
-  end
-
-  def scaffold_banana
-    run 'rails generate scaffold Banana name length:integer weight:integer'
-    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
-
-    inject_into_class 'app/models/banana.rb',
-                      'Banana',
-                      partial('banana/app/models/banana.rb.tt', indent: 2)
-    template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
-
-    if template_options[:auth]
-      link_banana_to_user
-    else
-      gsub_file 'config/routes.rb', /root to: .*/, "root to: 'bananas#index'"
-    end
-
-    return if !File.exist?('app/views/layouts/_header.html.erb')
-    file = File.read('app/views/layouts/_header.html.erb')
-    match = file.match(/(?<spaces> *)(?:<!-- )?(?<link><li.*li>)/)
-    link = match[:link].sub(/link_to [^,]*, [^, ]*/, "link_to 'Bananas', bananas_path")
-
-    if template_options[:auth]
-      insert_into_file 'app/views/layouts/_header.html.erb',
-                       "#{match[:spaces]}#{link}\n",
-                       before: /.*Log out/
-    else
-      gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
-    end
-    @banana_files << 'app/views/layouts/_header.html.erb'
-  end
-
-  def link_banana_to_user
-    run 'rails generate migration AddUserToBananas user:belongs_to'
-    gsub_file find_file('db/migrate/*_add_user_to_bananas.rb'),
-              /add_.*/,
-              'add_belongs_to :bananas, :user'
-
-    inject_into_class 'app/models/user.rb',
-                      'User',
-                      partial('banana/app/models/user.rb', :append_nl, indent: 2)
-    copy_file_from 'banana', 'spec/models/user_spec.rb'
-    template_from 'banana', 'spec/factories/bananas.rb.tt', force: true
-    @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
-
-    inject_into_class 'app/controllers/bananas_controller.rb',
-                      'BananasController',
-                      "  before_action :authenticate\n\n"
-    gsub_file 'app/controllers/bananas_controller.rb',
-              '@bananas = Banana.all',
-              '@bananas = current_user.bananas'
-    gsub_file 'app/controllers/bananas_controller.rb',
-              '@banana = Banana.new(banana_params)',
-              '@banana = Banana.new(banana_params.merge(user: current_user))'
-    gsub_file 'app/controllers/bananas_controller.rb',
-              '@banana = Banana.find(',
-              '@banana = current_user.bananas.find('
-    gsub_file 'spec/controllers/bananas_controller_spec.rb',
-              /  let\(:banana\) { .*\n/,
-              partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
-
-    insert_into_file 'app/controllers/application_controller.rb',
-                     "  before_action :redirect_root_path\n\n",
-                     after: /before_action .*\n/
-    insert_into_file(
-      'app/controllers/application_controller.rb',
-      partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
-      after: /def set_current_variables\n.*\n. end\n/
-    )
-    format_code('app/controllers/application_controller.rb')
-    @banana_files << 'app/controllers/application_controller.rb'
-
-    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
-  end
-
-  def install_active_storage
-    run 'rails active_storage:install'
-
-    migration_file = find_file('db/migrate/*_create_active_storage_tables*.rb')
-    gsub_file migration_file, 't.references', 't.belongs_to'
-    format_code migration_file
-  end
-
-  def configure_errors
-    case template_options[:errors]
-    when 'rollbar'
-      run 'rails generate rollbar'
-      remove_comments 'config/initializers/rollbar.rb'
-      format_code 'config/initializers/rollbar.rb'
-      inject_into_class 'app/jobs/application_job.rb',
-                        'ApplicationJob',
-                        "  include Rollbar::ActiveJob\n"
-    when 'sentry'
-      run 'rails generate sentry --no-inject-meta'
-      remove_comments 'config/initializers/sentry.rb'
-      delete_line 'config/initializers/sentry.rb', /^ *config.enable_tracing.*/
-      gsub_file 'config/initializers/sentry.rb',
-                '[:active_support_logger]',
-                '[:active_support_logger, :http_logger]'
-    else
-      return
-    end
-
-    commit "Configure #{template_options[:errors].capitalize}"
-  end
-
-  def configure_worker
-    remove_dir 'app/controllers'
-    remove_dir 'app/views'
-    remove_dir 'public'
-    remove_dir 'spec/controllers'
-
-    remove_file 'config.ru'
-    remove_file 'config/puma.rb'
-    remove_file 'config/routes.rb'
-    remove_file 'config/initializers/cors.rb'
-    remove_file 'spec/support/controller_helpers.rb'
-
-    comment_lines 'config/application.rb', "require 'action_controller/railtie'"
-
-    File.write 'Procfile.dev', "worker: bin/jobs\n"
-    gsub_file 'Dockerfile', /# Start server.*/, '# Start background jobs'
-    gsub_file 'Dockerfile', /EXPOSE .*\nCMD .*/, 'CMD ["bin/jobs"]'
-    gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
-    gsub_file 'bin/docker-entrypoint', 'running the rails server', 'processing jobs'
-    gsub_file 'bin/docker-entrypoint', %r{if .*bin/rails.*then}, 'if [ $1 == "bin/jobs" ]; then'
-
-    copy_file_from 'worker', 'app/services/say_hello.rb'
-    copy_file_from 'worker', 'spec/services/say_hello_spec.rb'
-
-    commit 'Remove web code'
-  end
-
-  def configure_double_quotes
-    gsub_file '.streerc', 'plugin/single_quotes,', ''
-    delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*}
-
-    format_code
-    format_quotes(
-      %w[
-        .irbrc
-        .rubocop.yml
-        config/database.yml
-        config/locales/en.yml
-        config/queue.yml
-        app/views/layouts/*.html.erb
-        lib/templates/erb/scaffold/*.html.erb
-      ],
-      style: :double
-    )
-
-    commit 'Style strings with double quotes'
   end
 
   def finalize
@@ -829,7 +189,7 @@ module Template
   end
 
   def source_paths
-    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__, "#{__dir__}/lib/recipes"] + super
+    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__] + super
   end
 end
 
