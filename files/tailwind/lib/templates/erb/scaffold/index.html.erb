@@ -29,9 +29,9 @@
           <%- elsif attribute.attachments? -%>
             <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
               <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
-              <%%= image_tag <%= attribute.singular_name %>, class: 'max-w-28' %>
+              <%%= image_tag <%= attribute.singular_name %>, class: 'max-w-28 mb-2' %>
               <%- else -%>
-              <%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %>
+              <div class="mb-2"><%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %></div>
               <%- end -%>
             <%% end %>
           <%- else -%>
