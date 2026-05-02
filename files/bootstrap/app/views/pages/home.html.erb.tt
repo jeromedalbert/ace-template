@@ -1,0 +1,31 @@
+<div class="row">
+  <div class="col-md-12">
+  <%- if template_options[:devise] || template_options[:banana] -%>
+    <h1>Welcome!</h1>
+  <%- else -%>
+    <h1>Hello world!</h1>
+  <%- end -%>
+  <%- if template_options[:banana] -%>
+
+    <%- if template_options[:devise] -%>
+    <p>
+      Go ahead and
+      <%%= link_to 'sign up', signup_path %>
+      to start managing your bananas.
+    </p>
+    <%- else -%>
+    Manage bananas <%%= link_to 'here', bananas_path %>.
+    <%- end -%>
+  <%- elsif template_options[:devise] -%>
+
+    <%% if current_user.nil? %>
+      <p>
+        Go ahead and
+        <%%= link_to 'log in', login_path %>
+        or
+        <%%= link_to 'sign up', signup_path %>.
+      </p>
+    <%% end %>
+  <%- end -%>
+  </div>
+</div>

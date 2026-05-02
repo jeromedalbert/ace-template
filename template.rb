@@ -442,7 +442,7 @@ module Template
     copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
     copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
 
-    copy_file_from 'bootstrap', 'app/views/pages/home.html.erb', force: true
+    template_from 'bootstrap', 'app/views/pages/home.html.erb.tt', force: true
     directory_from 'bootstrap', 'app/views/devise' if template_options[:devise]
 
     directory_from 'bootstrap', 'app/assets/stylesheets/base'
