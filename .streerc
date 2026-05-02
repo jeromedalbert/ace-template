@@ -10,4 +10,4 @@
 --ignore-files='storage/**'
 --ignore-files='tmp/**'
 --ignore-files='vendor/**'
---ignore-files='**/*.json*'
+--ignore-files='**/*.json'
