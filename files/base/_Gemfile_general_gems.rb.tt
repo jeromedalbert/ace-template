@@ -9,3 +9,6 @@ gem 'pundit'
 <% if template_options[:redis] && skip_action_cable? -%>
 gem 'redis'
 <% end -%>
+<% if template_options[:errors] == 'rollbar' -%>
+gem 'rollbar'
+<% end -%>

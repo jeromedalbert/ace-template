@@ -14,6 +14,7 @@ module Template
           #   - banana: scaffold a dummy Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
+          #   - errors[=rollbar,sentry]: add error monitoring service (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
           #   - omakase: banana, devise, squash, and vcr options
           #   - pundit: add Pundit authorization
@@ -405,6 +406,7 @@ module Template
     end
 
     configure_generators
+    configure_errors if template_options[:errors]
     configure_worker if template_options[:worker]
   end
 
@@ -670,6 +672,17 @@ module Template
     copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
   end
 
+  def configure_errors
+    if template_options[:errors] == 'rollbar'
+      run 'rails generate rollbar'
+      remove_comments 'config/initializers/rollbar.rb'
+      format_code 'config/initializers/rollbar.rb'
+      inject_into_class 'app/jobs/application_job.rb',
+                        'ApplicationJob',
+                        "  include Rollbar::ActiveJob\n"
+    end
+  end
+
   def configure_worker
     create_file 'config/routes.rb', "\n", force: true
     remove_dir 'app/controllers'
@@ -733,6 +746,7 @@ module TemplateHelpers
     if @template_options[:all]
       @template_options.merge!(
         dependabot: true,
+        errors: true,
         generators: true,
         omakase: true,
         pundit: true,
@@ -743,6 +757,7 @@ module TemplateHelpers
       @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
     end
     @template_options[:solid_dev] = true if @template_options[:worker] && solid?
+    set_multi_option_default(:errors, 'rollbar')
 
     if @template_options[:worker] && !options[:api]
       emit_critical_error 'worker template option requires Rails --api option'
