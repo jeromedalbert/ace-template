@@ -57,12 +57,10 @@ TODO:
 
 1. Visit your server's IP in your browser
 
-<br>
-
-_(If you want to configure SSL, uncomment the proxy section in
+(If you want to configure SSL, uncomment the proxy section in
 `config/deploy.yml`, set `host` to your domain, and optionally change
 `config/environments/production.rb` by setting `assume_ssl` and `force_ssl` to
-`true`)_
+`true`)
 
 ### With Fly.io
 
