@@ -66,7 +66,6 @@ module CLI
           'active_storage' => true,
           'auth' => 'rails',
           'banana' => true,
-          'dependabot' => true,
           'errors' => 'rollbar',
           'generators' => true,
           'pundit' => true,

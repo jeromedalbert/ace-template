@@ -24,7 +24,6 @@ module SetupBaseConfiguration
     copy_file '.irbrc'
     copy_file '.rubocop.yml', force: true if rubocop?
     copy_file '.streerc'
-    remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
     run 'bundle binstubs syntax_tree'
     cleanup_binstub('stree')
@@ -94,6 +93,13 @@ module SetupBaseConfiguration
   end
 
   def configure_ci
+    if template_defaults?
+      FileUtils.mv '.github/dependabot.yml', '.github/_dependabot.yml'
+      insert_into_file '.github/_dependabot.yml',
+                       "# Rename this file to dependabot.yml to enable Dependabot updates\n",
+                       before: /\A/
+    end
+
     github_ci_content =
       File.read(gem_file('railties', 'lib/rails/generators/rails/app/templates/github/ci.yml.tt'))
     with_rails_options(skip_test: false) do

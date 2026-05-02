@@ -20,7 +20,6 @@ module Template
       auth[=rails|devise]      # Add authentication
                                # (defaults to rails)
       banana                   # Scaffold an example Banana resource for demo purposes
-      dependabot               # Enable GitHub Dependabot
       double                   # Use double-quoted strings
       errors[=rollbar|sentry]  # Add error monitoring service
                                # (defaults to rollbar)

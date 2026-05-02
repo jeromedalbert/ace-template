@@ -52,7 +52,6 @@ module EndToEnd
       assert_banana_in_header
       assert_banana_linked_to_user
       assert_css_tailwind_option
-      assert_dependabot_option
       assert_errors_rollbar_option
       assert_generators_option
       assert_pundit_option
@@ -190,7 +189,6 @@ module EndToEnd
     def assert_base_config
       assert_file '.irbrc'
       assert_file '.streerc'
-      refute_file '.github/dependabot.yml'
       assert_file 'README.md', "# My App\n\n## Getting Started"
       assert_file 'Procfile.dev'
       assert_file 'Dockerfile', 'BUNDLE_WITHOUT="development:test"'
@@ -372,10 +370,6 @@ module EndToEnd
       assert_file 'app/helpers/application_helper.rb', 'TAILWIND_ALERT_CLASSES'
 
       assert_file 'config/initializers/field_errors.rb'
-    end
-
-    def assert_dependabot_option
-      assert_file '.github/dependabot.yml'
     end
 
     def assert_errors_rollbar_option
