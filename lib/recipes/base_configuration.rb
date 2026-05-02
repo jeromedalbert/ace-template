@@ -27,6 +27,7 @@ module SetupBaseConfiguration
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
     generate_binstub('syntax_tree', 'stree')
+    remove_file 'bin/yarv', verbose: false
     template 'README.md.tt', force: true
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
