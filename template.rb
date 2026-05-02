@@ -626,6 +626,9 @@ module TemplateHelpers
     if @template_options[:omakase]
       @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
     end
+    if @template_options[:worker] && !ARGV.include?('--api')
+      abort 'worker option requires Rails --api option'
+    end
 
     @template_options
   end
@@ -739,6 +742,11 @@ module TemplateHelpers
 
   def source_paths
     [__dir__, "#{__dir__}/files/base", "#{__dir__}/files"] + super
+  end
+
+  def abort(message)
+    say(message, :red)
+    super()
   end
 end
 
