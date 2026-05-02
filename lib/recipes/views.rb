@@ -38,9 +38,7 @@ module SetupViews
     copy_file 'public/icon.png', force: true
     copy_file 'public/icon.svg', force: true
 
-    if File.exist?('app/views/pwa/manifest.json.erb')
-      gsub_file 'app/views/pwa/manifest.json.erb', '"red"', '"#e8e8e8"'
-    end
+    gsub_file 'app/views/pwa/manifest.json.erb', '"red"', '"#e8e8e8"'
   end
 end
 
