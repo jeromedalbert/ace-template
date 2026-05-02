@@ -1,5 +1,9 @@
 TODO:
   1. Make sure the app works as per instructions below
+  <%- if template_options[:vcr] -%>
+  1. If recording VCR cassettes, make sure to filter out any API key in
+     `spec/support/vcr.rb`
+  <%- end -%>
   1. Deploy app if needed (see "How to deploy" instructions)
   1. Delete "How to deploy" instructions
   1. Delete this section
