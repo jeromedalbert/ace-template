@@ -16,7 +16,18 @@ module General
   end
 
   def timezone
-    @timezone ||= run('rake time:zones:local', verbose: false, capture: true).split("\n")[2]
+    return @timezone if @timezone
+
+    if File.exist?('/etc/localtime')
+      @timezone =
+        File
+          .readlink('/etc/localtime')
+          .split('zoneinfo/')
+          .last
+          .then { |zone| ActiveSupport::TimeZone::MAPPING.invert[zone] }
+    end
+
+    @timezone ||= Time.now.zone
   end
 
   def partial(file_path, *nl_opts, **opts)
