@@ -267,27 +267,6 @@ module Template
     configure_generators
   end
 
-  def configure_generators
-    add_generators
-    # scaffold_banana if template_options[:banana]
-
-    if template_options[:generators]
-      commit('Set up generators')
-    else
-      run 'git reset HEAD --hard'
-    end
-  end
-
-  def add_generators
-    gsub_file 'config/application.rb',
-              /config.autoload_lib.*/,
-              'config.autoload_lib(ignore: %w[assets generators tasks templates])'
-
-    template_from 'generators', 'config/initializers/generators.rb.tt'
-    directory_from 'generators', 'lib/generators'
-    directory_from 'generators', 'lib/templates'
-  end
-
   def configure_devise
     run 'rails generate devise:install'
     created_files = run('rails generate devise User', capture: true)
@@ -410,6 +389,42 @@ module Template
     commit 'Remove web code'
   end
 
+  def configure_generators
+    return if !template_options[:generators] && !template_options[:banana]
+
+    add_generators
+    scaffold_banana if template_options[:banana]
+
+    if template_options[:generators]
+      commit('Set up generators', files: 'config/application.rb config/initializers lib')
+    end
+    if template_options[:banana]
+      commit(
+        'Create Banana resource',
+        files: '$(git ls-files --others "*banana*") config/routes.rb'
+      )
+    end
+    if !template_options[:generators]
+      run 'git reset HEAD --hard && git clean -fd', capture: true, verbose: false
+    end
+  end
+
+  def add_generators
+    gsub_file 'config/application.rb',
+              /config.autoload_lib.*/,
+              'config.autoload_lib(ignore: %w[assets generators tasks templates])',
+              verbose: false
+
+    template_from 'generators', 'config/initializers/generators.rb.tt', verbose: false
+    directory_from 'generators', 'lib/generators', verbose: false
+    directory_from 'generators', 'lib/templates', verbose: false
+  end
+
+  def scaffold_banana
+    run 'rails generate scaffold Banana name length:integer weight:integer'
+    inject_into_class 'app/models/banana.rb', 'Banana', "  validates :name, presence: true\n"
+  end
+
   def finish
     run 'rake db:drop'
     run 'bin/setup'
@@ -465,8 +480,8 @@ module TemplateHelpers
     prepend.to_s + indent(file_content, indent) + append.to_s
   end
 
-  def commit(message = 'Initial commit')
-    run 'git add --all'
+  def commit(message = 'Initial commit', files: '--all')
+    run "git add #{files}"
     run "git commit -m '#{message}'", capture: true
   end
 
