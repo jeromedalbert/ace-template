@@ -40,6 +40,7 @@ module Template
                      partial('gemfile_dev_test_gems.rb', indent: 2),
                      after: "group :development, :test do\n"
     append_to_file 'Gemfile', partial('gemfile_test_gems.rb', :prepend_nl)
+    append_to_file 'Gemfile', partial('gemfile_production_gems.rb', :prepend_nl)
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
     gsub_file 'Gemfile', /gem "puma".*\n/, '' if template_options[:worker]
@@ -123,6 +124,11 @@ module Template
       uncomment_lines 'config/application.rb', 'require "action_cable/engine"'
       gsub_file 'config/application.rb', '"action_cable/engine"', "'action_cable/engine'"
     end
+
+    copy_file 'config/initializers/lograge.rb'
+    gsub_file 'config/environments/production.rb',
+              /.tap { \|logger\| .*\n/,
+              partial('config/environments/production.rb')
 
     copy_file 'config/initializers/redis.rb' if redis?
   end
