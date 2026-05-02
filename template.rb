@@ -14,7 +14,7 @@ module Template
           #   - banana: scaffold a dummy Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
-          #   - errors[=rollbar|sentry|honeybadger]: add error monitoring service (defaults to rollbar)
+          #   - errors[=rollbar|sentry]: add error monitoring service (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
           #   - omakase: banana, devise, squash, and vcr options
           #   - pundit: add Pundit authorization
@@ -688,8 +688,6 @@ module Template
       gsub_file 'config/initializers/sentry.rb',
                 '[:active_support_logger]',
                 '[:active_support_logger, :http_logger]'
-    when 'honeybadger'
-      copy_file_from 'errors', 'config/initializers/honeybadger.rb'
     end
   end
 
