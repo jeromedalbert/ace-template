@@ -21,10 +21,10 @@ jobs:
           bundler-cache: true
 
       - name: Run Rubocop
-        run: bundle exec rubocop $(git ls-files '*.rb' Gemfile Rakefile | grep -v files)
+        run: bundle exec rake rubocop
 
       - name: Run SyntaxTree
-        run: bundle exec stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v files)
+        run: bundle exec rake stree:check
 
   test:
     name: "Test ${{ matrix.ci_node_index }}"
