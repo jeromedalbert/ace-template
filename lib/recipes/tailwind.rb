@@ -25,6 +25,7 @@ get_rails_file(
   'lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
   'lib/templates/erb/scaffold/_form.html.erb'
 )
+gsub_file 'lib/templates/erb/scaffold/_form.html.erb', /form_with\((.*)\)/, 'form_with \1'
 gsub_file 'lib/templates/erb/scaffold/_form.html.erb',
           %r{  <%% if.*errors.any.*  <%% end %>\n}m,
           partial('tailwind/lib/templates/erb/scaffold/_form.html.erb', indent: 2)
