@@ -22,7 +22,6 @@ command = [
   "#{__dir__}/template.rb",
   '--css',
   'tailwind',
-  '--skip-action-cable',
   '--skip-action-mailbox',
   '--skip-action-text',
   '--skip-active-storage',

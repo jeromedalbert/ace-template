@@ -176,14 +176,6 @@ module Template
 
     add_before_end 'config/environments/development.rb',
                    partial('config/environments/development_end.rb', :prepend_nl, indent: 2)
-    if template_options[:solid_dev]
-      gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
-      insert_into_file(
-        'config/environments/development.rb',
-        partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
-        after: /config.active_job.*\n\n/
-      )
-    end
 
     gsub_file 'config/environments/production.rb',
               '.logger(STDOUT)',
@@ -193,6 +185,20 @@ module Template
     copy_file 'config/recurring.yml', force: true if solid?
     copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
+
+    if template_options[:solid_dev]
+      gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
+      insert_into_file(
+        'config/environments/development.rb',
+        partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
+        after: /config.active_job.*\n\n/
+      )
+
+      remove_comments 'config/cable.yml'
+      delete_line 'config/cable.yml', /development:\n(  .*\n)*/
+      gsub_file 'config/cable.yml', 'production:', 'production: &production'
+      append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
+    end
   end
 
   def configure_spring
@@ -246,12 +252,12 @@ module Template
     delete_line 'config/database.yml', /^ *username:.*/
     delete_line 'config/database.yml', /^ *password:.*/
     insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
-    configure_solid_dev if template_options[:solid_dev]
+    configure_solid_dev_db if template_options[:solid_dev]
 
     commit 'Configure database'
   end
 
-  def configure_solid_dev
+  def configure_solid_dev_db
     database_yml_content =
       File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
     databases_config =
@@ -268,7 +274,7 @@ module Template
   def configure_sqlite
     return if !template_options[:solid_dev]
 
-    configure_solid_dev
+    configure_solid_dev_db
     gsub_file 'config/database.yml', %r{(    database: storage/)production}, '\1<%= Rails.env %>'
 
     commit 'Configure database'
