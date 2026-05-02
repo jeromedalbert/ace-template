@@ -272,7 +272,7 @@ module Template
 
     copy_file 'app/controllers/pages_controller.rb'
     copy_file 'spec/controllers/pages_controller_spec.rb'
-    copy_file 'app/views/pages/home.html.erb'
+    template 'app/views/pages/home.html.erb.tt'
   end
 
   def setup_icons
