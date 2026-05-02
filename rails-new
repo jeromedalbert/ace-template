@@ -1,21 +1,26 @@
 #!/usr/bin/env ruby
 
+TEMPLATE_OPTIONS = <<~EOS
+
+  Template options:
+    -o, [--template-options=option1,option2,...]
+        # Available options:
+        #
+        #   - banana: scaffolds a dummy Banana resource for demo purposes
+        #   - devise: adds Devise authentication and Pundit authorization
+        #   - generators: adds custom generators for improved scaffolding
+        #   - redis
+        #   - squash: squash all commits into a single "Initial commit"
+        #   - worker: removes web code (requires --api)
+EOS
+
 app_path, *other_args = ARGV
 if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
   system('rails new -h')
-  puts <<~EOS
-
-    Template options:
-      -o, [--template-options=option1,option2,...]
-          # Available options:
-          #
-          #   - banana: scaffolds a dummy Banana resource for demo purposes
-          #   - devise: adds Devise authentication and Pundit authorization
-          #   - generators: adds custom generators for improved scaffolding
-          #   - squash: squash all commits into a single 'Initial commit'
-          #   - redis
-          #   - worker: removes web code (requires --api)
-  EOS
+  puts(TEMPLATE_OPTIONS)
+  exit
+elsif ARGV.last == '-o'
+  puts(TEMPLATE_OPTIONS)
   exit
 elsif app_path.start_with?('-')
   abort 'First argument must be the app path'

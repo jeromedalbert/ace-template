@@ -29,6 +29,7 @@ module Template
   private
 
   def configure_gemfile
+    uncomment_lines 'Gemfile', /gem "image_processing"/ if active_storage?
     remove_comments 'Gemfile'
     gsub_file 'Gemfile', /(^ *(gem|group) .*$)\n\n/, "\\1\n"
     gsub_file 'Gemfile', /(group :development, :test do)/, "\n\\1"
@@ -44,6 +45,7 @@ module Template
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
     gsub_file 'Gemfile', /gem "puma".*\n/, '' if template_options[:worker]
+
     if !Bundler.current_ruby.windows? && !Bundler.current_ruby.jruby?
       gsub_file 'Gemfile', /gem "tzinfo-data".*\n/, ''
     end
@@ -89,6 +91,7 @@ module Template
     setup_base_files
     setup_config_files
     configure_spring
+    install_active_storage if active_storage?
 
     commit 'Set up base configuration'
   end
@@ -146,6 +149,10 @@ module Template
 
     copy_file 'config/spring.rb'
     gsub_file 'config/environments/test.rb', 'enable_reloading = false', 'enable_reloading = true'
+  end
+
+  def install_active_storage
+    run 'rails active_storage:install'
   end
 
   def configure_dotenv
@@ -405,26 +412,6 @@ module Template
     commit 'Set up Bootstrap'
   end
 
-  def configure_worker
-    create_file 'config/routes.rb', "\n", force: true
-    remove_dir 'app/controllers'
-    remove_dir 'app/views'
-    remove_dir 'public'
-
-    remove_file 'config.ru'
-    remove_file 'config/puma.rb'
-    remove_file 'config/initializers/cors.rb'
-    remove_file 'spec/support/controller_helpers.rb'
-
-    gsub_file 'Procfile.dev', /^web: .*\n/, ''
-    comment_lines 'config/application.rb', "require 'action_controller/railtie'"
-    gsub_file 'config/application.rb',
-              %r{    config.generators do.*    end\n}m,
-              partial('worker/config/application.rb', indent: 4)
-
-    commit 'Remove web code'
-  end
-
   def configure_generators
     return if !template_options[:generators] && !template_options[:banana]
 
@@ -513,6 +500,23 @@ module Template
     @banana_files << 'app/views/layouts/_header.html.erb'
   end
 
+  def configure_worker
+    create_file 'config/routes.rb', "\n", force: true
+    remove_dir 'app/controllers'
+    remove_dir 'app/views'
+    remove_dir 'public'
+
+    remove_file 'config.ru'
+    remove_file 'config/puma.rb'
+    remove_file 'config/initializers/cors.rb'
+    remove_file 'spec/support/controller_helpers.rb'
+
+    gsub_file 'Procfile.dev', /^web: .*\n/, ''
+    comment_lines 'config/application.rb', "require 'action_controller/railtie'"
+
+    commit 'Remove web code'
+  end
+
   def finalize
     run 'rake db:drop'
     run 'bin/setup'
@@ -548,6 +552,10 @@ module TemplateHelpers
 
   def redis?
     @has_redis ||= File.read('Gemfile').include?('redis')
+  end
+
+  def active_storage?
+    !options[:skip_active_storage]
   end
 
   def partial(file_path, *nl_opts, **opts)

@@ -14,6 +14,7 @@
     bin/rspec
     ```
 
+<% if !template_options[:worker] -%>
 1. Start the <%= 'server'.pluralize(@single_server ? 1 : 2) %>:
 
     ```
@@ -30,6 +31,7 @@
 
 1. You can now access http://localhost:3000 and are ready to go!
 
+<% end -%>
 ## How to deploy
 
 #### With Kamal, on your own server
