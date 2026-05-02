@@ -8,7 +8,7 @@ module General
     unprefixed_name = app_name.remove(/^(my|cool|great|amazing)#{delimiter}?/)
     stripped_name = unprefixed_name.parameterize.remove('-', /app$/)
 
-    if stripped_name.in?(['', 'test', 'sample', 'blog', 'project'])
+    if stripped_name.in?(['', 'test', 'sample', 'demo', 'blog', 'project'])
       "#{Etc.getlogin}#{delimiter}#{unprefixed_name}"
     else
       app_name
