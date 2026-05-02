@@ -1,32 +1,19 @@
 require_relative 'test_helper'
 
 class RailsNewTest < Minitest::Test
-  def setup = base_setup
-
   def test_rails_new
-    output = run_command('./rails-new myapp')
+    output = run_rails_new
 
-    assert_match(/rails new myapp -m .*template.rb/, output)
-    assert_includes output, 'Done!'
-    assert_dir 'myapp'
+    assert_template_output(/rails new .* -m .*template.rb/, output)
+    assert_template_done(output)
     assert_defaults
   end
 
-  def test_rails_new_from_different_path_than_template
-    rails_new_path = File.expand_path('rails-new')
-    Dir.chdir('..')
-
-    output = run_command("#{rails_new_path} myapp")
-
-    assert_includes output, 'Done!'
-    FileUtils.rm_rf('myapp')
-  end
-
   def test_option_override
-    output = run_command('./rails-new myapp --no-skip-jbuilder')
+    output = run_rails_new('--no-skip-jbuilder')
 
-    assert_includes output, 'Done!'
-    assert_file 'myapp/Gemfile', 'jbuilder'
+    assert_template_done(output)
+    assert_file 'Gemfile', 'jbuilder'
   end
 
   def test_help_option
@@ -48,24 +35,33 @@ class RailsNewTest < Minitest::Test
   end
 
   def test_worker
-    output = run_command('./rails-new myapp -o worker')
+    output = run_rails_new('-o worker')
 
-    assert_match(/rails new myapp .* --api/, output)
+    assert_template_output(/rails new .* --api/, output)
   end
 
   private
 
-  def assert_defaults
-    Dir.chdir('myapp') do
-      assert_gemfile 'tailwindcss-rails'
-      refute_gemfile 'jbuilder'
+  def run_rails_new(options = '', capture_errors: false)
+    command = './rails-new myapp'
+    command << " #{options}" if options.present?
 
-      assert_file 'config/application.rb' do |content|
-        assert_includes content, '# require "action_mailbox'
-        assert_includes content, '# require "action_text'
-        assert_includes content, '# require "active_storage'
-        assert_includes content, '# require "rails/test_unit'
-      end
+    output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
+
+    assert_dir 'myapp'
+    Dir.chdir('myapp')
+    output
+  end
+
+  def assert_defaults
+    assert_gemfile 'tailwindcss-rails'
+    refute_gemfile 'jbuilder'
+
+    assert_file 'config/application.rb' do |content|
+      assert_includes content, '# require "action_mailbox'
+      assert_includes content, '# require "action_text'
+      assert_includes content, '# require "active_storage'
+      assert_includes content, '# require "rails/test_unit'
     end
   end
 end

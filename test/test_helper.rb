@@ -8,7 +8,7 @@ require 'open3'
 Minitest::Reporters.use! [Minitest::Reporters::DefaultReporter.new]
 
 class Minitest::Test
-  def base_setup
+  def setup
     Dir.chdir("#{__dir__}/..")
 
     FileUtils.rm_rf('myapp') if !ENV['REUSE_APP']
@@ -29,6 +29,26 @@ class Minitest::Test
 
   def assert_command_success(command)
     run_command(command)
+  end
+
+  def assert_template_output(expected, output)
+    assert_match(expected, output) if !ENV['REUSE_APP']
+  end
+
+  def assert_template_done(output)
+    assert_template_output('Done!', output)
+  end
+
+  def reuse_app?
+    if ENV['REUSE_APP']
+      if Dir.exist?("#{__dir__}/../myapp")
+        return true
+      else
+        puts "my_app is missing. Running `rails new`...\n\n"
+      end
+    end
+
+    false
   end
 
   def assert_file(file_path, *contents)
@@ -82,9 +102,10 @@ class Minitest::Test
 
   def raise_failed(output)
     decoration = '#' * 30
+    message = 'Command failed.'
 
-    raise <<~EOS
-      Command failed.
+    message = <<~EOS if output.present?
+      #{message}
 
       #{decoration}###############{decoration}
       #{decoration} STDOUT START #{decoration}
@@ -94,5 +115,7 @@ class Minitest::Test
       #{decoration} STDOUT END #{decoration}
       #{decoration}#############{decoration}
     EOS
+
+    raise message
   end
 end

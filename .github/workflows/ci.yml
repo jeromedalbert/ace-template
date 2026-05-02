@@ -31,6 +31,8 @@ jobs:
     strategy:
       matrix:
         ruby-version: [3.3.5]
+        ci_node_total: [4]
+        ci_node_index: [0, 1, 2, 3]
     services:
       redis:
         image: redis
@@ -70,4 +72,7 @@ jobs:
           git config --global user.email "github-actions@users.noreply.github.com"
 
       - name: Run tests
-        run: bundle exec rake test
+        env:
+          CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
+          CI_NODE_INDEX: ${{ matrix.ci_node_index }}
+        run: bundle exec ruby test/test_in_parallel.rb

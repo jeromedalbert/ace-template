@@ -1,8 +1,6 @@
 require_relative 'test_helper'
 
 class TemplateTest < Minitest::Test
-  def setup = base_setup
-
   def test_template
     output = run_rails_new
 
@@ -30,6 +28,13 @@ class TemplateTest < Minitest::Test
     output = run_rails_new('-o worker', capture_errors: true)
 
     assert_match(/worker .* option requires .* --api option/, output)
+    assert_includes output, 'aborted'
+  end
+
+  def test_solid_dev_option_with_skip_solid_option
+    output = run_rails_new('-o solid-dev --skip-solid', capture_errors: true)
+
+    assert_match(/solid-dev .* option is incompatible with Rails --skip-solid/, output)
     assert_includes output, 'aborted'
   end
 
@@ -80,6 +85,8 @@ class TemplateTest < Minitest::Test
     assert_file 'Dockerfile', 'CMD ["bin/jobs"]'
     assert_file 'Procfile.dev', 'worker: bin/jobs'
     assert_file 'bin/dev', 'bin/jobs'
+    assert_file 'config/deploy.yml', 'cmd: bin/jobs'
+    assert_file 'README.md', 'bin/jobs'
 
     assert_file 'app/services/say_hello.rb'
     assert_file 'spec/services/say_hello_spec.rb'
@@ -121,26 +128,13 @@ class TemplateTest < Minitest::Test
   private
 
   def run_rails_new(options = '', capture_errors: false)
-    reuse_app = false
-    if ENV['REUSE_APP']
-      if Dir.exist?('myapp')
-        reuse_app = true
-      else
-        puts "my_app is missing. Running `rails new`...\n\n"
-      end
-    end
-
     command = "rails new myapp -m #{File.expand_path('template.rb')}"
     command << " #{options}" if options.present?
-    output = reuse_app ? nil : run_command(command, capture_errors: capture_errors)
+    output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
 
     assert_dir 'myapp'
     Dir.chdir('myapp')
     output
-  end
-
-  def assert_template_done(output)
-    assert_includes output, 'Done!' if !ENV['REUSE_APP']
   end
 
   def assert_default_setup
@@ -380,8 +374,8 @@ class TemplateTest < Minitest::Test
 
   def assert_rollbar_errors_option
     assert_gemfile 'rollbar'
-    assert_file 'config/initializers/rollbar.rb'
 
+    assert_file 'config/initializers/rollbar.rb'
     assert_file 'app/jobs/application_job.rb', 'include Rollbar::ActiveJob'
   end
 
@@ -427,6 +421,8 @@ class TemplateTest < Minitest::Test
   end
 
   def assert_vcr_option
+    assert_gemfile 'vcr'
+
     assert_file 'spec/support/vcr.rb'
   end
 
@@ -474,5 +470,7 @@ class TemplateTest < Minitest::Test
   def assert_sentry_errors_option
     assert_gemfile 'sentry'
     assert_file 'config/initializers/sentry.rb'
+
+    assert_commit 'Configure Sentry'
   end
 end
