@@ -98,21 +98,23 @@ module Template
     remove_comments 'app/jobs/application_job.rb'
     remove_comments 'config/locales/en.yml'
     remove_comments 'config/database.yml'
-
     remove_comments 'config/routes.rb'
-    gsub_file 'config/routes.rb', /\n\n/, "\n"
 
+    gsub_file 'config/routes.rb', /\n\n/, "\n"
     gsub_file '.gitignore', /$^\n^#.*/, ''
 
     copy_file '.irbrc'
     copy_file '.rubocop.yml', force: true
     copy_file '.streerc'
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
+    empty_directory 'app/services'
+
     if !File.exist?('bin/dev')
+      @single_server = true
       get 'https://raw.githubusercontent.com/rails/jsbundling-rails/main/lib/install/dev', 'bin/dev'
       chmod 'bin/dev', '+x'
     end
-    empty_directory 'app/services'
+    template 'README.md.tt', force: true
   end
 
   def setup_config_files

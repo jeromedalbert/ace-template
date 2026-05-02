@@ -1,0 +1,69 @@
+# <%= app_title %>
+
+## Getting Started
+
+1. Install dependencies and set up the app:
+
+    ```
+    bin/setup
+    ```
+
+1. Make sure tests pass (everything should be green):
+
+    ```
+    bin/rspec
+    ```
+
+1. Start the <%= 'server'.pluralize(@single_server ? 1 : 2) %>:
+
+    ```
+    bin/dev
+    ```
+    <%- if @single_server -%>
+
+    or
+
+    ```
+    bin/rails start
+    ```
+    <%- end -%>
+
+1. You can now access http://localhost:3000 and are ready to go!
+
+## How to deploy
+
+#### With Kamal, on your own server
+
+1. Open `.env.production` and set values for the following variables:
+    - `SERVER_IP`: your server's IP address
+    - `KAMAL_REGISTRY_USERNAME`: your Docker Hub username
+    - `KAMAL_REGISTRY_PASSWORD`: your Docker Hub password
+1. If on macOS, make sure Docker Desktop is running
+1. Run the following:
+    ```
+    bin/kamal env push
+    bin/kamal setup
+    ```
+1. Visit your server's IP in your browser
+
+#### With Fly.io
+
+```
+DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_name %> # Name must be unique
+fly secrets set SECRET_KEY_BASE=$(ruby -rsecurerandom -e "puts SecureRandom.hex(64)")
+fly deploy
+fly apps open
+```
+
+#### With Heroku
+
+```
+heroku create <%= app_name %>
+<% if postgresql? -%>
+heroku addons:add heroku-postgresql
+# Wait for Postgres addon to be fully created, this can take a while...
+<% end -%>
+git push heroku main
+heroku run rake db:migrate
+heroku open
+```
