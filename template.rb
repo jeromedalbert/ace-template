@@ -568,6 +568,7 @@ module Template
     remove_dir 'app/controllers'
     remove_dir 'app/views'
     remove_dir 'public'
+    remove_dir 'spec/controllers'
 
     remove_file 'config.ru'
     remove_file 'config/puma.rb'

@@ -108,6 +108,8 @@ Layout/ClassStructure:
     - private_methods
 Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
+Layout/MultilineOperationIndentation:
+  Enabled: false
 Layout/LineLength:
   Max: 100
 Layout/SpaceInsideHashLiteralBraces:

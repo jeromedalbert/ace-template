@@ -52,7 +52,7 @@ TODO:
 ### With Fly.io
 
 ```
-DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_name %> # Name must be unique
+DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_name.dasherize %> # Name must be unique
 fly secrets set SECRET_KEY_BASE=$(ruby -rsecurerandom -e "puts SecureRandom.hex(64)")
 fly deploy
 fly apps open
