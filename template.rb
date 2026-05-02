@@ -1,8 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string'
-require 'bundler'
-require 'open3'
 
 module Template
   TEMPLATE_OPTIONS_BANNER = <<~EOS
@@ -55,7 +53,10 @@ module Template
   private
 
   def initialize
-    apply 'lib/helpers.rb'
+    apply 'lib/helpers/actions.rb'
+    apply 'lib/helpers/general.rb'
+    apply 'lib/helpers/options.rb'
+
     parse_template_options
   end
 
@@ -155,7 +156,7 @@ module Template
 
   def configure_auth
     apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'
-    apply 'lib/recipes/bootstrap.rb' if template_options[:auth] == 'devise'
+    apply 'lib/recipes/devise.rb' if template_options[:auth] == 'devise'
 
     add_before_end 'spec/rails_helper.rb',
                    partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)

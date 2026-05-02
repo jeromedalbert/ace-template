@@ -59,6 +59,7 @@ module ConfigureRailsAuth
     delete_line 'app/controllers/passwords_controller.rb', '  allow_unauthenticated_access'
     delete_line 'app/controllers/passwords_controller.rb',
                 %r{  before_action :set_user_by_token.*\n}
+
     gsub_file 'app/controllers/passwords_controller.rb', 'set_user_by_token', 'load_user'
     insert_into_file 'app/controllers/passwords_controller.rb',
                      "    load_user\n",
@@ -66,6 +67,7 @@ module ConfigureRailsAuth
     insert_into_file 'app/controllers/passwords_controller.rb',
                      "    load_user || return\n\n",
                      after: "def update\n"
+
     insert_into_file 'app/controllers/passwords_controller.rb',
                      "nil\n",
                      after: /redirect_to new_password_path.*\n/
@@ -99,6 +101,7 @@ module ConfigureRailsAuth
     insert_into_file 'config/routes.rb',
                      partial('auth/rails/config/routes.rb', :prepend_nl, indent: 2),
                      after: /root to: .*\n/
+
     move_line 'config/routes.rb',
               %r{  resource :session\n  resources :passwords.*},
               :surround_nl,
