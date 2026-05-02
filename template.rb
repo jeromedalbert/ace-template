@@ -403,7 +403,7 @@ module Template
                      partial('tailwind/config/tailwind.config.js', indent: 2),
                      before: '  theme: {'
 
-    copy_file_from 'tailwind', 'app/views/pages/home.html.erb', force: true
+    template_from 'tailwind', 'app/views/pages/home.html.erb.tt', force: true
     directory_from 'tailwind', 'app/views/devise' if template_options[:devise]
 
     commit 'Set up Tailwind'

@@ -1,0 +1,29 @@
+<div class="w-full">
+<% if template_options[:devise] || template_options[:banana] -%>
+  <h1 class="font-bold text-4xl mb-8">Welcome!</h1>
+<% else -%>
+  <h1 class="font-bold text-4xl mb-8">Hello world!</h1>
+<% end -%>
+<% if template_options[:banana] -%>
+
+  <%- if template_options[:devise] -%>
+  <p>
+    Go ahead and
+    <%%= link_to 'sign up', signup_path, class: 'text-blue-500' %>
+    to start managing your bananas.
+  </p>
+  <%- else -%>
+  Manage bananas <%%= link_to 'here', bananas_path, class: 'text-blue-500' %>.
+  <%- end -%>
+<% elsif template_options[:devise] -%>
+
+  <%% if current_user.nil? %>
+    <p>
+      Go ahead and
+      <%%= link_to 'log in', login_path, class: 'text-blue-500' %>
+      or
+      <%%= link_to 'sign up', signup_path, class: 'text-blue-500' %>.
+    </p>
+  <%% end %>
+<% end -%>
+</div>
