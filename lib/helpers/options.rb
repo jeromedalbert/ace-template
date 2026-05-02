@@ -54,10 +54,6 @@ module Options
     options[:database].inquiry
   end
 
-  def rails_main?
-    options.main?
-  end
-
   def server_db?
     !skip_active_record? && !sqlite3?
   end

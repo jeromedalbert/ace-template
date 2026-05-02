@@ -101,11 +101,9 @@ module SetupBaseConfiguration
 
   def configure_ci
     github_ci_content =
-      URI.parse(
-        rails_file('rails', 'railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt')
-      ).open
+      File.read(gem_file('railties', 'lib/rails/generators/rails/app/templates/github/ci.yml.tt'))
     with_rails_options(skip_test: false) do
-      github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
+      github_ci_content = ERB.new(github_ci_content, trim_mode: '-').result(binding)
     end
     File.write '.github/workflows/ci.yml', github_ci_content
 

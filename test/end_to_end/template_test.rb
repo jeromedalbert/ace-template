@@ -18,6 +18,14 @@ module EndToEnd
       assert_app_works
     end
 
+    def test_edge_option
+      output = run_rails_new('--edge')
+
+      assert_template_done(output)
+      assert_default_setup
+      assert_app_works
+    end
+
     def test_interactive_option
       output = run_rails_new('-i', keypresses: "jjj \n")
 

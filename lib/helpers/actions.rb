@@ -129,20 +129,17 @@ module Actions
     Dir[pattern].first
   end
 
-  def get_rails_file(gem_name, file_path, destination)
-    get(rails_file(gem_name, file_path), destination)
+  def copy_gem_file(gem_name, file_path, destination)
+    copy_file(gem_file(gem_name, file_path), destination)
   end
 
-  def rails_file(gem_name, file_path)
-    version_path =
-      if rails_main?
-        'main'
-      else
-        gem_version = Bundler.definition.specs[gem_name].first.version
-        "refs/tags/v#{gem_version}"
-      end
+  def gem_file(gem_name, file_path)
+    @gem_paths ||= {}
 
-    "https://raw.githubusercontent.com/rails/#{gem_name}/#{version_path}/#{file_path}"
+    @gem_paths[gem_name] ||= `bundle show #{gem_name}`.chomp
+    gem_path = @gem_paths[gem_name]
+
+    "#{gem_path}/#{file_path}"
   end
 
   def move_block(file_path, block_start, **options)

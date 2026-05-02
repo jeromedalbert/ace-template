@@ -27,7 +27,7 @@ module SetupGenerators
   def set_up_tailwind_templates
     copy_file_from 'tailwind', 'lib/templates/erb/scaffold/index.html.erb'
 
-    get_rails_file(
+    copy_gem_file(
       'tailwindcss-rails',
       'lib/generators/tailwindcss/scaffold/templates/show.html.erb.tt',
       'lib/templates/erb/scaffold/show.html.erb'
@@ -37,7 +37,7 @@ module SetupGenerators
               ''
     gsub_file 'lib/templates/erb/scaffold/show.html.erb', %r{  <%% if notice.*  <%% end %>\n\n}m, ''
 
-    get_rails_file(
+    copy_gem_file(
       'tailwindcss-rails',
       'lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
       'lib/templates/erb/scaffold/_form.html.erb'
@@ -47,7 +47,7 @@ module SetupGenerators
               %r{  <%% if.*errors.any.*  <%% end %>\n}m,
               partial('tailwind/lib/templates/erb/scaffold/_form.html.erb', indent: 2)
 
-    get_rails_file(
+    copy_gem_file(
       'tailwindcss-rails',
       'lib/generators/tailwindcss/scaffold/templates/partial.html.erb.tt',
       'lib/templates/erb/scaffold/partial.html.erb'
@@ -71,9 +71,9 @@ module SetupGenerators
     copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/new.html.erb'
     copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/show.html.erb'
 
-    get_rails_file(
-      'rails',
-      'railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
+    copy_gem_file(
+      'railties',
+      'lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
       'lib/templates/erb/scaffold/partial.html.erb'
     )
     gsub_file(
