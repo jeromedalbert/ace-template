@@ -1,7 +1,6 @@
 module ConfigureRailsAuth
   def perform
     run 'rails generate authentication'
-    # Fix while waiting for https://github.com/thoughtbot/factory_bot_rails/pull/519
     format_code
 
     configure_authentication_concern
