@@ -17,8 +17,8 @@ module SetupViews
       )
     head_content = Regexp.last_match(1).gsub(/^ */, '')
 
-    File.write 'app/views/layouts/application.html.erb', application_content
-    File.write 'app/views/layouts/_head.html.erb', head_content
+    File.write('app/views/layouts/application.html.erb', application_content)
+    File.write('app/views/layouts/_head.html.erb', head_content)
 
     format_quotes 'app/views/layouts/application.html.erb' if template_options[:double]
   end

@@ -11,7 +11,7 @@ remove_file controller_test_helper_file_path
 
 comment_lines 'config/application.rb', "require 'action_controller/railtie'"
 
-File.write 'Procfile.dev', "worker: bin/jobs\n"
+File.write('Procfile.dev', "worker: bin/jobs\n")
 gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
 if docker?
   gsub_file 'Dockerfile', /# Start server.*/, '# Start background jobs'

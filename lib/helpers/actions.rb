@@ -32,17 +32,19 @@ module Actions
     run command.join(' '), capture: true, abort_on_failure: false
 
     if !@formatted_gemfile
-      format_rubocop('--only Bundler/OrderedGems Gemfile --force-default-config', verbose: true)
+      format_rubocop(
+        '--only Bundler/OrderedGems --config ' + find_in_source_paths('.rubocop.internal.yml')
+      )
       @formatted_gemfile = true
     end
   end
 
-  def format_rubocop(options = '', verbose: false)
+  def format_rubocop(options = '')
     return if skip_rubocop?
 
     run "bundle exec rubocop -A #{options} --ignore-parent-exclusion".squish,
         capture: true,
-        verbose: verbose
+        verbose: false
   end
 
   def show_help

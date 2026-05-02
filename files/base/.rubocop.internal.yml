@@ -1,0 +1,5 @@
+AllCops:
+  DisabledByDefault: true
+
+Bundler/OrderedGems:
+  TreatCommentsAsGroupSeparators: false

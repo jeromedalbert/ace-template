@@ -57,6 +57,7 @@ class TemplateTest < Minitest::Test
     template.stubs(:run).returns('')
     template.stubs(:parse_template_options)
     template.stubs(:after_bundle).yields
+    template.stubs(:find_in_source_paths).returns('')
     template.stubs(:commit)
     if !ENV['LOG_TO_STDOUT']
       template.stubs(:say)

@@ -375,11 +375,17 @@ module EndToEnd
 
     def assert_app_works
       assert_command_success 'bin/rails boot'
-      assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
-      if File.exist?('.rubocop.yml')
-        assert_command_success 'bin/rubocop --config .rubocop.yml --ignore-parent-exclusion'
+
+      with_clean_env do
+        if File.exist?('bin/ci')
+          assert_command_success('bin/ci')
+          assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
+        else
+          assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
+          assert_command_success 'bin/rubocop' if File.exist?('.rubocop.yml')
+          assert_syntax_tree_formatting if File.exist?('bin/stree')
+        end
       end
-      assert_syntax_tree_formatting if File.exist?('bin/stree')
 
       secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
       File.write('.kamal/secrets.production', secrets)

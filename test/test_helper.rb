@@ -7,7 +7,7 @@ require 'rails/generators/rails/app/app_generator'
 require 'tty-cursor'
 require 'tty-reader'
 
-root_path = "#{__dir__}/.."
+def root_path = "#{__dir__}/.."
 eval(File.read("#{root_path}/template.rb").gsub("\n\napply_template\n", ''))
 Dir["#{root_path}/lib/{cli,helpers}/*.rb"].each { |f| require f }
 
@@ -29,7 +29,7 @@ end
 
 class EndToEndTest < Minitest::Test
   def setup
-    Dir.chdir("#{__dir__}/..")
+    Dir.chdir(root_path)
 
     FileUtils.rm_rf('tmp/myapp') if !ENV['REUSE_APP']
 
@@ -151,6 +151,24 @@ class EndToEndTest < Minitest::Test
 
   def test_data_folder
     factory_bot? ? 'factories' : 'fixtures'
+  end
+
+  def with_clean_env
+    run_command('bin/rails db:environment:set RAILS_ENV=test')
+    with_clean_rubocop { yield }
+  ensure
+    run_command('bin/rails db:environment:set RAILS_ENV=development')
+  end
+
+  def with_clean_rubocop
+    return if !File.exist?('.rubocop.yml')
+    rubocop_path = "#{root_path}/.rubocop.yml"
+    rubocop_content = File.read(rubocop_path)
+    FileUtils.rm rubocop_path
+
+    yield
+  ensure
+    File.write(rubocop_path, rubocop_content)
   end
 
   private
