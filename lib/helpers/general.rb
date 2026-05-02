@@ -64,6 +64,22 @@ module General
     prepend.to_s + indent(file_content, indent) + append.to_s
   end
 
+  # Port of https://github.com/rails/rails/pull/56365 while waiting for it to
+  # be available in all Rails versions supported by this template.
+  def version_manager_ruby_version
+    return ENV['RBENV_VERSION'] if ENV['RBENV_VERSION']
+    return ENV['rvm_ruby_string'] if ENV['rvm_ruby_string']
+
+    version =
+      if RUBY_ENGINE == 'ruby'
+        Gem.ruby_version.to_s.sub(/\.([a-zA-Z])/, '-\1')
+      else
+        RUBY_ENGINE_VERSION
+      end
+
+    "#{RUBY_ENGINE}-#{version}"
+  end
+
   def help_banner
     Template::HELP_BANNER
   end

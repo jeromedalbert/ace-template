@@ -24,6 +24,7 @@ module SetupBaseConfiguration
     copy_file '.irbrc'
     copy_file '.rubocop.yml', force: true if rubocop?
     copy_file '.streerc'
+    template '.ruby-version', force: true
 
     run 'bundle binstubs syntax_tree'
     cleanup_binstub('stree')

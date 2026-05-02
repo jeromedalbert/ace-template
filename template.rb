@@ -42,7 +42,7 @@ module Template
   EOS
   REQUIRED_RAILS_VERSIONS = '>= 8.0.1'
   SUPPORTED_RAILS_VERSIONS = ['~> 8.0.0', '~> 8.1.0']
-  SUPPORTED_RUBY_VERSIONS = '~> 3.4.0'
+  SUPPORTED_RUBY_VERSIONS = ['~> 3.4.0', '~> 4.0.0']
 
   def apply_template
     initialize
