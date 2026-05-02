@@ -14,9 +14,7 @@ insert_into_file(
   "  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized\n\n",
   before: /^(  def authenticate.*|end)/m
 )
-if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
-  add_before_end 'app/controllers/application_controller.rb', "  private\n"
-end
+add_private 'app/controllers/application_controller.rb'
 add_before_end(
   'app/controllers/application_controller.rb',
   partial('files/pundit/app/controllers/application_controller_end.rb', :prepend_nl, indent: 2)

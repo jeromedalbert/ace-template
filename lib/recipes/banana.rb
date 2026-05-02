@@ -5,6 +5,7 @@ module ScaffoldBanana
 
     if template_options[:auth]
       link_banana_to_user
+      set_bananas_as_logged_in_homepage
     else
       set_bananas_as_homepage
     end
@@ -34,12 +35,14 @@ module ScaffoldBanana
               /add_.*/,
               'add_belongs_to :bananas, :user'
 
-    inject_into_class 'app/models/user.rb',
-                      'User',
-                      partial('banana/app/models/user.rb', :append_nl, indent: 2)
-    copy_file_from 'banana', 'spec/models/user_spec.rb'
+    if template_options[:auth] == 'rails'
+      insert_into_file 'app/models/user.rb', "  has_many :bananas\n", after: /has_many.*\n/
+    elsif template_options[:auth] == 'devise'
+      inject_into_class 'app/models/user.rb', 'User', "  has_many :bananas\n\n"
+    end
+    @banana_files.push('app/models/user.rb')
+
     template_from 'banana', 'spec/factories/bananas.rb.tt', force: true
-    @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
     inject_into_class 'app/controllers/bananas_controller.rb',
                       'BananasController',
@@ -57,18 +60,33 @@ module ScaffoldBanana
               /  let\(:banana\) { .*\n/,
               partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
 
-    insert_into_file 'app/controllers/application_controller.rb',
-                     "  before_action :redirect_root_path\n\n",
-                     after: /before_action .*\n/
-    insert_into_file(
-      'app/controllers/application_controller.rb',
-      partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
-      after: /def set_current_variables\n.*\n. end\n/
-    )
+    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
+  end
+
+  def set_bananas_as_logged_in_homepage
+    if template_options[:auth] == 'rails'
+      insert_into_file 'app/controllers/application_controller.rb',
+                       "\n  before_action :redirect_root_path\n\n",
+                       after: /allow_browser.*\n/
+      add_private 'app/controllers/application_controller.rb'
+      insert_into_file(
+        'app/controllers/application_controller.rb',
+        partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
+        before: /^(end|\n  def render_not_authorized.*)/m
+      )
+    elsif template_options[:auth] == 'devise'
+      insert_into_file 'app/controllers/application_controller.rb',
+                       "  before_action :redirect_root_path\n\n",
+                       after: /before_action .*\n/
+      insert_into_file(
+        'app/controllers/application_controller.rb',
+        partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
+        after: /def set_current_variables\n.*\n. end\n/
+      )
+    end
+
     format_code('app/controllers/application_controller.rb')
     @banana_files << 'app/controllers/application_controller.rb'
-
-    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
   end
 
   def set_bananas_as_homepage

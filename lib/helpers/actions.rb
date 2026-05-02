@@ -13,6 +13,18 @@ module Actions
     status.success? ? result : emit_critical_error(result)
   end
 
+  def format_code(files = '**/*')
+    command = ["bundle exec stree write '#{files}'"]
+    command += File.read("#{__dir__}/../../.streerc").split if !File.exist?('.streerc')
+    run command.join(' '), capture: true, abort_on_failure: false
+
+    format_rubocop('--only Bundler/OrderedGems --config /dev/null') if files == '**/*'
+  end
+
+  def format_rubocop(options = '')
+    run "bundle exec rubocop -A #{options}", capture: true
+  end
+
   def emit_critical_error(message)
     say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
     abort
@@ -119,7 +131,7 @@ module Actions
     spaces_count = block_start[/^ */].length
     spaces = ' ' * spaces_count
 
-    /#{Regexp.escape(block_start)}\n((#{spaces}  .*\n)*)#{spaces}end\n\n?/
+    /#{Regexp.escape(block_start)}\n((#{spaces}  .*\n|\n)*)#{spaces}end\n\n?/
   end
 
   def delete_block(file_path, block_start)
@@ -132,6 +144,10 @@ module Actions
 
   def insert_blank_line(file_path, line_pattern)
     gsub_file file_path, /#{line_pattern}/, "\\0\n"
+  end
+
+  def add_private(file_path)
+    add_before_end(file_path, "  private\n") if !File.read(file_path).match?(/^  private/)
   end
 end
 

@@ -103,18 +103,6 @@ module Template
     emit_warning "This template only officially supports #{supported}. You are using #{current}."
   end
 
-  def format_code(files = '**/*')
-    command = ["bundle exec stree write '#{files}'"]
-    command += File.read("#{__dir__}/.streerc").split if !File.exist?('.streerc')
-    run command.join(' '), capture: true, abort_on_failure: false
-
-    format_rubocop('--only Bundler/OrderedGems --config /dev/null') if files == '**/*'
-  end
-
-  def format_rubocop(options = '')
-    run "bundle exec rubocop -A #{options}", capture: true
-  end
-
   def setup_base_configuration
     apply 'lib/recipes/base_configuration.rb'
   end
@@ -158,9 +146,9 @@ module Template
     apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'
     apply 'lib/recipes/devise.rb' if template_options[:auth] == 'devise'
 
-    copy_file_from 'auth', 'spec/factories/users.rb', force: true
     add_before_end 'spec/rails_helper.rb',
                    partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)
+    copy_file_from 'auth', 'spec/factories/users.rb', force: true
   end
 
   def configure_generators
@@ -179,15 +167,20 @@ module Template
 
   def finalize
     FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
+    squash_commits
+
     run 'rake db:drop'
     run 'bin/setup --skip-server'
     run 'rails db:migrate'
     commit('Add schema')
-
-    run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
+    squash_commits
 
     ENV['DISABLE_SPRING'] = 'false'
     emit_success 'Done! See README.md'
+  end
+
+  def squash_commits
+    run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
   end
 
   def source_paths

@@ -34,7 +34,7 @@ module Options
       @template_options.merge!(auth: true, banana: true, squash: true, vcr: true)
     end
     @template_options[:solid_dev] = true if @template_options[:worker] && solid?
-    set_multi_option_default(:auth, 'devise')
+    set_multi_option_default(:auth, 'rails')
     set_multi_option_default(:errors, 'rollbar')
 
     if @template_options[:worker] && !options[:api]

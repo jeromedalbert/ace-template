@@ -4,7 +4,7 @@ run 'rails generate devise User'
 remove_comments 'app/models/user.rb'
 add_before_end 'app/models/user.rb',
                partial('auth/devise/app/models/user.rb', :prepend_nl, indent: 2)
-remove_file 'spec/models/user_spec.rb'
+template_from 'auth/devise', 'spec/models/user_spec.rb.tt', force: true
 gsub_file 'config/routes.rb', "  devise_for :users\n", ''
 insert_into_file 'config/routes.rb',
                  partial('auth/devise/config/routes.rb', :prepend_nl, indent: 2),
@@ -20,6 +20,7 @@ add_before_end(
   'app/controllers/application_controller.rb',
   partial('files/auth/devise/app/controllers/application_controller.rb', :prepend_nl, indent: 2)
 )
+
 insert_into_file 'spec/support/controller_helpers.rb',
                  partial('auth/devise/spec/support/controller_helpers.rb', indent: 2),
                  before: /end\n/

@@ -1,0 +1,13 @@
+require 'rails_helper'
+
+describe User do
+  it { should have_many :sessions }
+  <%- if template_options[:banana] -%>
+  it { should have_many :bananas }
+  <%- end -%>
+
+  it { should validate_presence_of :email }
+  it { should validate_presence_of :password }
+
+  it { should normalize(:email).from('JOHN@TEST.COM ').to('john@test.com') }
+end

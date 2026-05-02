@@ -55,8 +55,7 @@ class TemplateTest < Minitest::Test
     assert_banana_linked_to_user
     assert_tailwind_css_option
     assert_dependabot_option
-    assert_devise_auth_option
-    assert_devise_in_views
+    assert_rails_auth_auth_option
     assert_rollbar_errors_option
     assert_generators_option
     assert_pundit_option
@@ -67,11 +66,12 @@ class TemplateTest < Minitest::Test
   end
 
   def test_more_options
-    output = run_rails_new('-o double,errors=sentry --css bootstrap')
+    output = run_rails_new('-o auth=devise,double,errors=sentry --css bootstrap')
 
     assert_template_done(output)
     assert_app_works
     assert_bootstrap_css_option
+    assert_devise_auth_option
     assert_double_option
     assert_sentry_errors_option
   end
@@ -348,28 +348,39 @@ class TemplateTest < Minitest::Test
     assert_file '.github/dependabot.yml'
   end
 
-  def assert_devise_auth_option
-    assert_gemfile 'devise'
-    assert_file 'app/models/user.rb'
-    assert_file 'config/routes.rb' do |content|
-      assert_includes content, 'devise_for :users'
-      assert_includes content, "get 'login'"
-      assert_includes content, "get 'signup'"
-      assert_includes content, "delete 'logout'"
-    end
-    assert_file 'app/controllers/application_controller.rb', 'def authenticate'
+  def assert_rails_auth_auth_option
+    assert_file 'app/models/user.rb', 'validates :email,'
+    assert_file 'app/models/current.rb'
 
-    assert_file 'spec/factories/users.rb'
-    assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+    assert_file 'app/controllers/concerns/authentication.rb',
+                'before_action :resume_session',
+                'helper_method :current_user',
+                'alias_method :authenticate'
 
-    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
-  end
+    assert_file 'app/controllers/sessions_controller.rb'
+    refute_file 'app/controllers/sessions_controller.rb', 'allow_unauthenticated_access'
+    assert_file 'app/controllers/registrations_controller.rb'
 
-  def assert_devise_in_views
-    assert_dir 'app/views/devise'
+    assert_file 'app/views/sessions/new.html.erb'
+    assert_file 'app/views/registrations/new.html.erb'
 
     assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
     assert_file 'app/views/pages/home.html.erb', /sign up.* to start managing your bananas/m
+
+    assert_file 'config/routes.rb' do |content|
+      assert_includes content, 'resource :session'
+      assert_includes content, 'resource :registrations'
+      assert_match(/get ['"]login/, content)
+      assert_match(/get ['"]signup/, content)
+      assert_match(/delete ['"]logout/, content)
+    end
+
+    assert_file 'spec/models/user_spec.rb'
+    assert_file 'spec/factories/users.rb'
+    assert_file 'spec/rails_helper.rb', 'Current.reset'
+    # assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+
+    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
   end
 
   def assert_rollbar_errors_option
@@ -459,6 +470,34 @@ class TemplateTest < Minitest::Test
 
     assert_file 'config/initializers/field_errors.rb'
     assert_commit 'Set up Bootstrap'
+  end
+
+  def assert_devise_auth_option
+    assert_gemfile 'devise'
+
+    assert_file 'app/models/user.rb'
+    assert_file 'app/models/current.rb'
+
+    assert_file 'app/controllers/application_controller.rb',
+                'def authenticate',
+                'Current.user = current_user'
+
+    assert_dir 'app/views/devise'
+    assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
+
+    assert_file 'config/routes.rb' do |content|
+      assert_includes content, 'devise_for :users'
+      assert_match(/get ['"]login/, content)
+      assert_match(/get ['"]signup/, content)
+      assert_match(/delete ['"]logout/, content)
+    end
+
+    assert_file 'spec/models/user_spec.rb'
+    assert_file 'spec/factories/users.rb'
+    assert_file 'spec/rails_helper.rb', 'Current.reset'
+    assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+
+    assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
   end
 
   def assert_double_option
