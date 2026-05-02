@@ -571,7 +571,7 @@ module Template
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
 
     ENV['DISABLE_SPRING'] = 'false'
-    say 'Done!', :green
+    say "\nDone! See README.md", :green
   end
 end
 
