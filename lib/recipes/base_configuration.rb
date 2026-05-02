@@ -41,9 +41,12 @@ module SetupBaseConfiguration
   end
 
   def setup_config_files
+    remove_comments_before 'config/application.rb', 'Bundler.require'
+    remove_comments_before 'config/application.rb', 'config.load_defaults'
+    remove_comments_before 'config/application.rb', 'config.autoload_lib'
     gsub_file 'config/application.rb',
-              /^ *#\n *# config.*  end\n/m,
-              partial('config/application.rb.tt', :prepend_nl, append: "  end\n", indent: 4)
+              /(^$\n)?(^ *#.*\n)*(^  end\nend)/,
+              partial('config/application.rb.tt', :prepend_nl, append: '\3', indent: 4)
 
     if template_defaults?
       with_rails_options(

@@ -108,6 +108,10 @@ module Actions
     gsub_file file_path, /\n\nend/, "\nend"
   end
 
+  def remove_comments_before(file_path, line_pattern)
+    gsub_file file_path, /(^ *#.*\n)*(?=^ *#{line_pattern})/, ''
+  end
+
   def cleanup_binstub(binstub_name)
     gsub_file "bin/#{binstub_name}", /# (.*\n)*?require/, 'require'
     gsub_file "bin/#{binstub_name}", /\n\n/, "\n"
