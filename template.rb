@@ -277,6 +277,7 @@ module Template
     gsub_file 'config/deploy.yml',
               '- RAILS_MASTER_KEY',
               %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
+    gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
     if postgresql? || redis?
       append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
     end
