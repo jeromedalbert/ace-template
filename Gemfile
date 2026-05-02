@@ -1,7 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'activesupport'
-gem 'awesome_print'
+gem 'amazing_print'
 gem 'minitest'
 gem 'minitest-reporters'
 gem 'mocha'

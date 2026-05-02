@@ -1,4 +1,5 @@
-gem 'awesome_print'
+# Use main branch while waiting for next version that has more formatting options
+gem 'amazing_print', github: 'amazing-print/amazing_print', branch: 'main'
 <% if template_options[:auth] == 'devise' -%>
 # Use main branch while waiting for next version that includes a Rails 8 fix
 gem 'devise', github: 'heartcombo/devise', branch: 'main'

@@ -147,7 +147,7 @@ module EndToEnd
     end
 
     def assert_default_gems
-      assert_gemfile 'awesome_print'
+      assert_gemfile 'amazing_print'
       refute_gemfile 'rubocop-rails-omakase'
       refute_gemfile 'tzinfo-data'
 
