@@ -1,4 +1,4 @@
-require 'end_to_end_test'
+require 'test_helper'
 
 module EndToEnd
   class TemplateTest < EndToEndTest
