@@ -70,7 +70,7 @@ TODO:
 <% end -%>
 ### With Fly.io
 
-<% if db.mysql? -%>
+<% if mysql? -%>
 Fly.io does not work with MySQL out of the box.
 More configuration is required, and is not covered in these instructions.
 <% end -%>
@@ -111,14 +111,14 @@ fly apps open
 Heroku does not work out of the box with Rails 8's default multiple databases.
 The instructions below only work for a single production database.
 <% end -%>
-<% if !db.postgresql? -%>
+<% if !postgresql? -%>
 Heroku does not work with non-Postgres databases out of the box.
 More configuration is required, and is not covered in these instructions.
 <% end -%>
 
 ```bash
 heroku create <%= app_uniqueish_name %> # Name must be unique
-<% if db.postgresql? -%>
+<% if postgresql? -%>
 heroku addons:add heroku-postgresql
 watch -n 10 heroku addons:info heroku-postgresql # Wait for Postgres addon state to be "created". This can take a while...
 <% end -%>

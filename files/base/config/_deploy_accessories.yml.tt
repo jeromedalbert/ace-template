@@ -1,5 +1,5 @@
 accessories:
-  <%- if db.postgresql? -%>
+  <%- if postgresql? -%>
   db:
     image: postgres:17
     host: <%%= ENV['SERVER_IP'] %>
@@ -12,9 +12,9 @@ accessories:
         - POSTGRES_PASSWORD
     directories:
       - data:/var/lib/postgresql/data
-  <%- elsif db.mysql? -%>
+  <%- elsif mysql? -%>
   db:
-    image: mysql:8
+    image: <%= db.match?('mariadb') ? 'mariadb:11' : 'mysql:8' %>
     host: <%%= ENV['SERVER_IP'] %>
     # Change to 3306 to expose port to the world instead of just local network.
     port: 127.0.0.1:3306:3306

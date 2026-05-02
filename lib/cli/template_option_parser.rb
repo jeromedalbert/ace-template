@@ -127,14 +127,8 @@ module CLI
         emit_error 'active_storage template option is incompatible with Rails --skip-active-storage option'
       end
 
-      if @template_options[:solid_dev]
-        if options[:skip_solid]
-          emit_error 'solid_dev template option is incompatible with Rails --skip-solid option'
-        elsif !options[:database].in?(@app.supported_databases)
-          emit_error(
-            "solid_dev template option currently only works for #{@app.supported_databases.to_sentence}."
-          )
-        end
+      if @template_options[:solid_dev] && options[:skip_solid]
+        emit_error 'solid_dev template option is incompatible with Rails --skip-solid option'
       end
 
       if @template_options[:worker]

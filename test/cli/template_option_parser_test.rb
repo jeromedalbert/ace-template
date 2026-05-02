@@ -126,14 +126,6 @@ module CLI
       assert_raises(SystemExit) { @parser.parse(%w[new -o solid_dev]) }
     end
 
-    def test_solid_dev_option_with_rails_unsupported_database_option
-      @parser = TemplateOptionParser.new(build_app(database: 'trilogy'))
-
-      expect_error(/solid_dev template option currently only works for .*/)
-
-      assert_raises(SystemExit) { @parser.parse(%w[new -o solid_dev]) }
-    end
-
     def test_worker_option_without_api_option
       expect_error('worker template option requires Rails --api option')
 

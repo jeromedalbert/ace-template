@@ -38,14 +38,6 @@ class TemplateTest < Minitest::Test
     @template.apply_template
   end
 
-  def test_unsupported_rails_database_option
-    @template = build_template(database: 'trilogy')
-
-    expect_warning(/This template only officially supports .* You are using trilogy/)
-
-    @template.apply_template
-  end
-
   private
 
   def build_template(app_path = 'myapp', **rails_options)

@@ -34,6 +34,6 @@ append_to_file 'config/deploy.yml', partial('config/deploy_end.yml.tt', :prepend
 gsub_file 'config/environments/production.rb', 'assume_ssl = true', 'assume_ssl = false'
 gsub_file 'config/environments/production.rb', 'force_ssl = true', 'force_ssl = false'
 
-template 'db/production.sql.tt' if db.mysql? && solid?
+template 'db/production.sql.tt' if mysql? && solid?
 
 commit 'Configure Kamal'

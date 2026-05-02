@@ -51,11 +51,19 @@ module Options
   end
 
   def db
-    options[:database].inquiry
+    options[:database]
+  end
+
+  def postgresql?
+    db == 'postgresql'
+  end
+
+  def mysql?
+    db.match?(/mysql|trilogy|mariadb/)
   end
 
   def server_db?
-    !skip_active_record? && !sqlite3?
+    active_record? && !sqlite3?
   end
 
   def redis?

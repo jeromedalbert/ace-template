@@ -20,7 +20,7 @@ module ConfigureDatabase
 
     delete_line 'config/database.yml', /^ *username:.*/
     delete_line 'config/database.yml', /^ *password:.*/
-    insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
+    insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if mysql?
     configure_solid_dev_db if template_options[:solid_dev]
 
     commit 'Configure database'
