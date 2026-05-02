@@ -4,13 +4,15 @@ gem 'dotenv-rails'
 <% if factory_bot? -%>
 gem 'factory_bot_rails'
 <% end -%>
+<% if ace_template_defaults? -%>
 gem 'listen'
+<% end -%>
 <% if rspec? -%>
 gem 'rspec-rails'
 <% end -%>
-<% if rubocop? -%>
-# Use master branch while waiting for next version that fixes some CLI options
-gem 'rubocop', require: false, github: 'rubocop/rubocop', branch: 'master'
+<% if ace_template_defaults? && rubocop? -%>
+  # Use commit that fixes a CLI option while waiting for next version of rubocop and standard
+  gem 'rubocop', require: false, github: 'rubocop/rubocop', ref: '1e1df6f'
   <%- if factory_bot? -%>
 gem 'rubocop-factory_bot', require: false
   <%- end -%>
@@ -26,16 +28,18 @@ gem 'rubocop-rspec_rails', require: false
   <%- end -%>
 gem 'rubocop-rubycw', require: false
 <% end -%>
+<% if ace_template_defaults? -%>
 gem 'spring'
-<% if rspec? -%>
+  <%- if rspec? -%>
 gem 'spring-commands-rspec'
-<% end -%>
-<% if rubocop? -%>
+  <%- end -%>
+  <%- if rubocop? -%>
 gem 'spring-commands-rubocop'
-<% end -%>
+  <%- end -%>
 gem 'spring-watcher-listen'
-<% if rubocop? -%>
+  <%- if rubocop? -%>
 gem 'standard'
 gem 'standard-rails'
-<% end -%>
+  <%- end -%>
 gem 'syntax_tree'
+<% end -%>

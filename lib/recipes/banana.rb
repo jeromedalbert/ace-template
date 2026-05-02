@@ -44,7 +44,7 @@ module ScaffoldBanana
 
     inject_into_class 'app/controllers/bananas_controller.rb',
                       'BananasController',
-                      "  before_action :authenticate\n\n"
+                      "  before_action :authenticate\n" + ("\n" if ace_template_defaults?).to_s
     gsub_file 'app/controllers/bananas_controller.rb',
               '@bananas = Banana.all',
               '@bananas = current_user.bananas'
@@ -72,7 +72,7 @@ module ScaffoldBanana
 
     gsub_file(
       'test/controllers/bananas_controller_test.rb',
-      /(BananasControllerTest.*\n)(  setup .*\n\n)?/,
+      /(BananasControllerTest.*\n)(  setup .*(\n.*\n  end)?\n\n)?/,
       '\1' +
         partial('banana/test/controllers/bananas_controller_test_top.rb.tt', :append_nl, indent: 2)
     )
@@ -86,8 +86,8 @@ module ScaffoldBanana
   def set_bananas_as_logged_in_homepage
     if template_options[:auth] == 'rails'
       insert_into_file 'app/controllers/application_controller.rb',
-                       "\n  before_action :redirect_root_path\n\n",
-                       after: /allow_browser.*\n/
+                       "  before_action :redirect_root_path\n\n",
+                       after: /allow_browser.*?\n\n/m
       add_private 'app/controllers/application_controller.rb'
       insert_into_file(
         'app/controllers/application_controller.rb',

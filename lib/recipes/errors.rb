@@ -35,7 +35,7 @@ module ConfigureErrors
     delete_line 'config/initializers/sentry.rb', /^ *config.enable_tracing.*/
     gsub_file 'config/initializers/sentry.rb',
               '[:active_support_logger]',
-              '[:active_support_logger, :http_logger]'
+              '%i[active_support_logger http_logger]'
 
     if template_options[:rails_creds]
       gsub_file 'config/initializers/sentry.rb',

@@ -18,7 +18,7 @@ gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\n\\0"
 gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
 insert_into_file 'spec/rails_helper.rb',
                  partial('tests/rspec/spec/rails_helper_requires.rb.tt', :prepend_nl),
-                 after: "require 'rspec/rails'\n"
+                 after: %r{require ['"]rspec/rails['"]\n}
 if template_options[:rails_fixtures]
   insert_into_file 'spec/rails_helper.rb',
                    "  config.global_fixtures = :all\n",

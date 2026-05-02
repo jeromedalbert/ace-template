@@ -8,8 +8,9 @@ class Rails::ScaffoldControllerCustomGenerator < Rails::Generators::ScaffoldCont
       File.join('app/controllers', controller_class_path, "#{controller_file_name}_controller.rb")
 
     gsub_file @file, /^ *#.*\n/, ''
-    gsub_file @file, ', status: :see_other', '', verbose: false
     gsub_file @file, ':unprocessable_entity', ':unprocessable_content', verbose: false
+    gsub_file @file, ', status: :see_other', '', verbose: false
+    <%- if ace_template_defaults? -%>
     gsub_file @file, '.destroy!', ".destroy!\n", verbose: false
     gsub_file @file, /before_action :set_.*\n/, '', verbose: false
     gsub_file @file, 'def set_', 'def load_', verbose: false
@@ -19,11 +20,14 @@ class Rails::ScaffoldControllerCustomGenerator < Rails::Generators::ScaffoldCont
     add_to_method_start 'edit', method_call
     add_to_method_start 'update', "#{method_call}\n"
     add_to_method_start 'destroy', "#{method_call}\n"
+    <%- end -%>
   end
+  <%- if ace_template_defaults? -%>
 
   private
 
   def add_to_method_start(method, content)
     gsub_file @file, "def #{method}\n", "def #{method}\n  #{content}\n", verbose: false
   end
+  <%- end -%>
 end

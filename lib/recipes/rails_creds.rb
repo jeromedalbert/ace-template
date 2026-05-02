@@ -19,6 +19,7 @@ module ConfigureRailsCreds
 
   def setup_local_overrides
     template_from 'rails_creds', 'config/local.rb.sample.tt'
+    format_quotes 'config/local.rb.sample' if template_options[:double]
 
     insert_into_file '.gitignore', "/config/local.rb\n", after: ".env*\n"
     insert_into_file '.dockerignore', "/config/local.rb\n", after: ".env*\n" if docker?

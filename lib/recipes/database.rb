@@ -35,7 +35,7 @@ module ConfigureDatabase
                 "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
     end
 
-    format_quotes('config/database.yml', style: :single)
+    format_quotes 'config/database.yml' if template_options[:double]
     configure_solid_dev_dbs if template_options[:solid_dev] && multiple_dbs?
   end
 

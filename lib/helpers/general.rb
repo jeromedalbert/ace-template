@@ -31,7 +31,8 @@ module General
   end
 
   def fly_io_launch_command
-    command = +'DISABLE_SPRING=true fly launch --no-deploy'
+    command = +'fly launch --no-deploy'
+    command.prepend('DISABLE_SPRING=true ') if ace_template_defaults?
 
     command << ' --no-object-storage' if sqlite3?
     command << ' --yes'
@@ -65,6 +66,10 @@ module General
     end
 
     file_content
+  end
+
+  def pindent
+    @pindent ||= ' ' * (ace_template_defaults? ? 2 : 4)
   end
 
   def test_folder

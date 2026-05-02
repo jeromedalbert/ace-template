@@ -79,6 +79,21 @@ module CLI
       )
     end
 
+    def test_omakase_option
+      result = @parser.parse(%w[new myapp -o omakase])
+
+      assert_equal(
+        {
+          'omakase' => true,
+          'double' => true,
+          'rails_creds' => true,
+          'rails_fixtures' => true,
+          'rails_tests' => true
+        },
+        result.template_options
+      )
+    end
+
     def test_quick_option
       result = @parser.parse(%w[new myapp -o quick])
 
@@ -142,6 +157,14 @@ module CLI
       expect_error('banana template option is incompatible with Rails --skip-active-record option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o banana]) }
+    end
+
+    def test_double_option_with_rails_skip_rubocop_option
+      @parser = TemplateOptionParser.new(build_app(skip_rubocop: true))
+
+      expect_error('double template option is incompatible with Rails --skip-rubocop option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o double]) }
     end
 
     def test_rails_tests_option_with_rails_skip_test_option

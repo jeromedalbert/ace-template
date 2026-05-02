@@ -24,13 +24,14 @@ module ConfigureRailsAuth
               ":require_authentication\n",
               ":resume_session\n\n"
     session_finding_code = File.read('app/controllers/concerns/authentication.rb')[/Session.find.*/]
-    delete_block 'app/controllers/concerns/authentication.rb', '  def find_session_by_cookie'
+    delete_block 'app/controllers/concerns/authentication.rb',
+                 "#{pindent}def find_session_by_cookie"
     gsub_file 'app/controllers/concerns/authentication.rb',
               '= find_session_by_cookie',
               "= #{session_finding_code}"
     gsub_file 'app/controllers/concerns/authentication.rb',
-              /^    resume_session$/,
-              '    Current.session.present?'
+              /^#{pindent}  resume_session$/,
+              "#{pindent}  Current.session.present?"
     insert_into_file 'app/controllers/concerns/authentication.rb',
                      "    helper_method :current_user\n",
                      after: /before_action .*\n\n/
@@ -41,15 +42,19 @@ module ConfigureRailsAuth
     delete_block 'app/controllers/concerns/authentication.rb', '  class_methods do'
     insert_into_file(
       'app/controllers/concerns/authentication.rb',
-      partial('auth/rails_auth/app/controllers/concerns/authentication.rb', :append_nl, indent: 2),
-      before: '  def request_authentication'
+      partial(
+        'auth/rails_auth/app/controllers/concerns/authentication.rb',
+        :append_nl,
+        indent: pindent.size
+      ),
+      before: "#{pindent}def request_authentication"
     )
     move_block 'app/controllers/concerns/authentication.rb',
-               '  def authenticated?',
-               before: '  def request_authentication'
+               "#{pindent}def authenticated?",
+               before: "#{pindent}def request_authentication"
     move_block 'app/controllers/concerns/authentication.rb',
-               '  def require_authentication',
-               before: '  def request_authentication'
+               "#{pindent}def require_authentication",
+               before: "#{pindent}def request_authentication"
     insert_blank_line 'app/controllers/concerns/authentication.rb',
                       /session\[:return_to_after_authenticating\] = .*/
     insert_blank_line 'app/controllers/concerns/authentication.rb', 'Current.session.destroy'
@@ -88,16 +93,21 @@ module ConfigureRailsAuth
   def configure_passwords_controller
     split_var_from_condition 'app/controllers/passwords_controller.rb', 'user'
     delete_line 'app/controllers/passwords_controller.rb', '  allow_unauthenticated_access'
-    delete_line 'app/controllers/passwords_controller.rb',
-                %r{  before_action :set_user_by_token.*\n}
 
-    gsub_file 'app/controllers/passwords_controller.rb', 'set_user_by_token', 'load_user'
-    insert_into_file 'app/controllers/passwords_controller.rb',
-                     "    load_user\n",
-                     after: "def edit\n"
-    insert_into_file 'app/controllers/passwords_controller.rb',
-                     "    load_user || return\n\n",
-                     after: "def update\n"
+    if ace_template_defaults?
+      delete_line 'app/controllers/passwords_controller.rb',
+                  %r{  before_action :set_user_by_token.*}
+      gsub_file 'app/controllers/passwords_controller.rb', 'set_user_by_token', 'load_user'
+      insert_into_file 'app/controllers/passwords_controller.rb',
+                       "    load_user\n",
+                       after: "def edit\n"
+      insert_into_file 'app/controllers/passwords_controller.rb',
+                       "    load_user || return\n\n",
+                       after: "def update\n"
+      insert_into_file 'app/controllers/passwords_controller.rb',
+                       "nil\n",
+                       after: /rescue .*\n *redirect_to new_password_path.*\n/
+    end
 
     format_code 'app/controllers/passwords_controller.rb'
 
@@ -160,13 +170,15 @@ module ConfigureRailsAuth
     insert_blank_line 'app/mailers/passwords_mailer.rb', '@user = user'
     insert_blank_line 'app/models/current.rb', 'attribute :session'
 
-    if tests?
-      add_test_data_file 'sessions', from: 'auth/tests'
-      remove_file 'test/test_helpers/session_test_helper.rb' if template_options[:rails_tests]
-      insert_into_file controller_test_helper_file_path,
-                       partial('auth/rails_auth/tests/helpers/controller_helpers.rb.tt', indent: 2),
-                       before: /end\n/
+    return if !tests?
+    add_test_data_file 'sessions', from: 'auth/tests'
+    if template_options[:rails_tests]
+      remove_file 'test/test_helpers/session_test_helper.rb'
+      delete_line 'test/test_helper.rb', /require.*session_test_helper.*/
     end
+    insert_into_file controller_test_helper_file_path,
+                     partial('auth/rails_auth/tests/helpers/controller_helpers.rb.tt', indent: 2),
+                     before: /end\n/
   end
 
   def create_registrations_controller
@@ -201,7 +213,7 @@ module ConfigureRailsAuth
 
     gsub_file 'app/controllers/registrations_controller.rb',
               ruby_block_regex('  def destroy'),
-              partial('auth/rails_auth/app/controllers/registrations_controller.rb', indent: 2)
+              partial('auth/rails_auth/app/controllers/registrations_controller.rb.tt', indent: 2)
 
     add_test_file 'controllers/registrations_controller', from: 'auth/rails_auth'
   end

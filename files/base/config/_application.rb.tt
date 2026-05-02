@@ -4,5 +4,7 @@ require local_config if File.exist?(local_config)
 
 <% end -%>
 config.time_zone = ENV['TIMEZONE'] || 'UTC'
+<% if ace_template_defaults? -%>
 
 config.action_controller.include_all_helpers = false
+<% end -%>

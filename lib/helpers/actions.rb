@@ -1,32 +1,48 @@
 require 'bundler'
+require 'open3'
 
 module Actions
   def run(command, config = {})
     abort_on_failure = config.fetch(:abort_on_failure, true)
     return super if !abort_on_failure || !config[:capture]
     destination = relative_to_original_destination_root(destination_root, false)
-    say_status :run, "#{command} from #{destination.inspect}", config.fetch(:verbose, true)
+    display_command = "#{command} from #{destination.inspect}"
+    verbose = config.fetch(:verbose, true)
+    say_status :run, display_command, verbose
 
     result, status = Open3.capture2e(command.to_s)
 
-    status.success? ? result : emit_critical_error(result)
+    if status.success?
+      result
+    else
+      say_status :run, display_command if !verbose
+      emit_critical_error(result)
+    end
   end
 
-  def format_code(files = '**/*')
-    command = ["bundle exec stree write '#{files}'"]
-    command += File.read("#{__dir__}/../../.streerc").split if !File.exist?('.streerc')
+  def format_code(files = nil)
+    if template_options[:omakase]
+      format_rubocop(files)
+      return
+    end
+
+    stree_files = files || '**/*'
+    command = ["bundle exec stree write '#{stree_files}'"]
+    command += File.read(find_in_source_paths('.streerc')).split if !File.exist?('.streerc')
     run command.join(' '), capture: true, abort_on_failure: false
 
     if !@formatted_gemfile
-      format_rubocop('Gemfile --only Bundler/OrderedGems --force-default-config')
+      format_rubocop('--only Bundler/OrderedGems Gemfile --force-default-config', verbose: true)
       @formatted_gemfile = true
     end
   end
 
-  def format_rubocop(options = '')
+  def format_rubocop(options = '', verbose: false)
     return if skip_rubocop?
 
-    run "bundle exec rubocop -A #{options}", capture: true
+    run "bundle exec rubocop -A #{options} --ignore-parent-exclusion".squish,
+        capture: true,
+        verbose: verbose
   end
 
   def show_help
@@ -66,7 +82,7 @@ module Actions
     say("\n#{message}\n\n", :green)
   end
 
-  def commit(message = 'Initial commit', files: '--all', errors: true)
+  def commit(message = 'Initial commit', files: nil, errors: true)
     if `git status --porcelain`.empty?
       if errors
         emit_critical_error %(Cannot commit with message "#{message}": there are no files to commit.)
@@ -75,7 +91,13 @@ module Actions
       end
     end
 
-    run "git add #{files}"
+    if template_options[:omakase]
+      format_rubocop('--config ' + find_in_source_paths('omakase/.rubocop.internal.yml'))
+    elsif template_options[:double]
+      format_rubocop('--config ' + find_in_source_paths('double/.rubocop.internal.yml'))
+    end
+
+    run "git add #{files || '--all'}"
     run "git commit -m '#{message}'", capture: true
   end
 
@@ -134,9 +156,9 @@ module Actions
     test_data_folder = factory_bot? ? 'factories' : 'fixtures'
     ext = factory_bot? ? 'rb' : 'yml'
 
-    copy_file "#{from}/#{test_data_folder}/#{name}.#{ext}",
-              "#{test_folder}/#{test_data_folder}/#{name}.#{ext}",
-              force: true
+    template "#{from}/#{test_data_folder}/#{name}.#{ext}",
+             "#{test_folder}/#{test_data_folder}/#{name}.#{ext}",
+             force: true
   end
 
   def copy_file_from(folder, file_path, ...)
@@ -168,15 +190,15 @@ module Actions
     insert_into_file file_path, line, opts
   end
 
-  def format_quotes(files, style:)
+  def format_quotes(files)
     from, to =
-      if style == :single
-        %w[" ']
-      elsif style == :double
+      if template_options[:double]
         %w[' "]
+      else
+        %w[" ']
       end
 
-    Dir[*files].each { |file| gsub_file file, from, to }
+    Dir[*files].each { |file| gsub_file(file, from, to) }
   end
 
   def find_file(pattern)

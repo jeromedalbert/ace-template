@@ -38,6 +38,10 @@ module Options
     !template_options[:rails_creds]
   end
 
+  def jbuilder?
+    !options[:skip_jbuilder]
+  end
+
   def kamal?
     !skip_kamal?
   end
@@ -54,16 +58,16 @@ module Options
     !options[:skip_test]
   end
 
-  def rspec?
-    tests? && !template_options[:rails_tests]
+  def ace_template_defaults?
+    !template_options[:omakase]
   end
 
   def factory_bot?
     tests? && !template_options[:rails_fixtures]
   end
 
-  def template_defaults?
-    !template_options[:omakase]
+  def rspec?
+    tests? && !template_options[:rails_tests]
   end
 
   def db

@@ -54,6 +54,7 @@ module EndToEnd
 
       assert_template_done(output)
       assert_app_works
+      assert_quote_style :single
       assert_active_storage_option
       assert_auth_rails_option
       assert_banana_option
@@ -77,7 +78,7 @@ module EndToEnd
       assert_app_works
       assert_auth_devise_option
       assert_css_bootstrap_option
-      assert_double_option
+      assert_quote_style :double
       assert_errors_sentry_option
     end
 
@@ -87,8 +88,8 @@ module EndToEnd
       assert_template_done(output)
       assert_app_works
       assert_rails_creds_option
-      assert_rails_tests_option
       assert_rails_fixtures
+      assert_rails_tests_option
       assert_auth_rails_option
       assert_banana_option
       assert_banana_linked_to_user
@@ -103,6 +104,30 @@ module EndToEnd
       assert_auth_rails_option
       assert_banana_option
       assert_banana_linked_to_user
+    end
+
+    def test_omakase_and_all_options
+      output = run_rails_new('-o omakase,all')
+
+      assert_template_done(output)
+      assert_app_works
+      assert_quote_style :double
+      assert_omakase_setup
+      assert_rails_creds_option
+      assert_rails_fixtures
+      assert_rails_tests_option
+      assert_active_storage_option
+      assert_auth_rails_option
+      assert_banana_option
+      assert_banana_linked_to_user
+      assert_errors_rollbar_option
+      assert_generators_option
+      assert_pundit_option
+      assert_redis_option
+      assert_solid_dev_option
+      assert_solid_single_option
+      assert_squash_option
+      assert_vcr_option
     end
 
     def test_worker_option
@@ -221,6 +246,7 @@ module EndToEnd
 
     def assert_default_gems
       assert_gemfile 'amazing_print'
+      refute_gemfile 'jbuilder'
       refute_gemfile 'rubocop-rails-omakase'
       refute_gemfile 'tzinfo-data'
 
@@ -350,8 +376,10 @@ module EndToEnd
     def assert_app_works
       assert_command_success 'bin/rails boot'
       assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
-      assert_command_success 'bin/rubocop --config .rubocop.yml'
-      assert_syntax_tree_formatting
+      if File.exist?('.rubocop.yml')
+        assert_command_success 'bin/rubocop --config .rubocop.yml --ignore-parent-exclusion'
+      end
+      assert_syntax_tree_formatting if File.exist?('bin/stree')
 
       secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
       File.write('.kamal/secrets.production', secrets)
@@ -359,9 +387,7 @@ module EndToEnd
     end
 
     def assert_syntax_tree_formatting
-      assert_command_success(
-        "bin/stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v templates)"
-      )
+      assert_command_success("bin/stree check $(git ls-files '*.rb' Gemfile Rakefile)")
     end
 
     def assert_banana_option
@@ -523,7 +549,11 @@ module EndToEnd
     def assert_vcr_option
       assert_gemfile 'vcr'
 
-      assert_file 'spec/support/vcr.rb'
+      if rspec?
+        assert_file 'spec/support/vcr.rb'
+      else
+        assert_file 'test/test_helpers/vcr.rb'
+      end
     end
 
     def assert_auth_devise_option
@@ -580,12 +610,6 @@ module EndToEnd
       assert_commit 'Set up Bootstrap'
     end
 
-    def assert_double_option
-      assert_quote_style :double
-
-      assert_commit 'Style strings with double quotes'
-    end
-
     def assert_errors_sentry_option
       assert_gemfile 'sentry'
       assert_file 'config/initializers/sentry.rb'
@@ -608,30 +632,40 @@ module EndToEnd
       refute_file '.env.sample'
     end
 
-    def assert_rails_tests_option
-      assert_gemfile 'rubocop-minitest'
-      refute_gemfile 'rubocop-rspec'
-      assert_file '.rubocop.yml', 'Minitest/'
-
-      refute_dir 'spec'
-      assert_file 'test/test_helper.rb' do |content|
-        assert_includes content, 'minitest/reporters'
-        assert_includes content, 'mocha'
-        assert_includes content, 'webmock'
-        assert_includes content, 'FactoryBot' if factory_bot?
-      end
-      assert_dir "test/#{test_data_folder}"
-      assert_dir 'test/test_helpers'
-
-      assert_commit 'Configure tests'
-    end
-
     def assert_rails_fixtures
       refute_gemfile 'factory_bot_rails'
       refute_gemfile 'rubocop-factory_bot'
 
       assert_dir "#{test_folder}/fixtures"
       refute_dir "#{test_folder}/factories"
+    end
+
+    def assert_rails_tests_option
+      refute_gemfile 'rubocop-rspec'
+      refute_dir 'spec'
+
+      assert_file 'test/test_helper.rb', 'mocha', 'webmock'
+      assert_dir "test/#{test_data_folder}"
+      assert_dir 'test/test_helpers'
+    end
+
+    def assert_omakase_setup
+      assert_file '.github/dependabot.yml'
+      assert_file 'config/application.rb', 'require "rails/all"'
+      refute_file '.irbrc'
+      refute_file '.streerc'
+
+      assert_gemfile 'jbuilder'
+      assert_gemfile 'rubocop-rails-omakase'
+
+      refute_gemfile 'amazing_print'
+      refute_gemfile 'dotenv-rails'
+      refute_gemfile 'factory_bot_rails'
+      refute_gemfile 'rspec-rails'
+      refute_gemfile 'rubocop-rubycw'
+      refute_gemfile 'spring'
+      refute_gemfile 'standard'
+      refute_gemfile 'syntax_tree'
     end
   end
 end

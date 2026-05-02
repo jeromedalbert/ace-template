@@ -111,6 +111,10 @@ module CLI
         @template_options.delete(:all)
       end
 
+      if @template_options[:omakase]
+        add_template_options(%w[double rails_creds rails_fixtures rails_tests])
+      end
+
       if @template_options[:quick]
         add_template_options(%w[active_storage auth banana squash vcr])
         @template_options.delete(:quick)
@@ -132,6 +136,7 @@ module CLI
       check_incompatible_options(:active_storage, rails_option: :skip_active_storage)
       check_incompatible_options(:auth, rails_option: :skip_active_record)
       check_incompatible_options(:banana, rails_option: :skip_active_record)
+      check_incompatible_options(:double, rails_option: :skip_rubocop)
 
       check_incompatible_options(:rails_tests, rails_option: :skip_test)
       check_incompatible_options(:rails_fixtures, rails_option: :skip_test)

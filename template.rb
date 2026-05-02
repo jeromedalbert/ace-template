@@ -24,9 +24,9 @@ module Template
       errors[=rollbar|sentry]  # Add error monitoring service
                                # (defaults to rollbar)
       generators               # Add improved scaffolding generators and templates
-      omakase                  # Use Rails defaults (implies all rails-* options)
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
+      omakase                  # Use Rails defaults (implies all rails-* options and double)
       rails-creds              # Use Rails credentials to manage secrets
       rails-fixtures           # Use Rails fixtures for test data
       rails-tests              # Use Rails test cases backed by Minitest
@@ -198,8 +198,6 @@ module Template
     apply 'lib/recipes/errors.rb' if template_options[:errors]
     apply 'lib/recipes/solid_single.rb' if template_options[:solid_single]
     apply 'lib/recipes/worker.rb' if template_options[:worker]
-
-    apply 'lib/recipes/double_quotes.rb' if template_options[:double]
   end
 
   def configure_auth

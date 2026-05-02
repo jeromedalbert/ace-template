@@ -36,6 +36,13 @@ if server_db? || redis?
 end
 append_to_file 'config/deploy.yml', partial('config/deploy_end.yml.tt')
 
+if template_options[:double]
+  gsub_file 'config/deploy.yml', "'SERVER_IP'", '"SERVER_IP"'
+  gsub_file 'config/deploy.yml', "'SECRETS'", '"SECRETS"'
+  gsub_file 'config/deploy.yml', "'KAMAL_REGISTRY_USERNAME'", '"KAMAL_REGISTRY_USERNAME"'
+  gsub_file 'config/deploy.yml', "'KAMAL_REGISTRY_PASSWORD'", '"KAMAL_REGISTRY_PASSWORD"'
+end
+
 comment_lines 'config/environments/production.rb', /^ *config.assume_ssl = true/
 comment_lines 'config/environments/production.rb', /^ *config.force_ssl = true/
 

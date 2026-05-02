@@ -1,4 +1,6 @@
+<% if ace_template_defaults? -%>
 require 'minitest/reporters'
+<% end -%>
 require 'mocha/minitest'
 <% if template_options[:vcr] -%>
 require 'vcr'
@@ -6,5 +8,7 @@ require 'vcr'
 require 'webmock/minitest'
 
 Rails.root.glob('test/test_helpers/**/*.rb').each { |f| require f }
+<% if ace_template_defaults? -%>
 
 Minitest::Reporters.use! [Minitest::Reporters::DefaultReporter.new]
+<% end -%>

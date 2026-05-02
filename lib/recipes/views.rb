@@ -19,6 +19,8 @@ module SetupViews
 
     File.write 'app/views/layouts/application.html.erb', application_content
     File.write 'app/views/layouts/_head.html.erb', head_content
+
+    format_quotes 'app/views/layouts/application.html.erb' if template_options[:double]
   end
 
   def add_homepage
@@ -28,6 +30,7 @@ module SetupViews
 
     copy_file 'app/controllers/pages_controller.rb'
     template 'app/views/pages/home.html.erb.tt'
+    format_quotes 'app/views/pages/home.html.erb' if template_options[:double]
 
     if !template_options[:banana] || template_options[:auth]
       add_test_file 'controllers/pages_controller'
@@ -35,6 +38,8 @@ module SetupViews
   end
 
   def setup_icons
+    return if template_options[:omakase]
+
     copy_file 'public/icon.png', force: true
     copy_file 'public/icon.svg', force: true
 

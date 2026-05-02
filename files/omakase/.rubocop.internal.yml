@@ -1,0 +1,10 @@
+inherit_from:
+  - ../double/.rubocop.internal.yml
+
+Layout/EmptyLinesAroundAccessModifier:
+  EnforcedStyle: only_before
+Layout/IndentationConsistency:
+  Enabled: true
+  EnforcedStyle: indented_internal_methods
+Layout/IndentationWidth:
+  Enabled: true

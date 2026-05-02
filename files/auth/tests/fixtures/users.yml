@@ -1,3 +1,0 @@
-john:
-  email: john@test.com
-  password_digest: <%= BCrypt::Password.create('MyString') %>

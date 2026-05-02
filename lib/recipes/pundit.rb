@@ -6,12 +6,13 @@ insert_into_file 'app/policies/application_policy.rb',
 gsub_file 'app/policies/application_policy.rb', /\n *private.*. end/m, '  end'
 inject_into_class 'app/policies/application_policy.rb', 'Scope', "    attr_reader :user, :scope\n\n"
 
-inject_into_class 'app/controllers/application_controller.rb',
-                  'ApplicationController',
-                  "  include Pundit::Authorization\n\n"
+gsub_file 'app/controllers/application_controller.rb',
+          /(class.*\n(  include.*\n)?)\n?/,
+          "\\1  include Pundit::Authorization\n\n"
+
 insert_into_file(
   'app/controllers/application_controller.rb',
-  "  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized\n\n",
+  "\n  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized\n\n",
   before: /^(  def authenticate.*|end)/m
 )
 add_private 'app/controllers/application_controller.rb'

@@ -4,7 +4,8 @@ module SetupBaseConfiguration
     setup_config_files
     setup_rubocop
     configure_spring
-    configure_ci if ci?
+    configure_ci
+    configure_double_quotes
 
     commit 'Set up base configuration'
   end
@@ -12,7 +13,6 @@ module SetupBaseConfiguration
   private
 
   def setup_base_files
-    remove_comments 'app/controllers/application_controller.rb'
     remove_comments 'app/jobs/application_job.rb' if active_job?
     remove_comments 'config/locales/en.yml'
     remove_comments 'config/database.yml' if active_record?
@@ -21,18 +21,30 @@ module SetupBaseConfiguration
     gsub_file '.gitignore', /$^\n^#.*/, ''
     gsub_file '.dockerignore', /$^\n^#.*/, '' if docker?
     gsub_file 'config/routes.rb', /\n\n/, "\n"
-    format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
+    format_quotes %w[config/locales/en.yml config/queue.yml] if !template_options[:double]
 
+    template '.ruby-version', force: true
+    template 'README.md.tt', force: true
+    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
+
+    remove_comments 'app/controllers/application_controller.rb'
+    gsub_file 'app/controllers/application_controller.rb',
+              /(allow_browser.*?)(?=\n  private|\n  def|^end)/m do |match|
+      match.gsub("\n\n", "\n")
+    end
+
+    setup_ace_template_base_files if ace_template_defaults?
+  end
+
+  def setup_ace_template_base_files
     copy_file '.irbrc'
     copy_file '.streerc'
-    template '.ruby-version', force: true
+    format_quotes '.irbrc' if template_options[:double]
 
     run 'bundle binstubs syntax_tree'
     cleanup_binstub('stree')
     remove_file 'bin/yarv', verbose: false
 
-    template 'README.md.tt', force: true
-    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     if docker?
       gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
     end
@@ -48,18 +60,16 @@ module SetupBaseConfiguration
               /(^$\n)?(^ *#.*\n)*(^  end\nend)/,
               partial('config/application.rb.tt', :prepend_nl, append: '\3', indent: 4)
 
-    if template_defaults?
-      with_rails_options(
-        skip_action_mailbox: true,
-        skip_action_text: true,
-        skip_test: rspec? || !tests?
-      ) do
-        gsub_file 'config/application.rb',
-                  /require 'rails(.+\n)*/,
-                  %(#{rails_require_statement.tr('"', "'")}\n)
-      end
-    end
+    copy_file 'config/recurring.yml', force: true if solid?
+    copy_file 'config/initializers/redis.rb' if redis?
 
+    apply 'lib/recipes/rails_creds.rb' if template_options[:rails_creds]
+    apply 'lib/recipes/solid_dev.rb' if template_options[:solid_dev]
+
+    setup_ace_template_config_files if ace_template_defaults?
+  end
+
+  def setup_ace_template_config_files
     add_before_end 'config/environments/development.rb',
                    partial('config/environments/development_end.rb', :prepend_nl, indent: 2)
 
@@ -68,17 +78,30 @@ module SetupBaseConfiguration
               '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
     format_code 'config/environments/production.rb'
 
-    copy_file 'config/recurring.yml', force: true if solid?
     copy_file 'config/initializers/lograge.rb'
-    copy_file 'config/initializers/redis.rb' if redis?
 
-    apply 'lib/recipes/rails_creds.rb' if template_options[:rails_creds]
-    apply 'lib/recipes/solid_dev.rb' if template_options[:solid_dev]
+    with_rails_options(
+      skip_action_mailbox: true,
+      skip_action_text: true,
+      skip_test: rspec? || !tests?
+    ) do
+      gsub_file 'config/application.rb',
+                /require 'rails(.+\n)*/,
+                %(#{rails_require_statement.tr('"', "'")}\n)
+    end
   end
 
   def setup_rubocop
     return if !rubocop?
 
+    if ace_template_defaults?
+      setup_ace_template_rubocop
+    else
+      setup_omakase_rubocop
+    end
+  end
+
+  def setup_ace_template_rubocop
     copy_file '.rubocop.yml', force: true
 
     if !rspec?
@@ -97,9 +120,17 @@ module SetupBaseConfiguration
                        partial('rubocop_minitest.yml', :prepend_nl),
                        before: %r{(?<=\n)\nRails/.*}
     end
+
+    format_quotes '.rubocop.yml' if template_options[:double]
+  end
+
+  def setup_omakase_rubocop
+    append_to_file '.rubocop.yml', partial('omakase/rubocop.yml', :prepend_nl)
   end
 
   def configure_spring
+    return if template_options[:omakase]
+
     run 'bundle exec spring binstub --all'
     run 'bundle exec spring stop'
     ENV['DISABLE_SPRING'] = 'true'
@@ -110,15 +141,16 @@ module SetupBaseConfiguration
   end
 
   def configure_ci
-    if template_defaults?
-      FileUtils.mv '.github/dependabot.yml', '.github/_dependabot.yml'
-      insert_into_file '.github/_dependabot.yml',
-                       "# Rename this file to dependabot.yml to enable Dependabot updates\n",
-                       before: /\A/
-    end
-
+    return if !ci?
     remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
     gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
+    return if template_options[:omakase]
+
+    FileUtils.mv '.github/dependabot.yml', '.github/_dependabot.yml'
+    insert_into_file '.github/_dependabot.yml',
+                     "# Rename this file to dependabot.yml to enable Dependabot updates\n",
+                     before: /\A/
+
     gsub_file '.github/workflows/ci.yml', '[ main ]', '[main]'
     gsub_file '.github/workflows/ci.yml', /Scan for common Rails .*/, 'Run Brakeman'
     gsub_file '.github/workflows/ci.yml',
@@ -136,6 +168,13 @@ module SetupBaseConfiguration
         %(  step 'Style: SyntaxTree', 'bin/stree check $(git ls-files "*.rb" Gemfile Rakefile)'\n),
         after: %r{bin/rubocop.*\n}
       )
+    end
+  end
+
+  def configure_double_quotes
+    if template_options[:double]
+      gsub_file '.streerc', 'plugin/single_quotes,', '' if ace_template_defaults?
+      delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*} if rubocop?
     end
   end
 end

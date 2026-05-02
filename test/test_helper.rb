@@ -43,7 +43,7 @@ class EndToEndTest < Minitest::Test
 
     output, status =
       Bundler.with_original_env { Open3.send(method, command, stdin_data: keypresses) }
-    raise_failed(output) if !status.success? && !capture_errors
+    raise_failed(command, output) if !status.success? && !capture_errors
 
     output
   end
@@ -155,12 +155,11 @@ class EndToEndTest < Minitest::Test
 
   private
 
-  def raise_failed(output)
+  def raise_failed(command, output)
     decoration = '#' * 30
-    message = 'Command failed.'
+    message = "Command `#{command}` failed.\n"
 
-    message = <<~EOS if output.present?
-      #{message}
+    message << <<~EOS if output.present?
 
       #{decoration}###############{decoration}
       #{decoration} STDOUT START #{decoration}

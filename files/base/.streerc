@@ -1,0 +1,14 @@
+--print-width=100
+--plugins=plugin/single_quotes,plugin/disable_auto_ternary
+
+--ignore-files='**/assets/**'
+--ignore-files='**/*.json'
+--ignore-files='db/*schema.rb'
+--ignore-files='lib/templates/**'
+--ignore-files='log/**'
+--ignore-files='node_modules/**'
+--ignore-files='package.json'
+--ignore-files='public/**'
+--ignore-files='storage/**'
+--ignore-files='tmp/**'
+--ignore-files='vendor/**'
