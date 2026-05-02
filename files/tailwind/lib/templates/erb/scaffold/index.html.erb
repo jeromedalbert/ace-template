@@ -17,7 +17,7 @@
 
     <tbody>
       <%% @<%= plural_table_name%>.each do |<%= singular_table_name %>| %>
-        <tr id="<%%= dom_id banana %>">
+        <tr id="<%%= dom_id <%= singular_table_name %> %>">
           <%- attributes.each do |attribute| -%>
           <td class="px-6 py-4">
           <%- if attribute.attachment? -%>
