@@ -1,0 +1,1 @@
+validates :name, presence: true

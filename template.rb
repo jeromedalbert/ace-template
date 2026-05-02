@@ -267,24 +267,25 @@ module Template
 
   def configure_optional_features
     configure_devise if template_options[:devise]
+    configure_pundit if template_options[:pundit]
 
     if !options[:skip_asset_pipeline]
       setup_tailwind if options[:css] == 'tailwind'
       setup_bootstrap if options[:css] == 'bootstrap'
     end
 
-    configure_worker if template_options[:worker]
     configure_generators
+    configure_worker if template_options[:worker]
   end
 
   def configure_devise
     run 'rails generate devise:install'
-    created_files = run('rails generate devise User', capture: true)
+    run 'rails generate devise User'
 
     remove_comments 'app/models/user.rb'
     insert_into_file 'app/models/user.rb',
                      partial('devise/app/models/user.rb', :prepend_nl, indent: 2),
-                     before: /end/
+                     before: /end\n\z/
     remove_file 'spec/models/user_spec.rb'
     copy_file_from 'devise', 'spec/factories/users.rb', force: true
     gsub_file 'config/routes.rb', "  devise_for :users\n", ''
@@ -292,14 +293,14 @@ module Template
                      partial('devise/config/routes.rb', :prepend_nl, indent: 2),
                      after: /root to: .*\n/
 
-    migration_file = created_files[%r{db/migrate/.*_devise_create_users.rb}]
+    migration_file = find_file('db/migrate/*_devise_create_users.rb')
     gsub_file migration_file, /^ *##.*\n(^ *#.*\n)+\n/, ''
     gsub_file migration_file, /.*class/m, 'class'
     gsub_file migration_file, %r{ *# add_index.*. end}m, '  end'
 
     inject_into_class 'app/controllers/application_controller.rb',
                       'ApplicationController',
-                      "  alias_method :authenticate, :authenticate_user!\n\n"
+                      "  alias_method :authenticate, :authenticate_user!\n"
     insert_into_file 'spec/support/controller_helpers.rb',
                      partial('devise/spec/support/controller_helpers.rb', indent: 2),
                      before: /end\n\n/
@@ -308,6 +309,26 @@ module Template
                      before: /end\n\z/
 
     commit 'Configure Devise'
+  end
+
+  def configure_pundit
+    run 'rails g pundit:install'
+    insert_into_file 'app/policies/application_policy.rb',
+                     partial('pundit/app/policies/application_policy.rb', :append_nl, indent: 2),
+                     before: %r{  class Scope}
+
+    inject_into_class 'app/controllers/application_controller.rb',
+                      'ApplicationController',
+                      "  include Pundit::Authorization\n\n"
+    insert_into_file 'app/controllers/application_controller.rb',
+                     partial(
+                       'files/pundit/app/controllers/application_controller.rb',
+                       :prepend_nl,
+                       indent: 2
+                     ),
+                     before: /end\n\z/
+
+    commit 'Configure Pundit'
   end
 
   def setup_tailwind
@@ -427,10 +448,47 @@ module Template
   end
 
   def scaffold_banana
-    run 'rails generate scaffold Banana name length:integer weight:integer'
-    inject_into_class 'app/models/banana.rb', 'Banana', "  validates :name, presence: true\n"
-    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
+    cmd = 'rails generate scaffold Banana name length:integer weight:integer'
+    cmd += ' user:belongs_to' if template_options[:devise]
+    run cmd
+    if template_options[:devise]
+      gsub_file find_file('db/migrate/*_create_bananas.rb'), ', foreign_key: true', ''
+    end
 
+    insert_into_file 'app/models/banana.rb',
+                     partial('banana/app/models/banana.rb', :prepend_nl, indent: 2),
+                     before: /end\n\z/
+    template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
+
+    if template_options[:devise]
+      inject_into_class 'app/models/user.rb',
+                        'User',
+                        partial('banana/app/models/user.rb', :append_nl, indent: 2)
+      copy_file_from 'banana', 'spec/models/user_spec.rb'
+
+      inject_into_class 'app/controllers/bananas_controller.rb',
+                        'BananasController',
+                        partial('banana/app/controllers/bananas_controller_start.rb', indent: 2)
+      gsub_file 'app/controllers/bananas_controller.rb',
+                /@bananas = .*\n/,
+                partial('banana/app/controllers/bananas_controller_index.rb')
+      gsub_file 'app/controllers/bananas_controller.rb',
+                /@banana = Banana.new\(.*\n/,
+                partial('banana/app/controllers/bananas_controller_create.rb')
+    end
+
+    if template_options[:pundit]
+      insert_into_file 'app/controllers/bananas_controller.rb',
+                       partial(
+                         'banana/app/controllers/bananas_controller_load.rb',
+                         :prepend_nl,
+                         indent: 4
+                       ),
+                       after: /@banana = Banana.find.*\n/
+      copy_file_from 'banana', 'app/policies/banana_policy.rb'
+    end
+
+    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
     match = file.match(/(?<spaces> *)(<!-- |  )(?<link><li.*li>)/)
@@ -470,6 +528,9 @@ module TemplateHelpers
       else
         options.split(',').map { |option| [option.to_sym, true] }.to_h
       end
+
+    @template_options[:pundit] = true if @template_options[:devise]
+    @template_options
   end
 
   def postgresql?
@@ -545,6 +606,10 @@ module TemplateHelpers
 
   def app_title
     app_name.sub(/([^[:punct:]])app$/, '\1 app').titleize
+  end
+
+  def find_file(pattern)
+    Dir[pattern].first
   end
 
   def source_paths

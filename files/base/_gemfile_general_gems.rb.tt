@@ -2,6 +2,9 @@ gem 'awesome_print'
 <% if template_options[:devise] -%>
 gem 'devise'
 <% end -%>
+<% if template_options[:pundit] -%>
+gem 'pundit'
+<% end -%>
 <% if template_options[:redis] && skip_action_cable? -%>
 gem 'redis'
 <% end -%>

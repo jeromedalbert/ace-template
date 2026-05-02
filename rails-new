@@ -10,9 +10,8 @@ if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
           # Available options:
           #
           #   - banana: scaffolds a dummy Banana resource for demo purposes
-          #   - devise: adds Devise authentication
+          #   - devise: adds Devise authentication and Pundit authorization
           #   - generators: adds custom generators for improved scaffolding
-          #   - pundit: adds Pundit authorization
           #   - squash: squash all commits into a single 'Initial commit'
           #   - redis
           #   - worker: removes web code (requires --api)

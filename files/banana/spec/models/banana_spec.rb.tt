@@ -1,0 +1,9 @@
+require 'rails_helper'
+
+describe Banana do
+  <%- if template_options[:devise] -%>
+  it { should belong_to :user }
+
+  <%- end -%>
+  it { should validate_presence_of :name }
+end
