@@ -8,28 +8,6 @@ inject_into_module 'app/helpers/application_helper.rb',
                    'ApplicationHelper',
                    partial('bootstrap/app/helpers/application_helper.rb', indent: 2)
 
-copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/_form.html.erb'
-copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/edit.html.erb'
-copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/index.html.erb'
-copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/new.html.erb'
-copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/show.html.erb'
-
-get_rails_file(
-  'rails',
-  'railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
-  'lib/templates/erb/scaffold/partial.html.erb'
-)
-gsub_file(
-  'lib/templates/erb/scaffold/partial.html.erb',
-  /(.*if attribute.attachment\?.*\n).*\n/,
-  '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachment.html.erb', indent: 4)
-)
-gsub_file(
-  'lib/templates/erb/scaffold/partial.html.erb',
-  /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
-  '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
-)
-
 copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
 copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
 

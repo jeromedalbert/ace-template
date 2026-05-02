@@ -17,7 +17,7 @@ module Template
           #   - double: use double-quoted strings
           #   - errors[=rollbar|sentry]: add error monitoring service
           #                              (defaults to rollbar)
-          #   - generators: add custom generators for improved scaffolding
+          #   - generators: add improved scaffolding generators and templates
           #   - omakase: active_storage, auth, banana, squash, and vcr options
           #   - pundit: add Pundit authorization
           #   - redis: add Redis

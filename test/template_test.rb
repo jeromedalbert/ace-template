@@ -371,16 +371,10 @@ class TemplateTest < Minitest::Test
       assert_includes content, "render partial: 'layouts/header'"
       assert_includes content, "render partial: 'layouts/flash_messages'"
     end
+
     assert_file 'app/views/layouts/_header.html.erb'
     assert_file 'app/views/layouts/_flash_messages.html.erb', 'TAILWIND_ALERT_CLASSES'
     assert_file 'app/helpers/application_helper.rb', 'TAILWIND_ALERT_CLASSES'
-
-    Dir.chdir('lib/templates/erb/scaffold') do
-      assert_file '_form.html.erb'
-      assert_file 'index.html.erb', '<table', 'Show', 'Edit', 'Destroy'
-      assert_file 'partial.html.erb'
-      assert_file 'show.html.erb'
-    end
 
     assert_file 'config/initializers/field_errors.rb'
   end
@@ -398,8 +392,10 @@ class TemplateTest < Minitest::Test
 
   def assert_generators_option
     assert_file 'config/initializers/generators.rb'
-    assert_dir 'lib/generators'
-    assert_dir 'lib/templates'
+
+    assert_dir 'lib/generators/rails'
+    assert_dir 'lib/templates/rspec'
+    assert_dir 'lib/templates/erb/scaffold'
 
     assert_file 'config/application.rb', /config.autoload_lib\(ignore: .* generators .* templates/
   end
@@ -480,15 +476,6 @@ class TemplateTest < Minitest::Test
     assert_file 'app/views/layouts/_header.html.erb'
     assert_file 'app/views/layouts/_flash_messages.html.erb', 'BOOTSTRAP_ALERT_CLASSES'
     assert_file 'app/helpers/application_helper.rb', 'BOOTSTRAP_ALERT_CLASSES'
-
-    Dir.chdir('lib/templates/erb/scaffold') do
-      assert_file '_form.html.erb'
-      assert_file 'edit.html.erb'
-      assert_file 'index.html.erb', '<table', 'Show', 'Edit', 'Destroy'
-      assert_file 'new.html.erb'
-      assert_file 'partial.html.erb'
-      assert_file 'show.html.erb'
-    end
 
     Dir.chdir('app/assets/stylesheets') do
       assert_file 'application.bootstrap.scss' do |content|
