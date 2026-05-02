@@ -5,9 +5,10 @@ require 'bundler'
 require 'open3'
 
 module Template
-  SUPPORTED_RAILS_VERSIONS = '~> 8.0.0.alpha'
+  REQUIRED_RAILS_VERSIONS = '>= 8.0'
+  SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'
   SUPPORTED_RUBY_VERSIONS = '~> 3.3.0'
-  SUPPORTED_DATABASES = %w[postgresql sqlite3 mysql]
+  SUPPORTED_DATABASES = %w[sqlite3 postgresql mysql]
 
   def apply_template
     configure_gemfile
@@ -59,26 +60,38 @@ module Template
   end
 
   def check_supported_software
-    if !Gem::Requirement.new(SUPPORTED_RAILS_VERSIONS).satisfied_by?(
-         Gem::Version.new(Rails.version)
-       )
-      warn_support(
+    rails_version = Gem::Version.new(Rails.version[/\d+.\d+.\d+/])
+    if !Gem::Requirement.new(REQUIRED_RAILS_VERSIONS).satisfied_by?(rails_version)
+      emit_required_error(
+        required: "Rails #{REQUIRED_RAILS_VERSIONS}",
+        current: "Rails #{Rails.version}"
+      )
+    end
+    if !Gem::Requirement.new(SUPPORTED_RAILS_VERSIONS).satisfied_by?(rails_version)
+      emit_support_warning(
         supported: "Rails #{SUPPORTED_RAILS_VERSIONS}",
         current: "Rails #{Rails.version}"
       )
     end
 
     if !Gem::Requirement.new(SUPPORTED_RUBY_VERSIONS).satisfied_by?(Gem::Version.new(RUBY_VERSION))
-      warn_support(supported: "Ruby #{SUPPORTED_RUBY_VERSIONS}", current: "Ruby #{RUBY_VERSION}")
+      emit_support_warning(
+        supported: "Ruby #{SUPPORTED_RUBY_VERSIONS}",
+        current: "Ruby #{RUBY_VERSION}"
+      )
     end
 
     if !options[:database].in?(SUPPORTED_DATABASES)
-      warn_support(supported: SUPPORTED_DATABASES.to_sentence, current: options[:database])
+      emit_support_warning(supported: SUPPORTED_DATABASES.to_sentence, current: options[:database])
     end
   end
 
-  def warn_support(supported:, current:)
-    say("This template only officially supports #{supported}. You are using #{current}.", :yellow)
+  def emit_required_error(required:, current:)
+    emit_critical_error "This template requires #{required}. You are using #{current}."
+  end
+
+  def emit_support_warning(supported:, current:)
+    emit_warning "This template only officially supports #{supported}. You are using #{current}."
   end
 
   def format_code(files = '**/*')
@@ -664,7 +677,7 @@ module Template
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
 
     ENV['DISABLE_SPRING'] = 'false'
-    say "\nDone! See README.md", :green
+    emit_success 'Done! See README.md'
   end
 end
 
@@ -696,10 +709,10 @@ module TemplateHelpers
     @template_options[:solid_dev] = true if @template_options[:worker] && !skip_solid?
 
     if @template_options[:worker] && !options[:api]
-      abort_with_message 'worker template option requires Rails --api option'
+      emit_critical_error 'worker template option requires Rails --api option'
     end
     if @template_options[:solid_dev] && skip_solid?
-      abort_with_message 'solid-dev template option is incompatible with Rails --skip-solid option'
+      emit_critical_error 'solid-dev template option is incompatible with Rails --skip-solid option'
     end
 
     @template_options
@@ -744,6 +757,10 @@ module TemplateHelpers
   end
 
   def commit(message = 'Initial commit', files: '--all')
+    if `git status --porcelain`.empty?
+      emit_critical_error %(Cannot commit with message "#{message}": there are no files to commit.)
+    end
+
     run "git add #{files}"
     run "git commit -m '#{message}'", capture: true
   end
@@ -769,7 +786,7 @@ module TemplateHelpers
 
     result, status = Open3.capture2e(command.to_s)
 
-    status.success? ? result : abort(result)
+    status.success? ? result : emit_critical_error(result)
   end
 
   def copy_file_from(folder, file_path, ...)
@@ -812,17 +829,25 @@ module TemplateHelpers
     end
   end
 
+  def emit_warning(message)
+    say("\n[WARNING] #{message}\n\n", :yellow)
+  end
+
+  def emit_critical_error(error_message)
+    say("\n[ERROR] #{error_message}\nApp generation aborted.\n\n", :red)
+    exit 1
+  end
+
+  def emit_success(message)
+    say("\n#{message}\n\n", :green)
+  end
+
   def find_file(pattern)
     Dir[pattern].first
   end
 
   def source_paths
     [__dir__, "#{__dir__}/files/base", "#{__dir__}/files"] + super
-  end
-
-  def abort_with_message(message)
-    say(message, :red)
-    super()
   end
 end
 
