@@ -1,5 +1,5 @@
 <% if ace_template_defaults? -%>
-# Use main branch while waiting for next version that has more formatting options
+# Use main branch while waiting for next version that has more features and fixes
 gem 'amazing_print', github: 'amazing-print/amazing_print', branch: 'main'
 <% end -%>
 <% if template_options[:auth] == 'devise' -%>

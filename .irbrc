@@ -2,6 +2,6 @@ require 'amazing_print'
 
 AmazingPrint.irb!
 AmazingPrint.rdbg!
-AmazingPrint.defaults = { hash_format: :rocket, colors: :values_only }
+AmazingPrint.defaults = { hash_format: :rocket }
 
 IRB.conf[:USE_AUTOCOMPLETE] = false
