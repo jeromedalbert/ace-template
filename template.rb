@@ -64,11 +64,31 @@ module Template
   private
 
   def initialize
+    set_source_paths
+
     apply 'lib/helpers/actions.rb', verbose: false
     apply 'lib/helpers/general.rb', verbose: false
     apply 'lib/helpers/options.rb', verbose: false
 
     parse_template_options
+  end
+
+  def set_source_paths
+    base_dir = __dir__
+
+    if __FILE__.match?(%r{^https?://})
+      require 'tmpdir'
+      base_dir = Dir.mktmpdir('rails-template-')
+      at_exit { FileUtils.remove_entry(base_dir) }
+      run "git clone https://github.com/jeromedalbert/rails-template #{base_dir}",
+          capture: true,
+          verbose: false
+      if (branch = __FILE__[%r{rails-template/(.+)/template.rb}, 1])
+        Dir.chdir(base_dir) { run "git checkout #{branch}", capture: true, verbose: false }
+      end
+    end
+
+    source_paths.prepend("#{base_dir}/files/base", "#{base_dir}/files", base_dir)
   end
 
   def configure_gemfile
@@ -204,8 +224,15 @@ module Template
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
   end
 
-  def source_paths
-    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__] + super
+  def apply(path, config = {})
+    return super if config[:verbose] == false
+
+    relative_path = path.sub(__dir__, '')
+    say_status :apply, relative_path
+
+    shell.padding += 1
+    super(path, config.merge(verbose: false))
+    shell.padding -= 1
   end
 end
 
