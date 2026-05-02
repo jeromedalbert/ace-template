@@ -1,16 +1,20 @@
 require:
-  - rubocop-minitest
+  - rubocop-factory_bot
   - rubocop-obsession
   - rubocop-performance
-  - rubocop-rake
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rspec_rails
   - rubocop-rubycw
   - standard
   - standard-custom
   - standard-performance
+  - standard-rails
 
 inherit_gem:
   standard: config/base.yml
   standard-performance: config/base.yml
+  standard-rails: config/base.yml
   standard-custom: config/base.yml
   syntax_tree: config/rubocop.yml
 
@@ -21,10 +25,16 @@ inherit_mode:
 AllCops:
   NewCops: enable
   Exclude:
-    - 'files/**/*'
+    - 'bin/**/*'
+    - 'lib/templates/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
 
 Bundler/OrderedGems:
   Enabled: true
+
+FactoryBot/AssociationStyle:
+  EnforcedStyle: explicit
 
 Layout/ArgumentAlignment:
   Enabled: false
@@ -37,29 +47,66 @@ Layout/LineLength:
 Layout/SpaceInsideHashLiteralBraces:
   EnforcedStyle: space
 
-Lint/InterpolationCheck:
-  Enabled: false
-
 Metrics/ClassLength:
   Max: 250
 Metrics/MethodLength:
   Max: 30
   Exclude:
-    - 'test/**/*'
+    - 'db/migrate/**/*'
+    - 'spec/**/*'
 Metrics/ModuleLength:
   Max: 250
   Exclude:
-    - 'test/**/*'
+    - 'spec/**/*'
 Metrics/ParameterLists:
   Max: 3
   CountKeywordArgs: false
   Exclude:
-    - 'test/**/*'
+    - 'spec/**/*'
 
-Minitest/AssertPredicate:
+Rails/EnvironmentVariableAccess:
   Enabled: false
-Minitest/RefutePredicate:
+Rails/HasManyOrHasOneDependent:
   Enabled: false
+Rails/InverseOf:
+  Enabled: false
+Rails/HelperInstanceVariable:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+RSpec/BeEq:
+  Enabled: false
+RSpec/ContextWording:
+  Prefixes:
+    - when
+RSpec/DescribedClass:
+  EnforcedStyle: explicit
+RSpec/EmptyLineAfterFinalLet:
+  Enabled: false
+RSpec/ExampleLength:
+  Max: 30
+RSpec/ImplicitExpect:
+  EnforcedStyle: should
+RSpec/ImplicitSubject:
+  Enabled: false
+RSpec/IndexedLet:
+  Max: 2
+RSpec/MatchArray:
+  Enabled: false
+RSpec/MessageChain:
+  Enabled: false
+RSpec/MissingExampleGroupArgument:
+  Enabled: false
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/NestedGroups:
+  Max: 6
+RSpec/VerifiedDoubles:
+  Enabled: false
+RSpec/VoidExpect:
+  Exclude:
+    - 'spec/support/*'
 
 Style/ClassMethodsDefinitions:
   Enabled: true
@@ -70,8 +117,6 @@ Style/DisableCopsWithinSourceCodeDirective:
 Style/GlobalStdStream:
   Enabled: false
 Style/GlobalVars:
-  Enabled: false
-Style/MixinUsage:
   Enabled: false
 Style/RescueStandardError:
   EnforcedStyle: explicit

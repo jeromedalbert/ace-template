@@ -1,6 +1,3 @@
-# rubocop:disable Style/DisableCopsWithinSourceCodeDirective
-# rubocop:disable Style/MixinUsage
-
 module TemplateHelpers
   attr_accessor :template_options
 
@@ -213,5 +210,3 @@ module TemplateHelpers
 end
 
 extend TemplateHelpers
-
-# rubocop:enable all

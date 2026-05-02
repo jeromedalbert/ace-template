@@ -47,8 +47,9 @@ GEM
       unicode-display_width (>= 2.4.0, < 3.0)
     rubocop-ast (1.32.3)
       parser (>= 3.3.1.0)
-    rubocop-factory_bot (2.26.1)
-      rubocop (~> 1.61)
+    rubocop-minitest (0.36.0)
+      rubocop (>= 1.61, < 2.0)
+      rubocop-ast (>= 1.31.1, < 2.0)
     rubocop-obsession (0.1.0)
       activesupport
       rubocop (~> 1.41)
@@ -60,11 +61,6 @@ GEM
       rack (>= 1.1)
       rubocop (>= 1.52.0, < 2.0)
       rubocop-ast (>= 1.31.1, < 2.0)
-    rubocop-rspec (3.1.0)
-      rubocop (~> 1.61)
-    rubocop-rspec_rails (2.30.0)
-      rubocop (~> 1.61)
-      rubocop-rspec (~> 3, >= 3.0.1)
     rubocop-rubycw (0.1.6)
       rubocop (~> 1.0)
     ruby-progressbar (1.13.0)
@@ -97,12 +93,9 @@ PLATFORMS
 DEPENDENCIES
   awesome_print
   rubocop
-  rubocop-factory_bot
+  rubocop-minitest
   rubocop-obsession
   rubocop-performance
-  rubocop-rails
-  rubocop-rspec
-  rubocop-rspec_rails
   rubocop-rubycw
   standard
   standard-rails

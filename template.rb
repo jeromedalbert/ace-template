@@ -4,10 +4,6 @@ require 'active_support/core_ext/string'
 require 'bundler'
 require 'open3'
 
-# rubocop:disable Style/DisableCopsWithinSourceCodeDirective
-# rubocop:disable Lint/InterpolationCheck
-# rubocop:disable Style/MixinUsage
-
 module Template
   TEMPLATE_OPTIONS_BANNER = <<~EOS
     Template options:
@@ -773,12 +769,10 @@ module Template
   end
 
   def source_paths
-    [__dir__, "#{__dir__}/files/base", "#{__dir__}/files"] + super
+    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__] + super
   end
 end
 
 extend Template
 
 apply_template if !$PROGRAM_NAME.end_with?('rails-new')
-
-# rubocop:enable all
