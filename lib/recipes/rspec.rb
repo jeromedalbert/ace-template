@@ -1,3 +1,5 @@
+remove_dir 'test' if Dir.exist?('test') && skip_some_rails_defaults?
+
 run 'rails generate rspec:install'
 copy_file '.rspec', force: true
 empty_directory_with_keep_file 'spec/factories'

@@ -33,6 +33,10 @@ module Options
     !skip_kamal?
   end
 
+  def skip_some_rails_defaults?
+    !template_options[:noskip]
+  end
+
   def db
     options[:database].inquiry
   end
@@ -47,6 +51,18 @@ module Options
 
   def redis?
     @has_redis ||= File.read('Gemfile').include?('redis')
+  end
+
+  def with_rails_options(**rails_options)
+    old_rails_options = options
+    old_required_railties = @required_railties
+    self.options = options.merge(rails_options)
+    @required_railties = nil
+
+    yield
+
+    self.options = old_rails_options
+    @required_railties = old_required_railties
   end
 
   private

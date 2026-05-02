@@ -48,6 +48,14 @@ module SetupBaseConfiguration
               /^ *#\n *# config.*  end\n/m,
               partial('config/application_end.rb', :prepend_nl, append: "  end\n", indent: 4)
 
+    if skip_some_rails_defaults?
+      with_rails_options(skip_action_mailbox: true, skip_action_text: true, skip_test: true) do
+        gsub_file 'config/application.rb',
+                  /require 'rails(.+\n)*/,
+                  %(#{rails_require_statement.tr('"', "'")}\n)
+      end
+    end
+
     add_before_end 'config/environments/development.rb',
                    partial('config/environments/development_end.rb', :prepend_nl, indent: 2)
 
@@ -94,8 +102,9 @@ module SetupBaseConfiguration
       URI.parse(
         rails_file('rails', 'railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt')
       ).open
-    self.options = options.merge(skip_test: false)
-    github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
+    with_rails_options(skip_test: false) do
+      github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
+    end
     File.write '.github/workflows/ci.yml', github_ci_content
 
     remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
