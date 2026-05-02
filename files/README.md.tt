@@ -34,21 +34,25 @@
 <% end -%>
 ## How to deploy
 
-#### With Kamal, on your own server
+### With Kamal, on your own server
 
 1. Open `.env.production` and set values for the following variables:
     - `SERVER_IP`: your server's IP address
     - `KAMAL_REGISTRY_USERNAME`: your Docker Hub username
     - `KAMAL_REGISTRY_PASSWORD`: your Docker Hub password
+
 1. If on macOS, make sure Docker Desktop is running
+
 1. Run the following:
+
     ```
     bin/kamal env push
     bin/kamal setup
     ```
+
 1. Visit your server's IP in your browser
 
-#### With Fly.io
+### With Fly.io
 
 ```
 DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_name %> # Name must be unique
@@ -57,7 +61,7 @@ fly deploy
 fly apps open
 ```
 
-#### With Heroku
+### With Heroku
 
 ```
 heroku create <%= app_name %>
