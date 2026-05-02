@@ -1,12 +1,12 @@
 -- Production database configuration used by mysql accessory in config/deploy.yml
 
-<% if !skip_action_cable? -%>
+<% if action_cable? -%>
 CREATE DATABASE IF NOT EXISTS <%= app_name %>_production_cable;
 <% end -%>
 CREATE DATABASE IF NOT EXISTS <%= app_name %>_production_cache;
 CREATE DATABASE IF NOT EXISTS <%= app_name %>_production_queue;
 
-<% if !skip_action_cable? -%>
+<% if action_cable? -%>
 GRANT ALL ON <%= app_name %>_production_cable.* TO '<%= app_name %>'@'%';
 <% end -%>
 GRANT ALL ON <%= app_name %>_production_cache.* TO '<%= app_name %>'@'%';

@@ -73,7 +73,7 @@ fly apps open
 
 ### With Heroku
 
-<% if server_db? && !skip_solid? -%>
+<% if server_db? && solid? -%>
 Heroku does not work out of the box with Rails 8's default multiple databases.
 The instructions below only work for a single production database.
 <% end -%>

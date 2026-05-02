@@ -167,7 +167,7 @@ module Template
               '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
     format_code('config/environments/production.rb')
 
-    copy_file 'config/recurring.yml', force: true if !skip_solid?
+    copy_file 'config/recurring.yml', force: true if solid?
     copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
   end
@@ -209,8 +209,6 @@ module Template
     elsif sqlite3?
       configure_sqlite
     end
-
-    commit 'Configure database'
   end
 
   def configure_server_db
@@ -237,11 +235,16 @@ module Template
                        before: 'development:'
       gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
     end
+
+    commit 'Configure database'
   end
 
   def configure_sqlite
+    return if !template_options[:solid_dev]
+
     FileUtils.touch('a')
-    return if template_options[:solid_dev]
+
+    commit 'Configure database'
   end
 
   def configure_rspec
@@ -322,7 +325,7 @@ module Template
     gsub_file 'config/environments/production.rb', 'assume_ssl = true', 'assume_ssl = false'
     gsub_file 'config/environments/production.rb', 'force_ssl = true', 'force_ssl = false'
 
-    template 'db/production.sql.tt' if db.mysql? && !skip_solid?
+    template 'db/production.sql.tt' if db.mysql? && solid?
 
     commit 'Configure Kamal'
   end
@@ -707,7 +710,7 @@ module TemplateHelpers
     if @template_options[:omakase]
       @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
     end
-    @template_options[:solid_dev] = true if @template_options[:worker] && !skip_solid?
+    @template_options[:solid_dev] = true if @template_options[:worker] && solid?
 
     if @template_options[:worker] && !options[:api]
       emit_critical_error 'worker template option requires Rails --api option'
@@ -737,7 +740,15 @@ module TemplateHelpers
   end
 
   def active_storage?
-    !options[:skip_active_storage]
+    !skip_active_storage?
+  end
+
+  def action_cable?
+    !skip_action_cable?
+  end
+
+  def solid?
+    !skip_solid?
   end
 
   def partial(file_path, *nl_opts, **opts)
