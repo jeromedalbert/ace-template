@@ -6,17 +6,17 @@
 
     <div class="my-5">
       <%= f.label :email %>
-      <%= f.email_field :email, class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
+      <%= f.email_field :email, autocomplete: 'email', class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
     </div>
 
     <div class="my-5">
       <%= f.label :password %>
-      <%= f.password_field :password, class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
+      <%= f.password_field :password, autocomplete: 'new-password', class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
     </div>
 
     <div class="my-5">
       <%= f.label :password_confirmation %>
-      <%= f.password_field :password_confirmation, class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
+      <%= f.password_field :password_confirmation, autocomplete: 'new-password', class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
     </div>
 
     <div class="inline">
