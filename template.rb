@@ -138,13 +138,23 @@ module Template
 
     add_before_end 'config/environments/development.rb',
                    partial('config/environments/development.rb', :prepend_nl, indent: 2)
+    if template_options[:solid_dev]
+      gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
+      insert_into_file 'config/environments/development.rb', after: /config.active_job.*\n\n/ do
+        <<-EOS
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
 
-    copy_file 'config/initializers/lograge.rb'
+        EOS
+      end
+    end
+
     gsub_file 'config/environments/production.rb',
               '.logger(STDOUT)',
               '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
     format_code('config/environments/production.rb')
 
+    copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
   end
 
@@ -189,6 +199,18 @@ module Template
     delete_line 'config/database.yml', /^ *username: .*/
     delete_line 'config/database.yml', /^ *password: .*/
     gsub_file 'config/database.yml', '"', "'"
+
+    if template_options[:solid_dev]
+      database_yml_content =
+        File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
+      databases =
+        Regexp.last_match(0).remove(' &primary_production').gsub(/primary_production/, 'default')
+      File.write('config/database.yml', database_yml_content)
+      insert_into_file 'config/database.yml',
+                       "databases: &databases\n#{databases}\n",
+                       before: 'development:'
+      gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
+    end
 
     commit 'Configure database'
   end
@@ -602,8 +624,10 @@ module Template
   end
 
   def finalize
+    FileUtils.cp('.env.sample', '.env') if template_options[:solid_dev]
     run 'rake db:drop'
     run 'bin/setup --skip-server'
+    run 'rails db:migrate' # Doing this while waiting for a potential fix on Rails main
     commit('Add schema')
 
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
@@ -616,14 +640,14 @@ end
 module TemplateHelpers
   def template_options
     return @template_options if @template_options
-    options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
-    options = options.parse(ARGV)['template_options']
+    raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
+    raw_options = raw_options.parse(ARGV)['template_options']
 
     @template_options =
-      if options.nil? || options == 'template_options'
+      if raw_options.nil? || raw_options == 'template_options'
         {}
       else
-        options.split(',').map { |option| [option.to_sym, true] }.to_h
+        raw_options.split(',').map { |option| [option.underscore.to_sym, true] }.to_h
       end
 
     if @template_options[:all]
@@ -638,8 +662,13 @@ module TemplateHelpers
     if @template_options[:omakase]
       @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
     end
-    if @template_options[:worker] && !ARGV.include?('--api')
-      abort 'worker option requires Rails --api option'
+    @template_options[:solid_dev] = true if @template_options[:worker] && !skip_solid?
+
+    if @template_options[:worker] && !options[:api]
+      abort_with_message 'worker template option requires Rails --api option'
+    end
+    if @template_options[:solid_dev] && skip_solid?
+      abort_with_message 'solid-dev template option is incompatible with Rails --skip-solid option'
     end
 
     @template_options
@@ -756,7 +785,7 @@ module TemplateHelpers
     [__dir__, "#{__dir__}/files/base", "#{__dir__}/files"] + super
   end
 
-  def abort(message)
+  def abort_with_message(message)
     say(message, :red)
     super()
   end

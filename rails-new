@@ -14,6 +14,7 @@ TEMPLATE_OPTIONS = <<~EOS
         #   - omakase: banana, devise, squash, and vcr options
         #   - pundit: add Pundit authorization
         #   - redis
+        #   - solid-dev: set up Solid adapters for development
         #   - squash: squash all commits into a single "Initial commit"
         #   - vcr: add VCR gem to record test HTTP requests
         #   - worker: removes web code (requires --api)
