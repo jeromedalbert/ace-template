@@ -328,6 +328,7 @@ module Template
     gsub_file 'spec/spec_helper.rb', %r{=begin\n(.*\n)*=end\n}, ''
     format_code 'spec/spec_helper.rb'
 
+    uncomment_lines 'spec/rails_helper.rb', /config.infer_spec_type_from_file_location!/
     remove_comments 'spec/rails_helper.rb'
     format_code 'spec/rails_helper.rb'
     gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\n\\0"
