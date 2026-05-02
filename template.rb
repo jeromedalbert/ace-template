@@ -182,7 +182,7 @@ module Template
               "url: <%= ENV['DATABASE_URL'] %>"
     gsub_file 'config/database.yml',
               /database: #{app_name}_production_(.*)/,
-              "url: <%= ENV['DATABASE_URL']&.+('_\\1') %>"
+              "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
     delete_line 'config/database.yml', /^ *username: .*/
     delete_line 'config/database.yml', /^ *password: .*/
     gsub_file 'config/database.yml', '"', "'"
