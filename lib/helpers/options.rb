@@ -9,28 +9,40 @@ module Options
     ensure_compatible_options
   end
 
-  def solid?
-    !skip_solid?
+  def asset_pipeline?
+    !skip_asset_pipeline?
   end
 
   def action_cable?
     !skip_action_cable?
   end
 
-  def asset_pipeline?
-    !skip_asset_pipeline?
-  end
-
-  def ci?
-    !skip_ci?
+  def active_job?
+    !options[:skip_active_job]
   end
 
   def active_record?
     !skip_active_record?
   end
 
+  def ci?
+    !skip_ci?
+  end
+
+  def docker?
+    !options[:skip_docker]
+  end
+
   def kamal?
     !skip_kamal?
+  end
+
+  def rubocop?
+    !skip_rubocop?
+  end
+
+  def solid?
+    !skip_solid?
   end
 
   def skip_some_rails_defaults?
@@ -85,7 +97,7 @@ module Options
       .each do |option|
         option_key, option_value = option.split('=')
         if !option_key.underscore.in?(allowed_options)
-          emit_critical_error("Invalid template option: #{option_key}")
+          emit_template_error("Invalid template option: #{option_key}")
         end
         @template_options[option_key.underscore.to_sym] = option_value || true
       end
@@ -100,7 +112,7 @@ module Options
   end
 
   def ensure_valid_app_path
-    emit_critical_error 'First argument must be the app path' if app_path.start_with?('-')
+    emit_template_error 'First argument must be the app path' if app_path.start_with?('-')
   end
 
   def imply_options
@@ -142,18 +154,29 @@ module Options
   end
 
   def ensure_compatible_options
-    if @template_options[:active_storage] && skip_active_storage?
-      emit_critical_error 'active_storage template option is incompatible with Rails --skip-active-storage option'
+    if options[:skip_bundle]
+      emit_template_error 'This template is incompatible with Rails --skip-bundle option'
     end
-    if @template_options[:worker] && !options[:api]
-      emit_critical_error 'worker template option requires Rails --api option'
+    if options[:skip_git]
+      emit_template_error 'This template is incompatible with Rails --skip-git option'
+    end
+
+    if @template_options[:active_storage] && skip_active_storage?
+      emit_template_error 'active_storage template option is incompatible with Rails --skip-active-storage option'
+    end
+
+    if @template_options[:worker]
+      emit_template_error 'worker template option requires Rails --api option' if !options[:api]
+      if options[:skip_active_job]
+        emit_template_error 'worker template option is incompatible with Rails --skip-active-job option'
+      end
     end
 
     if @template_options[:solid_dev]
       if skip_solid?
-        emit_critical_error 'solid_dev template option is incompatible with Rails --skip-solid option'
+        emit_template_error 'solid_dev template option is incompatible with Rails --skip-solid option'
       elsif !options[:database].in?(Template::SUPPORTED_DATABASES)
-        emit_critical_error 'solid_dev template option currently only works for ' \
+        emit_template_error 'solid_dev template option currently only works for ' \
                               "#{Template::SUPPORTED_DATABASES.to_sentence}."
       end
     end

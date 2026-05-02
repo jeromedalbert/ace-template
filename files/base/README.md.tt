@@ -44,6 +44,7 @@ TODO:
 
 ## How to deploy
 
+<% if kamal? -%>
 ### With Kamal, on your own server
 
 1. Open `.kamal/secrets.production` and set values for the following variables:
@@ -66,6 +67,7 @@ TODO:
 `config/environments/production.rb` by setting `assume_ssl` and `force_ssl` to
 `true`)
 
+<% end -%>
 ### With Fly.io
 
 <% if db.mysql? -%>

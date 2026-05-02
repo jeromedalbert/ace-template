@@ -22,10 +22,12 @@ module Actions
   end
 
   def format_rubocop(options = '')
+    return if skip_rubocop?
+
     run "bundle exec rubocop -A #{options}", capture: true
   end
 
-  def emit_critical_error(message)
+  def emit_template_error(message)
     delete_created_app
 
     say("\n[ERROR] #{message}\n\n", :red)
@@ -35,6 +37,11 @@ module Actions
 
   def delete_created_app
     remove_dir(destination_root) if Time.now - File.ctime(destination_root) <= 10
+  end
+
+  def emit_critical_error(message)
+    say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
+    abort
   end
 
   def emit_warning(message)

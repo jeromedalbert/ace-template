@@ -1,5 +1,5 @@
 gsub_file '.streerc', 'plugin/single_quotes,', ''
-delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*}
+delete_line '.rubocop.yml', %r{Style/StringLiterals.*\n  .*} if rubocop?
 
 format_code
 format_quotes(

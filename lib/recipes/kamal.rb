@@ -1,7 +1,7 @@
 remove_file '.kamal/secrets'
 template '.kamal/secrets.production.tt'
 insert_into_file '.gitignore', ".kamal/secrets*\n", after: ".env.sample\n"
-if Rails.version == '8.0.0'
+if Rails.version == '8.0.0' && docker?
   insert_into_file '.dockerignore', ".kamal/secrets*\n", after: ".env.sample\n"
 end
 

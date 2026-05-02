@@ -2,6 +2,7 @@ gem 'dotenv-rails'
 gem 'factory_bot_rails'
 gem 'listen'
 gem 'rspec-rails', github: 'rspec/rspec-rails', branch: 'main'
+<% if rubocop? -%>
 gem 'rubocop', require: false
 gem 'rubocop-factory_bot', require: false
 gem 'rubocop-obsession', require: false
@@ -10,10 +11,15 @@ gem 'rubocop-rails', require: false
 gem 'rubocop-rspec', require: false
 gem 'rubocop-rspec_rails', require: false
 gem 'rubocop-rubycw', require: false
+<% end -%>
 gem 'spring'
 gem 'spring-commands-rspec'
+<% if rubocop? -%>
 gem 'spring-commands-rubocop'
+<% end -%>
 gem 'spring-watcher-listen'
+<% if rubocop? -%>
 gem 'standard'
 gem 'standard-rails'
+<% end -%>
 gem 'syntax_tree'

@@ -16,9 +16,11 @@ module ConfigureErrors
     remove_comments 'config/initializers/rollbar.rb'
     format_code 'config/initializers/rollbar.rb'
 
-    inject_into_class 'app/jobs/application_job.rb',
-                      'ApplicationJob',
-                      "  include Rollbar::ActiveJob\n"
+    if active_job?
+      inject_into_class 'app/jobs/application_job.rb',
+                        'ApplicationJob',
+                        "  include Rollbar::ActiveJob\n"
+    end
   end
 
   def configure_sentry

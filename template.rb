@@ -107,7 +107,7 @@ module Template
   end
 
   def emit_required_error(required:, current:)
-    emit_critical_error "This template requires #{required}. You are using #{current}."
+    emit_template_error "This template requires #{required}. You are using #{current}."
   end
 
   def emit_support_warning(supported:, current:)
@@ -188,11 +188,13 @@ module Template
     FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
     squash_commits
 
-    run 'rake db:drop'
-    run 'bin/setup --skip-server'
-    run 'rails db:migrate'
-    commit('Add schema')
-    squash_commits
+    if active_record?
+      run 'rake db:drop'
+      run 'bin/setup --skip-server'
+      run 'rails db:migrate'
+      commit('Add schema')
+      squash_commits
+    end
 
     ENV['DISABLE_SPRING'] = 'false'
     emit_success 'Done! See README.md'

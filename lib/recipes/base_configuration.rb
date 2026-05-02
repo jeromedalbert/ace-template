@@ -12,9 +12,9 @@ module SetupBaseConfiguration
 
   def setup_base_files
     remove_comments 'app/controllers/application_controller.rb'
-    remove_comments 'app/jobs/application_job.rb'
+    remove_comments 'app/jobs/application_job.rb' if active_job?
     remove_comments 'config/locales/en.yml'
-    remove_comments 'config/database.yml'
+    remove_comments 'config/database.yml' if active_record?
     remove_comments 'config/routes.rb'
 
     gsub_file '.gitignore', /$^\n^#.*/, ''
@@ -22,7 +22,7 @@ module SetupBaseConfiguration
     format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
 
     copy_file '.irbrc'
-    copy_file '.rubocop.yml', force: true
+    copy_file '.rubocop.yml', force: true if rubocop?
     copy_file '.streerc'
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
@@ -30,7 +30,9 @@ module SetupBaseConfiguration
     remove_file 'bin/yarv', verbose: false
     template 'README.md.tt', force: true
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
-    gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
+    if docker?
+      gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
+    end
 
     empty_directory_with_keep_file 'app/services'
   end
@@ -114,7 +116,7 @@ module SetupBaseConfiguration
     gsub_file '.github/workflows/ci.yml',
               /Scan for .* JavaScript dependencies/,
               'Audit JavaScript dependencies'
-    gsub_file '.github/workflows/ci.yml', /Lint code .*/, 'Run Rubocop'
+    gsub_file '.github/workflows/ci.yml', /Lint code .*/, 'Run Rubocop' if rubocop?
     insert_into_file '.github/workflows/ci.yml',
                      partial('.github/workflows/ci.yml', :prepend_nl, indent: 6),
                      after: %r{run: bin/rubocop.*\n}

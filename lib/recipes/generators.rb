@@ -2,8 +2,10 @@ module SetupGenerators
   def perform
     set_up_generators
 
-    set_up_tailwind_templates if options[:css] == 'tailwind'
-    set_up_bootstrap_templates if options[:css] == 'bootstrap'
+    if asset_pipeline?
+      set_up_tailwind_templates if options[:css] == 'tailwind'
+      set_up_bootstrap_templates if options[:css] == 'bootstrap'
+    end
   end
 
   private
@@ -17,7 +19,7 @@ module SetupGenerators
               /config.autoload_lib.*/,
               'config.autoload_lib(ignore: %w[assets generators tasks templates])',
               verbose: false
-    gsub_file '.github/workflows/ci.yml', 'Rakefile)', 'Rakefile | grep -v templates)'
+    gsub_file '.github/workflows/ci.yml', 'Rakefile)', 'Rakefile | grep -v templates)' if ci?
 
     @generator_files = %w[config/initializers lib config/application.rb .github/workflows/ci.yml]
   end
