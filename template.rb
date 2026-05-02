@@ -176,14 +176,8 @@ module Template
     return if !postgresql?
 
     gsub_file 'config/database.yml',
-              "database: #{app_name}_production_cache",
-              "url: <%= ENV['DATABASE_URL']&.+('_cache') %>"
-    gsub_file 'config/database.yml',
-              "database: #{app_name}_production_queue",
-              "url: <%= ENV['DATABASE_URL']&.+('_queue') %>"
-    gsub_file 'config/database.yml',
-              "database: #{app_name}_production",
-              "url: <%= ENV['DATABASE_URL'] %>"
+              /database: #{app_name}_production_(.*)/,
+              "url: <%= ENV['DATABASE_URL']&.+('_\\1') %>"
     delete_line 'config/database.yml', /^ *username: .*/
     delete_line 'config/database.yml', /^ *password: .*/
     gsub_file 'config/database.yml', '"', "'"
