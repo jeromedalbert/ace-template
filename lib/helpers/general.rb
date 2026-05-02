@@ -30,6 +30,18 @@ module General
     @timezone ||= Time.now.zone
   end
 
+  def fly_io_launch_command
+    command = +'DISABLE_SPRING=true fly launch --no-deploy'
+
+    command << ' --no-object-storage' if sqlite3?
+    command << ' --yes'
+    command << ' --db=upg' if postgresql?
+    command << ' --no-db' if !active_record?
+
+    command << " --name #{app_uniqueish_name.dasherize}"
+    command
+  end
+
   def partial(file_path, *nl_opts, **opts)
     prepend = "\n" if nl_opts.include?(:surround_nl) || nl_opts.include?(:prepend_nl)
     prepend ||= opts[:surround] || opts[:prepend]

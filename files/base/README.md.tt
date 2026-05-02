@@ -87,7 +87,7 @@ More configuration is required, and is not covered in these instructions.
 1. Initialize the Fly app:
 
     ```bash
-    DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %>
+    <%= fly_io_launch_command %>
     ```
 
 1. Open `fly.toml`, remove the `[http_service]` section, and add the following section:
@@ -106,7 +106,7 @@ More configuration is required, and is not covered in these instructions.
     ```
 <% else -%>
 ```bash
-DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %>
+<%= fly_io_launch_command %>
 # (Optional) Set any extra env vars with: fly secrets set MY_VAR=value
 fly deploy
 fly apps open
