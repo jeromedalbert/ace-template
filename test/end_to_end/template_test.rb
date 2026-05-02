@@ -69,6 +69,9 @@ module EndToEnd
       assert_solid_single_option
       assert_squash_option
       assert_vcr_option
+
+      assert_file 'app/controllers/application_controller.rb',
+                  File.read("#{root_path}/test/fixtures/application_controller_full.rb")
     end
 
     def test_more_options
