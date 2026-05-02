@@ -1,6 +1,7 @@
 module ConfigureRailsAuth
   def perform
     run 'rails generate authentication'
+    # Fix while waiting for https://github.com/thoughtbot/factory_bot_rails/pull/519
     format_code
 
     configure_authentication_concern
@@ -34,7 +35,7 @@ module ConfigureRailsAuth
     delete_block 'app/controllers/concerns/authentication.rb', '  class_methods do'
     insert_into_file(
       'app/controllers/concerns/authentication.rb',
-      partial('auth/rails/app/controllers/concerns/authentication.rb', :append_nl, indent: 2),
+      partial('auth/rails_auth/app/controllers/concerns/authentication.rb', :append_nl, indent: 2),
       before: '  def request_authentication'
     )
     move_block 'app/controllers/concerns/authentication.rb',
@@ -94,12 +95,12 @@ module ConfigureRailsAuth
                      "  validates :email, presence: true\n",
                      before: '  normalizes :email'
 
-    copy_file_from 'auth/rails', 'spec/models/user_spec.rb', force: true
+    copy_file_from 'auth/rails_auth', 'spec/models/user_spec.rb', force: true
   end
 
   def configure_routes
     insert_into_file 'config/routes.rb',
-                     partial('auth/rails/config/routes.rb', :prepend_nl, indent: 2),
+                     partial('auth/rails_auth/config/routes.rb', :prepend_nl, indent: 2),
                      after: /root to: .*\n/
 
     move_line 'config/routes.rb',
