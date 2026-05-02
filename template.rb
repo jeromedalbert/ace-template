@@ -177,6 +177,9 @@ module Template
     return if !postgresql?
 
     gsub_file 'config/database.yml',
+              /database: #{app_name}_production$/,
+              "url: <%= ENV['DATABASE_URL'] %>"
+    gsub_file 'config/database.yml',
               /database: #{app_name}_production_(.*)/,
               "url: <%= ENV['DATABASE_URL']&.+('_\\1') %>"
     delete_line 'config/database.yml', /^ *username: .*/
