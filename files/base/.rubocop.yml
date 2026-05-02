@@ -166,6 +166,9 @@ RSpec/NestedGroups:
   Max: 6
 RSpec/VerifiedDoubles:
   Enabled: false
+RSpec/VoidExpect:
+  Exclude:
+    - 'spec/support/*'
 
 Style/ClassMethodsDefinitions:
   Enabled: true
@@ -177,6 +180,8 @@ Style/GlobalStdStream:
   Enabled: false
 Style/GlobalVars:
   Enabled: false
+Style/RescueStandardError:
+  EnforcedStyle: explicit
 Style/StringLiterals:
   EnforcedStyle: single_quotes
 Style/StringLiteralsInInterpolation:
