@@ -3,8 +3,8 @@ servers:
   worker:
     hosts:
       - <%%= ENV['SERVER_IP'] %>
-    cmd: 'sleep infinity'
-    traefik: false
+    cmd: bin/jobs
+    proxy: false
   <%- else -%>
   web:
     - <%%= ENV['SERVER_IP'] %>

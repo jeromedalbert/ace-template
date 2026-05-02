@@ -26,12 +26,15 @@ TODO:
     ```
     rails runner 'SayHello.new.perform'
     ```
+
+    Or run `bin/dev` or `bin/jobs` to process background jobs.
 <% else -%>
 1. Start the app:
 
     ```
     bin/dev
     ```
+
 1. You can now access http://localhost:3000 and are ready to go!
 <% end -%>
 

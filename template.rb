@@ -113,12 +113,11 @@ module Template
     copy_file '.irbrc'
     copy_file '.rubocop.yml', force: true
     copy_file '.streerc'
-    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
-    empty_directory 'app/services'
-
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
+    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     generate_binstub('syntax_tree', 'stree')
+    empty_directory 'app/services'
 
     template 'README.md.tt', force: true
   end
@@ -144,6 +143,7 @@ module Template
         <<-EOS
   config.active_job.queue_adapter = :solid_queue
   config.solid_queue.connects_to = { database: { writing: :queue } }
+  config.solid_queue.logger = ActiveSupport::TaggedLogging.logger(STDOUT)
 
         EOS
       end
@@ -154,6 +154,7 @@ module Template
               '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
     format_code('config/environments/production.rb')
 
+    copy_file 'config/recurring.yml', force: true if !skip_solid?
     copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
   end
@@ -205,7 +206,7 @@ module Template
         File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
       databases =
         Regexp.last_match(0).remove(' &primary_production').gsub(/primary_production/, 'default')
-      File.write('config/database.yml', database_yml_content)
+      File.write 'config/database.yml', database_yml_content
       insert_into_file 'config/database.yml',
                        "databases: &databases\n#{databases}\n",
                        before: 'development:'
@@ -245,7 +246,7 @@ module Template
         URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
       self.options = options.merge(skip_test: false)
       github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
-      File.write('.github/workflows/ci.yml', github_ci_content)
+      File.write '.github/workflows/ci.yml', github_ci_content
       remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
       gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
       gsub_file '.github/workflows/ci.yml',
@@ -272,6 +273,7 @@ module Template
     gsub_file 'config/deploy.yml', /^proxy:\n(  .*\n)*/ do |match|
       match.lines.map { |line| "# #{line}" }.join
     end
+    remove_comments 'config/deploy.yml' if template_options[:worker]
     gsub_file 'config/deploy.yml', 'your-user', "<%= ENV['KAMAL_REGISTRY_USERNAME'] %>"
     gsub_file 'config/deploy.yml', /^servers:\n(  .*\n)*/, partial('config/deploy_servers.yml.tt')
     gsub_file 'config/deploy.yml',
@@ -305,8 +307,8 @@ module Template
       )
     head_content = Regexp.last_match(1).gsub(/^ */, '')
 
-    File.write('app/views/layouts/application.html.erb', application_content)
-    File.write('app/views/layouts/_head.html.erb', head_content)
+    File.write 'app/views/layouts/application.html.erb', application_content
+    File.write 'app/views/layouts/_head.html.erb', head_content
   end
 
   def add_homepage
@@ -615,8 +617,13 @@ module Template
     remove_file 'config/initializers/cors.rb'
     remove_file 'spec/support/controller_helpers.rb'
 
-    delete_line 'Procfile.dev', /^web: .*/
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
+
+    File.write 'Procfile.dev', "jobs: bin/jobs\n"
+    gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
+    gsub_file 'Dockerfile', /CMD .*/, 'CMD ["bin/jobs"]'
+    gsub_file 'bin/docker-entrypoint', 'running the rails server', 'processing jobs'
+    gsub_file 'bin/docker-entrypoint', %r{if .*bin/rails.*then}, 'if [ $1 == "bin/jobs" ]; then'
 
     copy_file_from 'worker', 'app/services/say_hello.rb'
     copy_file_from 'worker', 'spec/services/say_hello_spec.rb'

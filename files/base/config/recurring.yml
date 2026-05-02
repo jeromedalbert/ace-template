@@ -1,0 +1,4 @@
+# production:
+#   say_hello:
+#     class: SayHello
+#     schedule: every day at 9 am
