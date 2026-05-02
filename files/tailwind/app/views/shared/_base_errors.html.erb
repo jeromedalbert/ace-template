@@ -1,0 +1,7 @@
+<% if model.errors.full_messages_for(:base).any? %>
+  <ul class="bg-red-50 text-red-500 px-3 py-2 font-medium rounded-lg mt-3">
+    <% model.errors.full_messages_for(:base).each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>

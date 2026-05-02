@@ -1,0 +1,21 @@
+<div class="mx-auto md:w-2/3 w-full">
+  <h1 class="font-bold text-4xl">Log in</h1>
+
+  <%= form_for resource, as: resource_name, url: session_path(resource_name) do |f| %>
+    <%= render partial: 'shared/base_errors', locals: { model: resource } %>
+
+    <div class="my-5">
+      <%= f.label :email %>
+      <%= f.email_field :email, class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
+    </div>
+
+    <div class="my-5">
+      <%= f.label :password %>
+      <%= f.password_field :password, class: 'block shadow rounded-md border border-gray-400 outline-none px-3 py-2 mt-2 w-full' %>
+    </div>
+
+    <div class="inline">
+      <%= f.submit 'Log in', class: 'rounded-lg py-3 px-5 bg-blue-600 text-white inline-block font-medium cursor-pointer' %>
+    </div>
+  <% end %>
+</div>

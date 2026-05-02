@@ -1,0 +1,11 @@
+<body>
+  <header>
+    <%= render partial: 'layouts/header' %>
+  </header>
+
+  <main class="container mx-auto mt-14 px-12 pb-6 flex-col">
+    <%= render partial: 'layouts/flash_messages' %>
+
+    <%= yield %>
+  </main>
+</body>

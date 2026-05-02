@@ -1,0 +1,26 @@
+<div class="container">
+  <div class="row align-items-center">
+
+    <div class="col-md-3">
+      <%%= link_to '<%= app_title %>', root_path, class: 'logo' %>
+    </div>
+
+    <div class="col-md-9">
+      <nav>
+        <ul>
+          <%- if template_options[:devise] -%>
+          <%% if current_user.nil? %>
+            <li><%%= link_to 'Log in', login_path %></li>
+            <li><%%= link_to 'Sign up', signup_path %></li>
+          <%% else %>
+            <li><%%= link_to 'Log out', logout_path, method: :delete %></li>
+          <%% end %>
+          <%- else -%>
+          <!-- <li><%%= link_to 'Page', 'http://google.com' %></li> -->
+          <%- end -%>
+        </ul>
+      </nav>
+    </div>
+
+  </div>
+</div>

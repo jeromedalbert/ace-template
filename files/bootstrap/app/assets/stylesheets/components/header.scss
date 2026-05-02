@@ -1,0 +1,60 @@
+@import '../base/breakpoints';
+
+.header {
+  background-color: #F8F9FA;
+  padding: 15px;
+
+  nav {
+    text-align: right;
+  }
+
+  ul {
+    margin-bottom: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: inline-block;
+    margin-right: 30px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+
+  .logo {
+    color: #000;
+    font-size: 20px;
+
+    &:hover {
+      color: #000;
+    }
+  }
+
+  a {
+    text-decoration: none;
+    color: #575757;
+
+    &:hover {
+      color: #000;
+    }
+  }
+}
+
+@include breakpoint-mobile-below {
+  .header {
+    text-align: center;
+
+    nav {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    li {
+      display: block;
+      margin-right: 0;
+      margin-top: 10px;
+    }
+  }
+}

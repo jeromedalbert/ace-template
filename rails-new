@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+app_path, *other_args = ARGV
+if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
+  system('rails new -h')
+  puts <<~EOS
+
+    Template options:
+      -o, [--template-options=option1,option2,...]
+          # Available options:
+          #   - devise
+          #   - redis
+          #   - worker: removes web code
+  EOS
+  exit
+elsif app_path.start_with?('-')
+  abort 'First argument must be the app path'
+end
+other_args.prepend('--api') if ARGV.include?('worker')
+
+command = [
+  'rails',
+  'new',
+  app_path,
+  '-m',
+  "#{__dir__}/template.rb",
+  '-d',
+  'postgresql',
+  '--css',
+  'tailwind',
+  '--skip-action-cable',
+  '--skip-action-mailbox',
+  '--skip-action-text',
+  '--skip-active-storage',
+  '--skip-jbuilder',
+  '--skip-test',
+  '--main',
+  *other_args
+]
+
+puts command.join(' ')
+system(*command)

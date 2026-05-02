@@ -1,0 +1,183 @@
+require:
+  - rubocop-factory_bot
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rspec
+  - rubocop-rubycw
+  - standard
+  - standard-custom
+  - standard-performance
+
+inherit_gem:
+  standard: config/base.yml
+  standard-performance: config/base.yml
+  standard-custom: config/base.yml
+  syntax_tree: config/rubocop.yml
+
+inherit_mode:
+  merge:
+    - Exclude
+
+AllCops:
+  NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'tmp/**/*'
+    - 'vendor/**/*'
+
+Bundler/OrderedGems:
+  Enabled: true
+
+FactoryBot/AssociationStyle:
+  EnforcedStyle: explicit
+
+Layout/ClassStructure:
+  Enabled: true
+  AutoCorrect: false
+  Categories:
+    module_inclusion:
+      - include
+      - prepend
+      - extend
+    attributes:
+      - attribute
+      - attr_reader
+      - attr_writer
+      - attr_accessor
+      - alias_attribute
+      - delegate
+      - enum
+    associations:
+      - belongs_to
+      - has_one
+      - has_many
+      - has_and_belongs_to_many
+    validations:
+      - validates
+      - validate
+      - validates_with
+    callbacks:
+      - before_validation
+      - before_save
+      - before_create
+      - before_destroy
+      - after_initialize
+      - after_create
+      - after_save
+      - after_destroy
+      - after_commit
+      - after_create_commit
+      - after_update_commit
+      - after_destroy_commit
+      - around_create
+    other_macros:
+      - devise
+      - acts_as_paranoid
+      - serialize
+      - has_paper_trail
+      - audited
+    scopes:
+      - default_scope
+      - scope
+    controller_actions:
+      - before_action
+      - skip_before_action
+    controller_rescue:
+      - rescue_from
+  ExpectedOrder:
+    - module_inclusion
+    - constants
+    - attributes
+    - enums
+    - associations
+    - validations
+    - callbacks
+    - other_macros
+    - scopes
+    - controller_macros
+    - controller_actions
+    - controller_action_caching
+    - controller_rescue
+    - class_methods
+    - initializer
+    - public_methods
+    - protected_methods
+    - private_methods
+Layout/LineLength:
+  Max: 100
+Layout/SpaceInsideHashLiteralBraces:
+  EnforcedStyle: space
+
+Metrics/ClassLength:
+  Max: 250
+Metrics/MethodLength:
+  Max: 30
+  Exclude:
+    - 'db/migrate/**/*'
+    - 'spec/**/*'
+Metrics/ModuleLength:
+  Max: 250
+  Exclude:
+    - 'spec/**/*'
+Metrics/ParameterLists:
+  Max: 3
+  CountKeywordArgs: false
+  Exclude:
+    - 'spec/**/*'
+
+Rails/HasManyOrHasOneDependent:
+  Enabled: false
+Rails/InverseOf:
+  Enabled: false
+Rails/HelperInstanceVariable:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+RSpec/BeEq:
+  Enabled: false
+RSpec/ContextWording:
+  Prefixes:
+    - when
+RSpec/DescribedClass:
+  EnforcedStyle: explicit
+RSpec/EmptyLineAfterFinalLet:
+  Enabled: false
+RSpec/ExampleLength:
+  Max: 30
+RSpec/ImplicitExpect:
+  EnforcedStyle: should
+RSpec/ImplicitSubject:
+  Enabled: false
+RSpec/IndexedLet:
+  Max: 2
+RSpec/MatchArray:
+  Enabled: false
+RSpec/MessageChain:
+  Enabled: false
+RSpec/MissingExampleGroupArgument:
+  Enabled: false
+RSpec/MultipleExpectations:
+  Enabled: false
+RSpec/NestedGroups:
+  Max: 6
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+Style/ClassMethodsDefinitions:
+  Enabled: true
+Style/CollectionMethods:
+  Enabled: true
+Style/DisableCopsWithinSourceCodeDirective:
+  Enabled: true
+Style/GlobalStdStream:
+  Enabled: false
+Style/GlobalVars:
+  Enabled: false
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+Style/StringLiteralsInInterpolation:
+  EnforcedStyle: single_quotes
+Style/UnlessLogicalOperators:
+  Enabled: true
+  EnforcedStyle: forbid_logical_operators

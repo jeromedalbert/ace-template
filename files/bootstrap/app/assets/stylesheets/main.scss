@@ -1,0 +1,11 @@
+@import 'base/variables';
+
+body {
+  color: $text-color;
+  font-size: $base-font-size;
+}
+
+main {
+  padding-top: 35px;
+  padding-bottom: 20px;
+}

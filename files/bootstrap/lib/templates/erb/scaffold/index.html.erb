@@ -1,0 +1,35 @@
+<div class="row">
+  <div class="col-md-12">
+
+    <h1><%= human_name.pluralize %></h1>
+
+    <table class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <%- attributes.each do |attribute| -%>
+          <th><%= attribute.human_name %></th>
+          <%- end -%>
+          <th></th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <%% @<%= plural_table_name%>.each do |<%= singular_table_name %>| %>
+          <tr>
+            <%- attributes.each do |attribute| -%>
+            <td><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
+            <%- end -%>
+            <td>
+              <%%= link_to 'Show', <%= singular_table_name %> %>
+              <%%= link_to 'Edit', <%= edit_helper(singular_table_name, type: :path) %> %>
+              <%%= link_to 'Destroy', <%= singular_table_name %>, data: { turbo_method: :delete, turbo_confirm: 'Are you sure?' } %>
+            </td>
+          </tr>
+        <%% end %>
+      </tbody>
+    </table>
+
+    <%%= link_to 'New <%= human_name.downcase %>', <%= new_helper(type: :path) %> %>
+
+  </div>
+</div>

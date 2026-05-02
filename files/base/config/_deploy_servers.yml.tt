@@ -1,0 +1,11 @@
+servers:
+  <%- if template_options[:worker] -%>
+  worker:
+    hosts:
+      - <%%= ENV['SERVER_IP'] %>
+    cmd: 'sleep infinity'
+    traefik: false
+  <%- else -%>
+  web:
+    - <%%= ENV['SERVER_IP'] %>
+  <%- end -%>

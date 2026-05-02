@@ -1,0 +1,27 @@
+accessories:
+  <%- if postgresql? -%>
+  db:
+    image: postgres:16
+    host: <%%= ENV['DB_HOST'] %>
+    port: 5432
+    env:
+      clear:
+        POSTGRES_DB: <%%= ENV['DB_NAME'] %>
+        POSTGRES_USER: <%%= ENV['DB_USERNAME'] %>
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+  <%- end -%>
+  <%- if redis? -%>
+  redis:
+    image: redis:7
+    host: <%%= ENV['REDIS_HOST'] %>
+    port: 6379
+    cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
+    env:
+      secret:
+        - REDIS_PASSWORD
+    directories:
+      - data:/data
+  <%- end -%>

@@ -1,0 +1,17 @@
+.form-group {
+  margin-bottom: 16px;
+}
+
+.field-with-errors {
+  $error-color: #d0011b;
+  width: 100%;
+
+  .form-control {
+    border: 1px solid $error-color;
+  }
+
+  .error-messages {
+    color: $error-color;
+    margin-top: 5px;
+  }
+}

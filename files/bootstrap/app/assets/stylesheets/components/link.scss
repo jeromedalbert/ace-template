@@ -1,0 +1,10 @@
+@import '../base/variables';
+
+a {
+  color: $text-color;
+  text-decoration: underline;
+
+  &:hover {
+    color: $text-color;
+  }
+}

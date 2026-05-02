@@ -1,0 +1,57 @@
+# http://xunitpatterns.com/Dummy%20Object.html
+#
+# Using dummy objects helps avoid obscure tests by leaving out the irrelevant
+# code that would be necessary to build real objects and by making it clear
+# which objects and values are not used by the system under test.
+#
+module DummyData
+  def some_value
+    'some_value'
+  end
+
+  def some_number
+    1
+  end
+
+  def some_positive_number
+    1
+  end
+
+  def some_boolean
+    true
+  end
+
+  def some_email
+    'john@doe.com'
+  end
+
+  def some_date
+    Time.zone.now
+  end
+
+  def some_past_date
+    2.years.ago
+  end
+
+  def some_future_date
+    2.years.from_now
+  end
+
+  def some_string(length: 10)
+    'a' * length
+  end
+
+  def some_hash
+    { a: 1 }
+  end
+
+  def some_url
+    'https://www.google.com'
+  end
+
+  def some_id
+    1
+  end
+end
+
+RSpec.configure { |c| c.include DummyData }

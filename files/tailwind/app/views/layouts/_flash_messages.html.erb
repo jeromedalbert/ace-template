@@ -1,0 +1,18 @@
+<% if flash.any? %>
+  <div
+    class="-mt-6 mb-6
+    <%= 'mx-auto md:w-2/3' if action_name.in?(%w[show new edit]) %>
+    <%= 'text-center' if action_name == 'show' %>"
+  >
+
+    <% flash.each do |flash_name, flash_msg| %>
+      <p
+        class="py-2 px-3 font-medium rounded-lg inline-block
+        <%= ApplicationHelper::TAILWIND_ALERT_CLASSES[flash_name] %>"
+      >
+        <%= flash_msg %>
+      </p>
+    <% end %>
+
+  </div>
+<% end %>

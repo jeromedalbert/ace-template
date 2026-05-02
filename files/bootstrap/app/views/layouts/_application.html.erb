@@ -1,0 +1,13 @@
+<body>
+  <header class="header">
+    <%= render partial: 'layouts/header' %>
+  </header>
+
+  <main>
+    <%= render partial: 'layouts/flash_messages' %>
+
+    <div class="container">
+      <%= yield %>
+    </div>
+  </main>
+</body>
