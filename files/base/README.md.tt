@@ -47,10 +47,7 @@ TODO:
 <% if kamal? -%>
 ### With Kamal, on your own server
 
-1. Open `.kamal/secrets.production` and set values for the following variables:
-    - `SERVER_IP`: your server's IP address
-    - `KAMAL_REGISTRY_USERNAME`: your Docker Hub username
-    - `KAMAL_REGISTRY_PASSWORD`: your Docker Hub password
+1. Open `.kamal/secrets.production` and set `SERVER_IP` to your server's IP address
 
 1. If on macOS, make sure Docker Desktop is running
 
@@ -70,6 +67,11 @@ TODO:
 `config/deploy.yml`, set `host` to your domain, and optionally change
 `config/environments/production.rb` by setting `assume_ssl` and `force_ssl` to
 `true`)
+
+(If you want to use a remote registry like Docker Hub, use the configuration
+at the bottom of `config/deploy.yml`, and add new `KAMAL_REGISTRY_USERNAME`
+and `KAMAL_REGISTRY_PASSWORD` variables set to your Docker Hub credentials in
+`.kamal/secrets.production`)
 
 <% end -%>
 ### With Fly.io

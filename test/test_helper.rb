@@ -93,7 +93,7 @@ class EndToEndTest < Minitest::Test
 
   def reuse_app?
     if ENV['REUSE_APP']
-      if Dir.exist?("#{__dir__}/../myapp")
+      if Dir.exist?('tmp/myapp')
         return true
       else
         puts "my_app is missing. Running `rails new`...\n\n"

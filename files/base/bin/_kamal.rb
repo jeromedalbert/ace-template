@@ -11,7 +11,7 @@ end
 require 'dotenv'
 Dotenv.load(".kamal/secrets.#{destination}")
 
-# Custom "open" command to open app in a web browser
+# Custom "kamal open" command to open app in a web browser
 if ARGV[0] == 'open'
   cmd =
     case RbConfig::CONFIG['host_os']

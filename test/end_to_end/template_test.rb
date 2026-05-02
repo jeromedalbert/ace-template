@@ -249,21 +249,21 @@ module EndToEnd
       refute_file '.kamal/secrets'
       assert_file '.kamal/secrets.production' do |content|
         assert_includes content, 'SERVER_IP='
-        assert_includes content, 'KAMAL_REGISTRY_USERNAME='
-        assert_includes content, 'KAMAL_REGISTRY_PASSWORD='
         assert_includes content, 'SECRET_KEY_BASE='
         assert_match(/TIMEZONE=.+/, content)
       end
 
       assert_file 'config/deploy.yml' do |content|
         assert_match(/web:\n.*ENV\['SERVER_IP'\]/, content)
-        assert_includes content, 'KAMAL_REGISTRY_USERNAME'
-        assert_includes content, 'KAMAL_REGISTRY_PASSWORD'
         assert_includes content, '# proxy:'
         assert_match(/secret:\n.*Dotenv.parse/, content)
         refute_includes content, 'clear:'
+        assert_includes content, 'KAMAL_REGISTRY_USERNAME'
+        assert_includes content, 'KAMAL_REGISTRY_PASSWORD'
       end
-      assert_file 'config/environments/production.rb', 'assume_ssl = false', 'force_ssl = false'
+      assert_file 'config/environments/production.rb',
+                  '# config.assume_ssl = true',
+                  '# config.force_ssl = true'
 
       assert_commit 'Configure Kamal'
     end

@@ -75,6 +75,22 @@ module Actions
     run "git commit -m '#{message}'", capture: true
   end
 
+  def comment_lines(file_path, line_pattern)
+    gsub_file(file_path, line_pattern) do |match|
+      indent_count = match.lines.first[/^ */].length
+
+      match.lines.map { |line| "#{' ' * indent_count}# #{line[indent_count..]}" }.join
+    end
+  end
+
+  def uncomment_lines(file_path, line_pattern)
+    return super if line_pattern.to_s.exclude?('#')
+
+    gsub_file(file_path, line_pattern) do |match|
+      match.lines.map { |line| line.sub(/(^ )*# /, '\1') }.join
+    end
+  end
+
   def remove_comments(file_path, remove_yml_extra_lines: true)
     delete_line file_path, /^ *#.*/
 

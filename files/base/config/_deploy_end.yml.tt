@@ -1,3 +1,17 @@
 <% if template_options[:worker] -%>
+
 primary_role: worker
+<% end -%>
+<% if Rails.version.to_f >= 8.1 -%>
+
+# Optional configuration for remote Docker registries. Defaults to Docker Hub.
+#
+# image: <%%= ENV['KAMAL_REGISTRY_USERNAME'] %>/<%= app_name %>
+# registry:
+#   username: <%%= ENV['KAMAL_REGISTRY_USERNAME'] %>
+#   password:
+#     - KAMAL_REGISTRY_PASSWORD
+# env:
+#   secret:
+#     <%%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>
 <% end -%>
