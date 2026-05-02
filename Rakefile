@@ -48,4 +48,4 @@ task 'release' do
   sh 'git push -f origin stable'
 end
 
-task default: %i[lint test]
+task default: %i[lint test:unit]
