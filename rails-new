@@ -13,6 +13,7 @@ if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
           #   - devise: adds Devise authentication
           #   - generators: adds custom generators for improved scaffolding
           #   - pundit: adds Pundit authorization (requires devise)
+          #   - squash: squash all commits into a single 'Initial commit'
           #   - redis
           #   - worker: removes web code (requires --api)
   EOS

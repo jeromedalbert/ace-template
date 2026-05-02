@@ -22,7 +22,7 @@ module Template
       configure_kamal
       setup_views
       configure_optional_features
-      finish
+      finalize
     end
   end
 
@@ -436,13 +436,14 @@ module Template
     @banana_files << 'app/views/layouts/_header.html.erb'
   end
 
-  def finish
+  def finalize
     run 'rake db:drop'
     run 'bin/setup'
     commit('Add schema')
 
-    ENV['DISABLE_SPRING'] = 'false'
+    run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]
 
+    ENV['DISABLE_SPRING'] = 'false'
     say 'Done!', :green
   end
 end
