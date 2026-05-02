@@ -252,6 +252,7 @@ module Template
     end
     append_to_file 'config/deploy.yml', partial('config/deploy_end.yml.tt', :prepend_nl)
 
+    gsub_file 'config/environments/production.rb', 'assume_ssl = true', 'assume_ssl = false'
     gsub_file 'config/environments/production.rb', 'force_ssl = true', 'force_ssl = false'
     commit 'Configure Kamal'
   end
