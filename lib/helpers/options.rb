@@ -70,6 +70,10 @@ module Options
     tests? && !template_options[:rails_tests]
   end
 
+  def single_quotes?
+    !template_options[:double]
+  end
+
   def db
     options[:database]
   end

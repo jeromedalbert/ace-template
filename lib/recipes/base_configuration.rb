@@ -21,7 +21,7 @@ module SetupBaseConfiguration
     gsub_file '.gitignore', /$^\n^#.*/, ''
     gsub_file '.dockerignore', /$^\n^#.*/, '' if docker?
     gsub_file 'config/routes.rb', /\n\n/, "\n"
-    format_quotes %w[config/locales/en.yml config/queue.yml] if !template_options[:double]
+    format_quotes %w[config/locales/en.yml config/queue.yml] if single_quotes?
 
     template '.ruby-version', force: true
     template 'README.md.tt', force: true

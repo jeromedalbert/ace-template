@@ -49,13 +49,13 @@ module Template
 
   def apply_template
     initialize
-    configure_gemfile
     check_supported_software
+    setup_gemfile
     emit_pre_bundle_message
 
     after_bundle do
-      format_code
-      commit
+      commit_initial_files
+      commit_modified_gemfile
       setup_base_configuration
       configure_dotenv
       configure_database
@@ -103,10 +103,6 @@ module Template
     @app_created = Time.now - File.ctime(destination_root) <= 10
   end
 
-  def configure_gemfile
-    apply 'lib/recipes/gemfile.rb'
-  end
-
   def check_supported_software
     rails_version = Rails.version[/\d+.\d+.\d+/]
 
@@ -146,12 +142,30 @@ module Template
     emit_warning "This template only officially supports #{supported}. You are using #{current}."
   end
 
+  def setup_gemfile
+    apply 'lib/recipes/gemfile.rb'
+  end
+
   def emit_pre_bundle_message
     message = "Generating app `#{app_name}`"
 
     message << " with template options `#{@selected_options_string}`" if @selected_options_string
 
     emit_info message
+  end
+
+  def commit_initial_files
+    format_code
+
+    commit('Initial commit', files: "--all ':!Gemfile' ':!Gemfile.lock'")
+  end
+
+  def commit_modified_gemfile
+    format_rubocop(
+      '--only Bundler/OrderedGems --config ' + find_in_source_paths('.rubocop.internal.yml')
+    )
+
+    commit 'Set up Gemfile'
   end
 
   def setup_base_configuration
@@ -241,7 +255,7 @@ module Template
 
     run 'bin/setup --skip-server'
     run 'rails db:migrate'
-    commit('Add schema')
+    commit 'Add schema'
   end
 
   def finalize

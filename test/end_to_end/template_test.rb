@@ -235,6 +235,7 @@ module EndToEnd
       assert_formatted_gemfile
       assert_quote_style :single
       assert_commit 'Initial commit'
+      assert_commit 'Set up Gemfile'
 
       assert_base_config
       assert_dotenv_config

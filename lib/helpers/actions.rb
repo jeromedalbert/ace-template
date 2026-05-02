@@ -30,13 +30,6 @@ module Actions
     command = ["bundle exec stree write '#{stree_files}'"]
     command += File.read(find_in_source_paths('.streerc')).split if !File.exist?('.streerc')
     run command.join(' '), capture: true, abort_on_failure: false
-
-    if !@formatted_gemfile
-      format_rubocop(
-        '--only Bundler/OrderedGems --config ' + find_in_source_paths('.rubocop.internal.yml')
-      )
-      @formatted_gemfile = true
-    end
   end
 
   def format_rubocop(options = '')
@@ -84,7 +77,7 @@ module Actions
     say("\n#{message}\n\n", :green)
   end
 
-  def commit(message = 'Initial commit', files: nil, errors: true)
+  def commit(message, files: nil, errors: true)
     if `git status --porcelain`.empty?
       if errors
         emit_critical_error %(Cannot commit with message "#{message}": there are no files to commit.)
