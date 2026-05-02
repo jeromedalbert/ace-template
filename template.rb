@@ -510,20 +510,34 @@ module Template
       inject_into_class(
         'app/controllers/bananas_controller.rb',
         'BananasController',
-        partial('banana/app/controllers/bananas_controller_start.rb', :append_nl, indent: 2)
+        "  before_action :authenticate\n\n"
       )
       gsub_file 'app/controllers/bananas_controller.rb',
-                /@bananas = .*\n/,
-                partial('banana/app/controllers/bananas_controller_index.rb')
+                '@bananas = Banana.all',
+                '@bananas = current_user.bananas'
       gsub_file 'app/controllers/bananas_controller.rb',
-                /@banana = Banana.new\(.*\n/,
-                partial('banana/app/controllers/bananas_controller_create.rb')
+                '@banana = Banana.new(banana_params)',
+                '@banana = Banana.new(banana_params.merge(user: current_user))'
+      gsub_file 'app/controllers/bananas_controller.rb',
+                '@banana = Banana.find(',
+                '@banana = current_user.bananas.find('
       gsub_file 'spec/controllers/bananas_controller_spec.rb',
                 /  let\(:banana\) { .*\n/,
                 partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
-      gsub_file 'app/controllers/bananas_controller.rb',
-                /@banana = Banana.find\(.*\n/,
-                partial('banana/app/controllers/bananas_controller_load.rb')
+
+      # insert_into_file(
+      #   'app/controllers/application_controller.rb',
+      #   partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
+      #   before: /  def authenticate/
+      # )
+      # add_before_end(
+      #   'app/controllers/application_controller.rb',
+      #   partial(
+      #     'files/pundit/app/controllers/application_controller_end.rb',
+      #     :prepend_nl,
+      #     indent: 2
+      #   )
+      # )
     end
 
     copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
