@@ -38,6 +38,15 @@ class TemplateTest < Minitest::Test
     @template.apply_template
   end
 
+  def test_bad_database_connection
+    @template = build_template
+    @template.stubs(:run).with('rake db:drop', anything).returns('ConnectionNotEstablished')
+
+    expect_warning(/Skipped DB preparation \(could not connect/)
+
+    @template.apply_template
+  end
+
   private
 
   def build_template(app_path = 'myapp', **rails_options)
@@ -45,11 +54,14 @@ class TemplateTest < Minitest::Test
     template.instance_variable_set(:@template_options, {})
 
     template.stubs(:apply)
-    template.stubs(:run)
+    template.stubs(:run).returns('')
     template.stubs(:parse_template_options)
     template.stubs(:after_bundle).yields
     template.stubs(:commit)
-    template.stubs(:say) if !ENV['LOG_TO_STDOUT']
+    if !ENV['LOG_TO_STDOUT']
+      template.stubs(:say)
+      template.stubs(:say_status)
+    end
 
     template
   end

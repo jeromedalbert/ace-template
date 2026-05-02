@@ -60,6 +60,7 @@ module Template
       configure_kamal
       setup_views
       configure_optional_features
+      prepare_database
       finalize
     end
   end
@@ -209,19 +210,28 @@ module Template
     end
   end
 
-  def finalize
+  def prepare_database
+    return if !active_record?
     FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
-    squash_commits
 
-    if active_record?
-      run 'rake db:drop'
-      run 'bin/setup --skip-server'
-      run 'rails db:migrate'
-      commit('Add schema')
-      squash_commits
+    output = run('rake db:drop', abort_on_failure: false, capture: true, verbose: false)
+    if output.match?(/ConnectionNotEstablished|ConnectionError/)
+      emit_warning("Skipped DB preparation (could not connect to #{db} server)")
+      return
+    else
+      say_status :run, 'rake db:drop'
+      say output
     end
 
+    run 'bin/setup --skip-server'
+    run 'rails db:migrate'
+    commit('Add schema')
+  end
+
+  def finalize
+    squash_commits
     ENV['DISABLE_SPRING'] = 'false'
+
     emit_success 'Done! See README.md'
   end
 

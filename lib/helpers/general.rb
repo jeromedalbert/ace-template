@@ -55,10 +55,6 @@ module General
   def help_banner
     Template::HELP_BANNER
   end
-
-  def supported_databases
-    Template::SUPPORTED_DATABASES
-  end
 end
 
 extend General
