@@ -1,7 +1,7 @@
 accessories:
   <%- if postgresql? -%>
   db:
-    image: postgres:16
+    image: postgres:17
     host: <%%= ENV['DB_HOST'] %>
     port: 5432
     env:
