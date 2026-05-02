@@ -39,8 +39,6 @@ command = [
   app_path,
   '-m',
   "#{__dir__}/template.rb",
-  '-d',
-  'postgresql',
   '--css',
   'tailwind',
   '--skip-action-cable',
