@@ -33,6 +33,10 @@ module Actions
     abort
   end
 
+  def delete_created_app
+    remove_dir(destination_root) if Time.now - File.ctime(destination_root) <= 10
+  end
+
   def emit_warning(message)
     say("\n[WARNING] #{message}\n\n", :yellow)
   end

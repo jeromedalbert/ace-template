@@ -76,8 +76,15 @@ module Options
   end
 
   def show_help
+    delete_created_app
+
     puts "\n#{Template::TEMPLATE_OPTIONS_BANNER}\n"
+
     exit
+  end
+
+  def ensure_valid_app_path
+    emit_critical_error 'First argument must be the app path' if app_path.start_with?('-')
   end
 
   def imply_options
