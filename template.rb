@@ -130,6 +130,10 @@ module Template
               /.tap { \|logger\| .*\n/,
               partial('config/environments/production.rb')
 
+    insert_into_file 'config/environments/development.rb',
+                     partial('config/environments/development.rb', :prepend_nl, indent: 2),
+                     before: /end\n\z/
+
     copy_file 'config/initializers/redis.rb' if redis?
   end
 

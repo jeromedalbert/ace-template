@@ -12,7 +12,7 @@ if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
           #   - banana: scaffolds a dummy Banana resource for demo purposes
           #   - devise: adds Devise authentication
           #   - generators: adds custom generators for improved scaffolding
-          #   - pundit: adds Pundit authorization (requires devise)
+          #   - pundit: adds Pundit authorization
           #   - squash: squash all commits into a single 'Initial commit'
           #   - redis
           #   - worker: removes web code (requires --api)
@@ -21,7 +21,7 @@ if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
 elsif app_path.start_with?('-')
   abort 'First argument must be the app path'
 end
-other_args.prepend('--api') if ARGV.include?('worker')
+other_args.prepend('--api') if ARGV.include?('worker') && !ARGV.include?('--api')
 
 command = [
   'rails',

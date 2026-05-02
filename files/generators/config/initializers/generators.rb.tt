@@ -15,8 +15,4 @@ Rails.application.config.generators do |g|
   g.routing_specs false
   g.view_specs false
   <%- end -%>
-
-  g.after_generate do |files|
-    system("bundle exec stree write #{files.join(' ')} &> /dev/null")
-  end
 end
