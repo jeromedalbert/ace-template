@@ -85,11 +85,12 @@ module Template
       require 'tmpdir'
       base_dir = Dir.mktmpdir('ace-template-')
       at_exit { FileUtils.remove_entry(base_dir) }
-      run "git clone https://github.com/jeromedalbert/ace-template #{base_dir}",
-          capture: true,
-          verbose: false
       branch = __FILE__[%r{ace-template.*/(.+)/template.rb}, 1]
-      Dir.chdir(base_dir) { run "git checkout #{branch}", capture: true, verbose: false } if branch
+      run(
+        "git clone -b #{branch} --depth 1 https://github.com/jeromedalbert/ace-template #{base_dir}",
+        capture: true,
+        verbose: false
+      )
     end
 
     source_paths.prepend("#{base_dir}/files/base", "#{base_dir}/files", base_dir)
