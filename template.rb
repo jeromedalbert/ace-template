@@ -87,7 +87,7 @@ module Template
   def setup_base_configuration
     setup_base_files
     setup_config_files
-    configure_generators
+    setup_generators
     configure_spring
 
     commit 'Set up base configuration'
@@ -132,7 +132,7 @@ module Template
     copy_file 'config/initializers/redis.rb' if redis?
   end
 
-  def configure_generators
+  def setup_generators
     gsub_file 'config/application.rb',
               /config.autoload_lib.*/,
               'config.autoload_lib(ignore: %w[assets tasks templates])'
