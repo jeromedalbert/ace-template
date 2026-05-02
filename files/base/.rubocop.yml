@@ -35,6 +35,8 @@ Bundler/OrderedGems:
 FactoryBot/AssociationStyle:
   EnforcedStyle: explicit
 
+Layout/ArgumentAlignment:
+  Enabled: false
 Layout/ClassStructure:
   Enabled: true
   AutoCorrect: false
