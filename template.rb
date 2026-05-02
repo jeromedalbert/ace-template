@@ -201,4 +201,4 @@ end
 
 extend Template
 
-apply_template if !$PROGRAM_NAME.end_with?('rails-new')
+apply_template
