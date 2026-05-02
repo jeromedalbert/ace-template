@@ -17,7 +17,10 @@ module Actions
     command += File.read("#{__dir__}/../../.streerc").split if !File.exist?('.streerc')
     run command.join(' '), capture: true, abort_on_failure: false
 
-    format_rubocop('--only Bundler/OrderedGems --config /dev/null') if files == '**/*'
+    if !@formatted_gemfile
+      format_rubocop('Gemfile --only Bundler/OrderedGems --config /dev/null')
+      @formatted_gemfile = true
+    end
   end
 
   def format_rubocop(options = '')
