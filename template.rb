@@ -5,12 +5,31 @@ require 'bundler'
 require 'open3'
 
 module Template
+  TEMPLATE_OPTIONS_BANNER = <<~EOS
+    Template options:
+      -o, [--template-options=option1,option2,...]
+          # Available options:
+          #
+          #   - all: all options except worker
+          #   - banana: scaffold a dummy Banana resource for demo purposes
+          #   - dependabot: enable GitHub Dependabot
+          #   - devise: add Devise authentication
+          #   - generators: add custom generators for improved scaffolding
+          #   - omakase: banana, devise, squash, and vcr options
+          #   - pundit: add Pundit authorization
+          #   - redis: add Redis
+          #   - solid-dev: set up Solid adapters for development
+          #   - squash: squash all commits into a single "Initial commit"
+          #   - vcr: add VCR gem to record test HTTP requests
+          #   - worker: removes web code (requires --api)
+  EOS
   REQUIRED_RAILS_VERSIONS = '>= 8.0'
   SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'
   SUPPORTED_RUBY_VERSIONS = '~> 3.3.0'
   SUPPORTED_DATABASES = %w[sqlite3 postgresql mysql]
 
   def apply_template
+    parse_template_options
     configure_gemfile
     check_supported_software
 
@@ -692,16 +711,23 @@ module Template
 end
 
 module TemplateHelpers
-  def template_options
-    return @template_options if @template_options
+  attr_accessor :template_options
+
+  def parse_template_options
+    @template_options = {}
     raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
     raw_options = raw_options.parse(ARGV)['template_options']
+    return if raw_options.nil? || raw_options == 'template_options'
+    allowed_options = Template::TEMPLATE_OPTIONS_BANNER.scan(/- ([a-z-]*).*:/).flatten
 
-    @template_options =
-      if raw_options.nil? || raw_options == 'template_options'
-        {}
-      else
-        raw_options.split(',').map { |option| [option.underscore.to_sym, true] }.to_h
+    raw_options
+      .split(',')
+      .each do |option|
+        option_key, option_value = option.split('=')
+        if !option_key.in?(allowed_options)
+          emit_critical_error("Invalid template option: #{option_key}")
+        end
+        @template_options[option_key.underscore.to_sym] = option_value || true
       end
 
     if @template_options[:all]
@@ -729,8 +755,12 @@ module TemplateHelpers
                               "#{Template::SUPPORTED_DATABASES.to_sentence}."
       end
     end
+  end
 
-    @template_options
+  def set_multi_option_default(option, default)
+    if @template_options.key?(option) && !@template_options[option].is_a?(String)
+      @template_options[option] = default
+    end
   end
 
   def db
@@ -885,4 +915,4 @@ end
 extend Template
 extend TemplateHelpers
 
-apply_template
+apply_template if !$PROGRAM_NAME.end_with?('rails-new')

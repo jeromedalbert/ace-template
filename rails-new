@@ -1,32 +1,13 @@
 #!/usr/bin/env ruby
-
-TEMPLATE_OPTIONS = <<~EOS
-
-  Template options:
-    -o, [--template-options=option1,option2,...]
-        # Available options:
-        #
-        #   - all: all options except worker
-        #   - banana: scaffold a dummy Banana resource for demo purposes
-        #   - dependabot: enable GitHub Dependabot
-        #   - devise: add Devise authentication
-        #   - generators: add custom generators for improved scaffolding
-        #   - omakase: banana, devise, squash, and vcr options
-        #   - pundit: add Pundit authorization
-        #   - redis
-        #   - solid-dev: set up Solid adapters for development
-        #   - squash: squash all commits into a single "Initial commit"
-        #   - vcr: add VCR gem to record test HTTP requests
-        #   - worker: removes web code (requires --api)
-EOS
+require_relative 'template'
 
 app_path, *other_args = ARGV
 if ARGV.empty? || ARGV.include?('-h') || ARGV.include?('--help')
   system('rails new -h')
-  puts(TEMPLATE_OPTIONS)
+  puts("\n#{Template::TEMPLATE_OPTIONS_BANNER}")
   exit
 elsif ARGV.last == '-o'
-  puts(TEMPLATE_OPTIONS)
+  puts(Template::TEMPLATE_OPTIONS_BANNER)
   exit
 elsif app_path.start_with?('-')
   abort 'First argument must be the app path'
