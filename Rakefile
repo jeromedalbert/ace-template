@@ -45,7 +45,7 @@ task format: %i[rubocop:autocorrect stree:write]
 
 desc 'Release template'
 task 'release' do
-  sh 'git push -f origin stable'
+  sh 'git push -f origin main:stable'
 end
 
 task default: %i[lint test:unit]
