@@ -340,11 +340,9 @@ module Template
                       'Scope',
                       "    attr_reader :user, :scope\n\n"
 
-    inject_into_class(
-      'app/controllers/application_controller.rb',
-      'ApplicationController',
-      "  include Pundit::Authorization\n\n"
-    )
+    inject_into_class 'app/controllers/application_controller.rb',
+                      'ApplicationController',
+                      "  include Pundit::Authorization\n\n"
     insert_into_file(
       'app/controllers/application_controller.rb',
       partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
@@ -509,11 +507,9 @@ module Template
       copy_file_from 'banana', 'spec/models/user_spec.rb'
       @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
-      inject_into_class(
-        'app/controllers/bananas_controller.rb',
-        'BananasController',
-        "  before_action :authenticate\n\n"
-      )
+      inject_into_class 'app/controllers/bananas_controller.rb',
+                        'BananasController',
+                        "  before_action :authenticate\n\n"
       gsub_file 'app/controllers/bananas_controller.rb',
                 '@bananas = Banana.all',
                 '@bananas = current_user.bananas'
@@ -527,19 +523,19 @@ module Template
                 /  let\(:banana\) { .*\n/,
                 partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
 
-      # insert_into_file(
-      #   'app/controllers/application_controller.rb',
-      #   partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
-      #   before: /  def authenticate/
-      # )
-      # add_before_end(
-      #   'app/controllers/application_controller.rb',
-      #   partial(
-      #     'files/pundit/app/controllers/application_controller_end.rb',
-      #     :prepend_nl,
-      #     indent: 2
-      #   )
-      # )
+      insert_into_file 'app/controllers/application_controller.rb',
+                       "\n  before_action :redirect_root_path\n\n",
+                       before: /  rescue_from.*|  def authenticate/m
+      if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
+        add_before_end 'app/controllers/application_controller.rb', "  private\n"
+      end
+      insert_into_file(
+        'app/controllers/application_controller.rb',
+        partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
+        after: /^  private\n/
+      )
+      format_code('app/controllers/application_controller.rb')
+      @banana_files << 'app/controllers/application_controller.rb'
     end
 
     copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
