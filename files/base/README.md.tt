@@ -20,16 +20,21 @@ TODO:
     bin/rspec
     ```
 
-<% if !template_options[:worker] -%>
+<% if template_options[:worker] -%>
+1. See if the app works by executing a service class:
+
+    ```
+    rails runner 'SayHello.new.perform'
+    ```
+<% else -%>
 1. Start the app:
 
     ```
     bin/dev
     ```
-
 1. You can now access http://localhost:3000 and are ready to go!
-
 <% end -%>
+
 ## How to deploy
 
 ### With Kamal, on your own server

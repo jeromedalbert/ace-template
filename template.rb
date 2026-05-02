@@ -45,7 +45,10 @@ module Template
     append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
     gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, ''
-    delete_line 'Gemfile', /gem "puma".*/ if template_options[:worker]
+    if template_options[:worker]
+      delete_line 'Gemfile', /gem "puma".*/
+      delete_line 'Gemfile', /gem "thruster".*/
+    end
 
     if !Bundler.current_ruby.windows? && !Bundler.current_ruby.jruby?
       delete_line 'Gemfile', /gem "tzinfo-data".*/
@@ -591,6 +594,9 @@ module Template
 
     delete_line 'Procfile.dev', /^web: .*/
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
+
+    copy_file_from 'worker', 'app/services/say_hello.rb'
+    copy_file_from 'worker', 'spec/services/say_hello_spec.rb'
 
     commit 'Remove web code'
   end
