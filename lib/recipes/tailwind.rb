@@ -10,9 +10,6 @@ inject_into_module 'app/helpers/application_helper.rb',
 
 copy_file_from 'tailwind', 'app/views/shared/_base_errors.html.erb'
 copy_file_from 'tailwind', 'config/initializers/field_errors.rb'
-insert_into_file 'config/tailwind.config.js',
-                 partial('tailwind/config/tailwind.config.js', indent: 2),
-                 before: '  theme: {'
 
 template_from 'tailwind', 'app/views/pages/home.html.erb.tt', force: true
 directory_from 'tailwind', 'app/views/devise' if template_options[:auth] == 'devise'
