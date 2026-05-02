@@ -15,12 +15,12 @@ end
 
 desc 'Run a smoke test'
 task 'test:smoke' do
-  sh 'bundle exec ruby -Itest test/end_to_end/template_test.rb -n test_template', verbose: false
+  sh 'bin/test test/end_to_end/template_test.rb -n test_template', verbose: false
 end
 
 desc 'Run end-to-end tests'
 task 'test:end_to_end' do
-  sh 'bundle exec ruby test/test_in_parallel.rb test/end_to_end/*_test.rb', verbose: false
+  sh 'bin/test_in_parallel test/end_to_end/*_test.rb', verbose: false
 end
 
 Rake::TestTask.new do |t|
