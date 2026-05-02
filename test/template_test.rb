@@ -50,6 +50,7 @@ class TemplateTest < Minitest::Test
 
     assert_template_done(output)
     assert_app_works
+    assert_active_storage_option
     assert_auth_rails_option
     assert_banana_option
     assert_banana_in_header
@@ -293,6 +294,10 @@ class TemplateTest < Minitest::Test
     secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
     File.write('.kamal/secrets.production', secrets)
     assert_command_success 'bin/kamal config'
+  end
+
+  def assert_active_storage_option
+    assert_file Dir['db/migrate/*_create_active_storage_tables*.rb'].first
   end
 
   def assert_auth_rails_option

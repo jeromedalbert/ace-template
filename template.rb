@@ -18,7 +18,7 @@ module Template
           #   - errors[=rollbar|sentry]: add error monitoring service
           #                              (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
-          #   - omakase: auth, banana, squash, and vcr options
+          #   - omakase: active_storage, auth, banana, squash, and vcr options
           #   - pundit: add Pundit authorization
           #   - redis: add Redis
           #   - solid_dev: set up Solid adapters for development
@@ -136,7 +136,7 @@ module Template
     end
 
     configure_generators
-    apply 'lib/recipes/active_storage.rb' if options[:active_storage]
+    apply 'lib/recipes/active_storage.rb' if template_options[:active_storage]
     apply 'lib/recipes/errors.rb' if template_options[:errors]
     apply 'lib/recipes/worker.rb' if template_options[:worker]
     apply 'lib/recipes/double_quotes.rb' if template_options[:double]

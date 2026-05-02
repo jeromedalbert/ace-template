@@ -60,7 +60,6 @@ class RailsNewTest < Minitest::Test
     assert_file 'config/application.rb' do |content|
       assert_includes content, '# require "action_mailbox'
       assert_includes content, '# require "action_text'
-      assert_includes content, '# require "active_storage'
       assert_includes content, '# require "rails/test_unit'
     end
   end

@@ -31,7 +31,13 @@ module Options
       )
     end
     if @template_options[:omakase]
-      @template_options.merge!(auth: true, banana: true, squash: true, vcr: true)
+      @template_options.merge!(
+        active_storage: true,
+        auth: true,
+        banana: true,
+        squash: true,
+        vcr: true
+      )
     end
     @template_options[:solid_dev] = true if @template_options[:worker] && solid?
     set_multi_option_default(:auth, 'rails')

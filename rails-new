@@ -24,7 +24,6 @@ command = [
   'tailwind',
   '--skip-action-mailbox',
   '--skip-action-text',
-  '--skip-active-storage',
   '--skip-jbuilder',
   '--skip-test',
   *other_args
