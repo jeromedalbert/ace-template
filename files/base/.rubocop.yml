@@ -128,6 +128,8 @@ Metrics/ParameterLists:
   Exclude:
     - 'spec/**/*'
 
+Rails/EnvironmentVariableAccess:
+  Enabled: false
 Rails/HasManyOrHasOneDependent:
   Enabled: false
 Rails/InverseOf:
