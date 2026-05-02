@@ -9,10 +9,12 @@ Rails.application.config.generators do |g|
   <%- else -%>
   g.helper false
   g.scaffold_controller :scaffold_controller_custom
+    <%- if rspec? -%>
 
   g.controller_specs true
   g.request_specs false
   g.routing_specs false
   g.view_specs false
+    <%- end -%>
   <%- end -%>
 end

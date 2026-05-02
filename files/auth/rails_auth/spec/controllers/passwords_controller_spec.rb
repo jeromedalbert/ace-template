@@ -10,14 +10,14 @@ describe PasswordsController do
   describe '#create' do
     before { allow(PasswordsMailer).to receive_message_chain(:reset, :deliver_later) }
 
-    context 'when no user has the provided email' do
+    context 'when email does not exist' do
       before { post :create, params: { email: some_email } }
 
       it { should redirect_to new_session_path }
       it { expect(PasswordsMailer).not_to have_received :reset }
     end
 
-    context 'when a user has the provided email' do
+    context 'when email exists' do
       before do
         create(:user, email: 'john@test.com')
 
@@ -54,7 +54,7 @@ describe PasswordsController do
       it { should redirect_to new_password_path }
     end
 
-    context 'when provided password and password confirmation do not match' do
+    context 'when password and password confirmation do not match' do
       before do
         user = create(:user)
 
@@ -69,7 +69,7 @@ describe PasswordsController do
       it { should redirect_to edit_password_path }
     end
 
-    context 'when provided password and password confirmation match' do
+    context 'when password and password confirmation match' do
       before do
         user = create(:user)
 

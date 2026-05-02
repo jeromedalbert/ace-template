@@ -2,6 +2,7 @@ module SetupBaseConfiguration
   def perform
     setup_base_files
     setup_config_files
+    setup_rubocop
     configure_spring
     configure_ci if ci?
 
@@ -23,7 +24,6 @@ module SetupBaseConfiguration
     format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
 
     copy_file '.irbrc'
-    copy_file '.rubocop.yml', force: true if rubocop?
     copy_file '.streerc'
     template '.ruby-version', force: true
 
@@ -43,10 +43,14 @@ module SetupBaseConfiguration
   def setup_config_files
     gsub_file 'config/application.rb',
               /^ *#\n *# config.*  end\n/m,
-              partial('config/application_end.rb.tt', :prepend_nl, append: "  end\n", indent: 4)
+              partial('config/application.rb.tt', :prepend_nl, append: "  end\n", indent: 4)
 
     if template_defaults?
-      with_rails_options(skip_action_mailbox: true, skip_action_text: true, skip_test: true) do
+      with_rails_options(
+        skip_action_mailbox: true,
+        skip_action_text: true,
+        skip_test: rspec? || !tests?
+      ) do
         gsub_file 'config/application.rb',
                   /require 'rails(.+\n)*/,
                   %(#{rails_require_statement.tr('"', "'")}\n)
@@ -69,13 +73,32 @@ module SetupBaseConfiguration
     apply 'lib/recipes/solid_dev.rb' if template_options[:solid_dev]
   end
 
+  def setup_rubocop
+    return if !rubocop?
+
+    copy_file '.rubocop.yml', force: true
+
+    if !rspec?
+      delete_line '.rubocop.yml', "  - rubocop-rspec\n  - rubocop-rspec_rails"
+      gsub_file '.rubocop.yml', %r{RSpec/(.*\n)*\n}, ''
+    end
+    if template_options[:rails_tests]
+      insert_into_file '.rubocop.yml',
+                       "  - rubocop-minitest\n",
+                       after: factory_bot? ? "rubocop-factory_bot\n" : "plugins:\n"
+      insert_into_file '.rubocop.yml',
+                       partial('rubocop_minitest.yml', :prepend_nl),
+                       before: %r{(?<=\n)\nRails/.*}
+    end
+  end
+
   def configure_spring
     run 'bundle exec spring binstub --all'
     run 'bundle exec spring stop'
     ENV['DISABLE_SPRING'] = 'true'
     format_code 'bin/*'
 
-    copy_file 'config/spring.rb'
+    template 'config/spring.rb.tt'
     gsub_file 'config/environments/test.rb', 'enable_reloading = false', 'enable_reloading = true'
   end
 
@@ -85,13 +108,6 @@ module SetupBaseConfiguration
       insert_into_file '.github/_dependabot.yml',
                        "# Rename this file to dependabot.yml to enable Dependabot updates\n",
                        before: /\A/
-
-      github_ci_content =
-        File.read(gem_file('railties', 'lib/rails/generators/rails/app/templates/github/ci.yml.tt'))
-      with_rails_options(skip_test: false) do
-        github_ci_content = ERB.new(github_ci_content, trim_mode: '-').result(binding)
-      end
-      File.write '.github/workflows/ci.yml', github_ci_content
     end
 
     remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false

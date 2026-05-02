@@ -4,8 +4,8 @@ module ConfigureRailsAuth
     format_code
 
     configure_authentication_concern
-    configure_passwords_controller
     configure_sessions_controller
+    configure_passwords_controller
     configure_user_model
     configure_routes
     configure_views
@@ -66,25 +66,6 @@ module ConfigureRailsAuth
     format_code 'app/controllers/concerns/authentication.rb'
   end
 
-  def configure_passwords_controller
-    split_var_from_condition 'app/controllers/passwords_controller.rb', 'user'
-    delete_line 'app/controllers/passwords_controller.rb', '  allow_unauthenticated_access'
-    delete_line 'app/controllers/passwords_controller.rb',
-                %r{  before_action :set_user_by_token.*\n}
-
-    gsub_file 'app/controllers/passwords_controller.rb', 'set_user_by_token', 'load_user'
-    insert_into_file 'app/controllers/passwords_controller.rb',
-                     "    load_user\n",
-                     after: "def edit\n"
-    insert_into_file 'app/controllers/passwords_controller.rb',
-                     "    load_user || return\n\n",
-                     after: "def update\n"
-
-    format_code 'app/controllers/passwords_controller.rb'
-
-    copy_file_from 'auth/rails_auth', 'spec/controllers/passwords_controller_spec.rb'
-  end
-
   def configure_sessions_controller
     delete_line 'app/controllers/sessions_controller.rb', %r{  allow_unauthenticated_access .*}
     gsub_file 'app/controllers/sessions_controller.rb', 'new_session_url', 'new_session_path'
@@ -101,7 +82,26 @@ module ConfigureRailsAuth
               /(def destroy\n.*)    redirect_to \w*/m,
               "\\1\n    redirect_to root_path, notice: 'Signed out successfully.'"
 
-    copy_file_from 'auth/rails_auth', 'spec/controllers/sessions_controller_spec.rb'
+    add_test_file 'controllers/sessions_controller', from: 'auth/rails_auth'
+  end
+
+  def configure_passwords_controller
+    split_var_from_condition 'app/controllers/passwords_controller.rb', 'user'
+    delete_line 'app/controllers/passwords_controller.rb', '  allow_unauthenticated_access'
+    delete_line 'app/controllers/passwords_controller.rb',
+                %r{  before_action :set_user_by_token.*\n}
+
+    gsub_file 'app/controllers/passwords_controller.rb', 'set_user_by_token', 'load_user'
+    insert_into_file 'app/controllers/passwords_controller.rb',
+                     "    load_user\n",
+                     after: "def edit\n"
+    insert_into_file 'app/controllers/passwords_controller.rb',
+                     "    load_user || return\n\n",
+                     after: "def update\n"
+
+    format_code 'app/controllers/passwords_controller.rb'
+
+    add_test_file 'controllers/passwords_controller', from: 'auth/rails_auth'
   end
 
   def configure_user_model
@@ -113,7 +113,7 @@ module ConfigureRailsAuth
                      partial('auth/rails_auth/app/models/user.rb', :append_nl, indent: 2),
                      before: '  normalizes :email'
 
-    template_from 'auth/rails_auth', 'spec/models/user_spec.rb.tt', force: true
+    add_test_file 'models/user', from: 'auth/rails_auth'
   end
 
   def configure_routes
@@ -159,10 +159,13 @@ module ConfigureRailsAuth
     insert_blank_line 'app/mailers/passwords_mailer.rb', '@user = user'
     insert_blank_line 'app/models/current.rb', 'attribute :session'
 
-    copy_file_from 'auth/rails_auth', 'spec/factories/sessions.rb'
-    insert_into_file 'spec/support/controller_helpers.rb',
-                     partial('auth/rails_auth/spec/support/controller_helpers.rb', indent: 2),
-                     before: /end\n/
+    if tests?
+      copy_file 'auth/tests/factories/sessions.rb', "#{test_folder}/factories/sessions.rb"
+      remove_file 'test/test_helpers/session_test_helper.rb' if template_options[:rails_tests]
+      insert_into_file controller_test_helper_file_path,
+                       partial('auth/rails_auth/tests/helpers/controller_helpers.rb.tt', indent: 2),
+                       before: /end\n/
+    end
   end
 
   def create_registrations_controller
@@ -199,7 +202,7 @@ module ConfigureRailsAuth
               ruby_block_regex('  def destroy'),
               partial('auth/rails_auth/app/controllers/registrations_controller.rb', indent: 2)
 
-    copy_file_from 'auth/rails_auth', 'spec/controllers/registrations_controller_spec.rb'
+    add_test_file 'controllers/registrations_controller', from: 'auth/rails_auth'
   end
 
   def create_registrations_view

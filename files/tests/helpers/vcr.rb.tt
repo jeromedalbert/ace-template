@@ -1,7 +1,13 @@
 VCR.configure do |config|
+  <%- if rspec? -%>
   config.cassette_library_dir = 'spec/fixtures/vcr_cassettes'
+  <%- else -%>
+  config.cassette_library_dir = 'test/vcr_cassettes'
+  <%- end -%>
   config.hook_into :webmock
+  <%- if rspec? -%>
   config.configure_rspec_metadata!
+  <%- end -%>
 
   # Prevent writing sensitive data to cassette files
   <%- if dotenv? -%>

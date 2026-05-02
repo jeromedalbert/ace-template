@@ -114,6 +114,17 @@ module Actions
     format_code "bin/#{binstub_name}"
   end
 
+  def add_test_file(file_partial_path, from: 'tests')
+    return if !tests?
+    source_folder = +from
+    source_folder << (rspec? ? '/rspec' : '/rails') if source_folder == 'tests'
+    source_folder << "/#{test_folder}"
+
+    file_path = file_partial_path + (rspec? ? '_spec.rb' : '_test.rb')
+
+    template "#{source_folder}/#{file_path}", "#{test_folder}/#{file_path}", force: true
+  end
+
   def copy_file_from(folder, file_path, ...)
     copy_file("#{folder}/#{file_path}", file_path, ...)
   end

@@ -54,4 +54,8 @@ module DummyData
   end
 end
 
+<% if rspec? -%>
 RSpec.configure { |c| c.include DummyData }
+<% else -%>
+ActiveSupport.on_load(:active_support_test_case) { include DummyData }
+<% end -%>

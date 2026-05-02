@@ -8,13 +8,13 @@ describe SessionsController do
   end
 
   describe '#create' do
-    context 'when no user is found with the provided credentials' do
+    context 'when credentials are invalid' do
       before { post :create, params: { email: some_value, password: some_value } }
 
       it { should redirect_to new_session_path }
     end
 
-    context 'when a user is found with the provided credentials' do
+    context 'when credentials are valid' do
       before do
         create(:user, email: 'john@test.com', password: 'abc123')
 

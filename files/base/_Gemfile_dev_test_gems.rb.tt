@@ -1,21 +1,34 @@
 <% if dotenv? -%>
 gem 'dotenv-rails'
 <% end -%>
+<% if tests? -%>
 gem 'factory_bot_rails'
+<% end -%>
 gem 'listen'
+<% if rspec? -%>
 gem 'rspec-rails'
+<% end -%>
 <% if rubocop? -%>
 gem 'rubocop', require: false
+  <%- if tests? -%>
 gem 'rubocop-factory_bot', require: false
+  <%- end -%>
+  <%- if template_options[:rails_tests] -%>
+gem 'rubocop-minitest', require: false
+  <%- end -%>
 gem 'rubocop-obsession', require: false
 gem 'rubocop-performance', require: false
 gem 'rubocop-rails', require: false
+  <%- if rspec? -%>
 gem 'rubocop-rspec', require: false
 gem 'rubocop-rspec_rails', require: false
+  <%- end -%>
 gem 'rubocop-rubycw', require: false
 <% end -%>
 gem 'spring'
+<% if rspec? -%>
 gem 'spring-commands-rspec'
+<% end -%>
 <% if rubocop? -%>
 gem 'spring-commands-rubocop'
 <% end -%>

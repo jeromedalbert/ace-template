@@ -1,8 +1,6 @@
 FactoryBot.define do
   factory :banana do
-    <%- if template_options[:auth] -%>
     association :user
-    <%- end -%>
     name { 'MyString' }
     length { 1 }
     weight { 1 }

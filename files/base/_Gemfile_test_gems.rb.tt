@@ -1,6 +1,11 @@
+<% if rspec? -%>
 gem 'fuubar'
 gem 'rspec-its'
 gem 'shoulda-matchers'
+<% else -%>
+gem 'minitest-reporters'
+gem 'mocha'
+<% end -%>
 <% if template_options[:vcr] -%>
 gem 'vcr'
 <% end -%>

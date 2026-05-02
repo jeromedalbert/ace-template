@@ -60,13 +60,15 @@ Metrics/ParameterLists:
   Exclude:
     - 'test/**/*'
 
-Minitest/AssertPredicate:
-  Enabled: false
 Minitest/AssertOperator:
+  Enabled: false
+Minitest/AssertPredicate:
   Enabled: false
 Minitest/EmptyLineBeforeAssertionMethods:
   Enabled: false
 Minitest/MultipleAssertions:
+  Enabled: false
+Minitest/RefuteOperator:
   Enabled: false
 Minitest/RefutePredicate:
   Enabled: false

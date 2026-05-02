@@ -1,0 +1,22 @@
+def authenticate(user = nil)
+  user ||= build(:user)
+  session = create(:session, user: user)
+
+  <%- if rspec? -%>
+  cookies.signed[:session_id] = session.id
+  <%- else -%>
+  cookie_jar = ActionDispatch::TestRequest.create.cookie_jar
+  cookie_jar.signed[:session_id] = session.id
+  cookies['session_id'] = cookie_jar[:session_id]
+  <%- end -%>
+
+  user
+end
+
+def unauthenticate
+  <%- if rspec? -%>
+  cookies.delete(:session_id)
+  <%- else -%>
+  cookies.delete('session_id')
+  <%- end -%>
+end

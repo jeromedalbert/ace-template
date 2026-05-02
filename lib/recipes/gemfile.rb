@@ -10,10 +10,14 @@ insert_into_file 'Gemfile',
 insert_into_file 'Gemfile',
                  partial('Gemfile_dev_test_gems.rb', indent: 2),
                  after: "group :development, :test do\n"
-if !File.read('Gemfile').include?('group :test do')
-  append_to_file 'Gemfile', "\ngroup :test do\nend\n"
+if tests?
+  if !File.read('Gemfile').include?('group :test do')
+    append_to_file 'Gemfile', "\ngroup :test do\nend\n"
+  end
+  insert_into_file 'Gemfile',
+                   partial('Gemfile_test_gems.rb.tt', indent: 2),
+                   after: "group :test do\n"
 end
-insert_into_file 'Gemfile', partial('Gemfile_test_gems.rb.tt', indent: 2), after: "group :test do\n"
 append_to_file 'Gemfile', partial('Gemfile_production_gems.rb', :prepend_nl)
 
 gsub_file 'Gemfile', %r{  gem "rubocop-rails-omakase".*\n}, '' if rubocop?

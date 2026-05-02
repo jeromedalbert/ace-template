@@ -1,0 +1,1 @@
+include Devise::Test::IntegrationHelpers

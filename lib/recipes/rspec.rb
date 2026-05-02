@@ -1,11 +1,11 @@
-remove_dir 'test' if Dir.exist?('test') && template_defaults?
+remove_dir 'test' if Dir.exist?('test')
 
 run 'rails generate rspec:install'
 copy_file '.rspec', force: true
 empty_directory_with_keep_file 'spec/factories'
 gsub_file 'config/application.rb',
           /( *g\..*\n)(    end)/,
-          '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
+          '\1' + partial('tests/rspec/config/application.rb', indent: 6) + '\2'
 
 remove_comments 'spec/spec_helper.rb'
 gsub_file 'spec/spec_helper.rb', %r{=begin\n(.*\n)*=end\n}, ''
@@ -17,17 +17,19 @@ format_code 'spec/rails_helper.rb'
 gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\n\\0"
 gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
 insert_into_file 'spec/rails_helper.rb',
-                 partial('spec/rails_helper_requires.rb.tt', :prepend_nl),
+                 partial('tests/rspec/spec/rails_helper_requires.rb.tt', :prepend_nl),
                  after: "require 'rspec/rails'\n"
-add_before_end 'spec/rails_helper.rb', partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2)
+add_before_end 'spec/rails_helper.rb',
+               partial('tests/rspec/spec/rails_helper_end.rb', :prepend_nl, indent: 2)
 
-directory 'spec/support'
-template_from 'vcr', 'spec/support/vcr.rb.tt' if template_options[:vcr]
+directory 'tests/rspec/spec/support', 'spec/support'
+template 'tests/helpers/dummy_data.rb.tt', 'spec/support/dummy_data.rb'
+template 'tests/helpers/vcr.rb.tt', 'spec/support/vcr.rb' if template_options[:vcr]
 
 if ci?
   gsub_file '.github/workflows/ci.yml',
             %r{ *run: bin/rails db:test.*\n},
-            partial('spec/.github/workflows/ci.yml', indent: 8)
+            partial('tests/rspec/spec/.github/workflows/ci.yml', indent: 8)
   delete_line '.github/workflows/ci.yml', /\n  system-test:.*/m
 
   if File.exist?('config/ci.rb')

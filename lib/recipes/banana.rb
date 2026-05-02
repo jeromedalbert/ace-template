@@ -26,7 +26,7 @@ module ScaffoldBanana
                       'Banana',
                       partial('banana/app/models/banana.rb.tt', indent: 2)
 
-    template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
+    template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false if rspec?
   end
 
   def link_banana_to_user
@@ -42,8 +42,6 @@ module ScaffoldBanana
     end
     @banana_files.push('app/models/user.rb')
 
-    template_from 'banana', 'spec/factories/bananas.rb.tt', force: true
-
     inject_into_class 'app/controllers/bananas_controller.rb',
                       'BananasController',
                       "  before_action :authenticate\n\n"
@@ -56,11 +54,32 @@ module ScaffoldBanana
     gsub_file 'app/controllers/bananas_controller.rb',
               '@banana = Banana.find(',
               '@banana = current_user.bananas.find('
-    gsub_file 'spec/controllers/bananas_controller_spec.rb',
-              /  let\(:banana\) { .*\n/,
-              partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
 
+    configure_user_banana_tests
     copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
+  end
+
+  def configure_user_banana_tests
+    return if !tests?
+
+    copy_file 'banana/tests/factories/bananas.rb',
+              "#{test_folder}/factories/bananas.rb",
+              force: true
+
+    if rspec?
+      gsub_file 'spec/controllers/bananas_controller_spec.rb',
+                /  let\(:banana\) { .*\n/,
+                partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
+    else
+      inject_into_class(
+        'test/controllers/bananas_controller_test.rb',
+        'BananasControllerTest',
+        partial('banana/test/controllers/bananas_controller_test_top.rb', :append_nl, indent: 2)
+      )
+      gsub_file 'test/controllers/bananas_controller_test.rb',
+                %r{  def create_banana.*  end\n}m,
+                partial('files/banana/test/controllers/bananas_controller_test_end.rb', indent: 2)
+    end
   end
 
   def set_bananas_as_logged_in_homepage

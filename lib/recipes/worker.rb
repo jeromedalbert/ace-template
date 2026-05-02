@@ -7,7 +7,7 @@ remove_file 'config.ru'
 remove_file 'config/puma.rb'
 remove_file 'config/routes.rb'
 remove_file 'config/initializers/cors.rb'
-remove_file 'spec/support/controller_helpers.rb'
+remove_file controller_test_helper_file_path
 
 comment_lines 'config/application.rb', "require 'action_controller/railtie'"
 
@@ -21,6 +21,6 @@ if docker?
 end
 
 copy_file_from 'worker', 'app/services/say_hello.rb'
-copy_file_from 'worker', 'spec/services/say_hello_spec.rb'
+add_test_file 'services/say_hello', from: 'worker'
 
 commit 'Remove web code'

@@ -30,7 +30,7 @@ module SetupViews
     template 'app/views/pages/home.html.erb.tt'
 
     if !template_options[:banana] || template_options[:auth]
-      copy_file 'spec/controllers/pages_controller_spec.rb'
+      add_test_file 'controllers/pages_controller'
     end
   end
 

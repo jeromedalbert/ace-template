@@ -5,3 +5,7 @@ def authenticate(user = nil)
 
   user
 end
+
+def unauthenticate
+  sign_out :user
+end

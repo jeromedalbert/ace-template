@@ -67,6 +67,18 @@ module General
     file_content
   end
 
+  def test_folder
+    rspec? ? 'spec' : 'test'
+  end
+
+  def controller_test_helper_file_path
+    if rspec?
+      'spec/support/controller_helpers.rb'
+    else
+      'test/test_helpers/controller_test_helper.rb'
+    end
+  end
+
   # Port of https://github.com/rails/rails/pull/56365 while waiting for it to
   # be available in all Rails versions supported by this template.
   def version_manager_ruby_version

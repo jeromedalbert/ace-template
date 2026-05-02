@@ -24,10 +24,11 @@ module Template
       errors[=rollbar|sentry]  # Add error monitoring service
                                # (defaults to rollbar)
       generators               # Add improved scaffolding generators and templates
-      omakase                  # Use Rails defaults
+      omakase                  # Use Rails defaults (implies all rails-* options)
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       rails-creds              # Use Rails credentials to manage secrets
+      rails-tests              # Use Rails test cases backed by Minitest
       redis                    # Add Redis
       solid-dev                # Set up Solid adapters for development
       solid-single             # Use a single database for all Solid adapters
@@ -165,7 +166,13 @@ module Template
   end
 
   def configure_tests
-    apply 'lib/recipes/rspec.rb' if tests?
+    return if !tests?
+
+    if rspec?
+      apply 'lib/recipes/rspec.rb'
+    else
+      apply 'lib/recipes/rails_tests.rb'
+    end
   end
 
   def configure_kamal
@@ -195,12 +202,16 @@ module Template
   end
 
   def configure_auth
+    if tests?
+      copy_file 'auth/tests/factories/users.rb', "#{test_folder}/factories/users.rb", force: true
+      if rspec?
+        add_before_end 'spec/rails_helper.rb',
+                       partial('auth/tests/spec/rails_helper.rb', :prepend_nl, indent: 2)
+      end
+    end
+
     apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'
     apply 'lib/recipes/devise.rb' if template_options[:auth] == 'devise'
-
-    add_before_end 'spec/rails_helper.rb',
-                   partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)
-    copy_file_from 'auth', 'spec/factories/users.rb', force: true
   end
 
   def configure_generators

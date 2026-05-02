@@ -1,0 +1,10 @@
+require 'minitest/reporters'
+require 'mocha/minitest'
+<% if template_options[:vcr] -%>
+require 'vcr'
+<% end -%>
+require 'webmock/minitest'
+
+Rails.root.glob('test/test_helpers/**/*.rb').each { |f| require f }
+
+Minitest::Reporters.use! [Minitest::Reporters::DefaultReporter.new]

@@ -81,21 +81,17 @@ module EndToEnd
       assert_errors_sentry_option
     end
 
-    def test_rails_creds_option
-      output = run_rails_new('-o rails-creds')
+    def test_rails_options
+      output = run_rails_new('-o rails-creds,rails-tests,auth=rails,banana,generators')
 
       assert_template_done(output)
       assert_app_works
-      assert_file 'config/credentials.yml.enc'
-      assert_file 'config/master.key'
-      assert_file 'config/local.rb.sample'
-      assert_file '.kamal/secrets.production' do |content|
-        assert_match(/SECRETS=\$\(/, content)
-        assert_includes content, 'RAILS_MASTER_KEY=$(cat config/master.key)'
-        refute_includes content, 'SECRET_KEY_BASE='
-      end
-      refute_gemfile 'dotenv-rails'
-      refute_file '.env.sample'
+      assert_rails_creds_option
+      assert_rails_tests_option
+      assert_auth_rails_option
+      assert_banana_option
+      assert_banana_linked_to_user
+      assert_generators_option
     end
 
     def test_worker_option
@@ -290,6 +286,7 @@ module EndToEnd
       assert_file '.github/workflows/ci.yml', 'bin/rspec'
       assert_file '.rspec'
 
+      refute_dir 'test'
       assert_file 'spec/spec_helper.rb'
       assert_file 'spec/rails_helper.rb' do |content|
         assert_includes content, 'webmock'
@@ -333,15 +330,19 @@ module EndToEnd
 
       assert_file 'config/routes.rb', "root to: 'pages#home'"
       assert_file 'app/controllers/pages_controller.rb'
-      assert_file 'spec/controllers/pages_controller_spec.rb'
+      assert_file 'spec/controllers/pages_controller_spec.rb' if rspec?
       assert_file 'app/views/pages/home.html.erb', 'Hello world!'
 
       assert_commit 'Set up views'
     end
 
+    def rspec?
+      @rspec ||= Dir.exist?('spec')
+    end
+
     def assert_app_works
       assert_command_success 'bin/rails boot'
-      assert_command_success 'bin/rspec'
+      assert_command_success(rspec? ? 'bin/rspec' : 'bin/rails test')
       assert_command_success 'bin/rubocop --config .rubocop.yml'
       assert_syntax_tree_formatting
 
@@ -362,9 +363,15 @@ module EndToEnd
       assert_dir 'app/views/bananas'
       assert_file 'config/routes.rb', 'resources :bananas'
 
-      assert_file 'spec/controllers/bananas_controller_spec.rb'
-      assert_file 'spec/models/banana_spec.rb'
-      assert_file 'spec/factories/bananas.rb'
+      if rspec?
+        assert_file 'spec/controllers/bananas_controller_spec.rb'
+        assert_file 'spec/models/banana_spec.rb'
+        assert_file 'spec/factories/bananas.rb'
+      else
+        assert_file 'test/controllers/bananas_controller_test.rb'
+        assert_file 'test/models/banana_test.rb'
+        assert_file 'test/factories/bananas.rb'
+      end
 
       assert_equal '0', run_command("bin/rails runner 'puts Banana.count'").strip
     end
@@ -393,7 +400,9 @@ module EndToEnd
       assert_file 'app/views/sessions/new.html.erb'
       assert_file 'app/views/registrations/new.html.erb'
 
-      assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
+      if css_framework?
+        assert_file 'app/views/layouts/_header.html.erb', 'Log in', 'Sign up', 'Log out'
+      end
       assert_file 'app/views/pages/home.html.erb', /sign up.* to start managing your bananas/m
 
       assert_file 'config/routes.rb' do |content|
@@ -404,13 +413,24 @@ module EndToEnd
         assert_match(/delete ['"]logout/, content)
       end
 
-      assert_file 'spec/models/user_spec.rb'
-      assert_file 'spec/factories/users.rb'
-      assert_file 'spec/factories/sessions.rb'
-      assert_file 'spec/rails_helper.rb', 'Current.reset'
-      assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+      if rspec?
+        assert_file 'spec/models/user_spec.rb'
+        assert_file 'spec/factories/users.rb'
+        assert_file 'spec/factories/sessions.rb'
+        assert_file 'spec/rails_helper.rb', 'Current.reset'
+        assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
+      else
+        assert_file 'test/models/user_test.rb'
+        assert_file 'test/factories/users.rb'
+        assert_file 'test/factories/sessions.rb'
+        assert_file 'test/test_helpers/controller_test_helper.rb', 'def authenticate'
+      end
 
       assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
+    end
+
+    def css_framework?
+      @css_framework ||= Dir['**/tailwind/application.css', '**/application.bootstrap.scss'].any?
     end
 
     def assert_banana_in_header
@@ -420,13 +440,17 @@ module EndToEnd
     def assert_banana_linked_to_user
       assert_file 'app/models/banana.rb', 'belongs_to :user'
       assert_file 'app/models/user.rb', 'has_many :bananas'
-      assert_file 'spec/factories/bananas.rb', 'association :user'
+      if rspec?
+        assert_file 'spec/factories/bananas.rb', 'association :user'
+      else
+        assert_file 'test/factories/bananas.rb', 'association :user'
+      end
 
       assert_file 'app/controllers/bananas_controller.rb', 'current_user.bananas'
       assert_file 'app/controllers/application_controller.rb',
                   /redirect_root_path\n.*redirect_to bananas_path/
 
-      assert_file 'app/policies/banana_policy.rb'
+      assert_file 'app/policies/banana_policy.rb' if File.read('Gemfile').include?('pundit')
     end
 
     def assert_css_tailwind_option
@@ -454,8 +478,9 @@ module EndToEnd
       assert_file 'config/initializers/generators.rb'
 
       assert_dir 'lib/generators/rails'
-      assert_dir 'lib/templates/rspec'
-      assert_dir 'lib/templates/erb/scaffold'
+      assert_dir 'lib/templates/erb/scaffold' if css_framework?
+      test_subdir = rspec? ? 'rspec' : 'test_unit'
+      assert_dir "lib/templates/#{test_subdir}"
 
       assert_file 'config/application.rb', /config.autoload_lib\(ignore: .* generators .* templates/
     end
@@ -572,6 +597,39 @@ module EndToEnd
       assert_file 'config/initializers/sentry.rb'
 
       assert_commit 'Configure Sentry'
+    end
+
+    def assert_rails_creds_option
+      assert_file 'config/credentials.yml.enc'
+      assert_file 'config/master.key'
+
+      assert_file 'config/local.rb.sample'
+      assert_file '.kamal/secrets.production' do |content|
+        assert_match(/SECRETS=\$\(/, content)
+        assert_includes content, 'RAILS_MASTER_KEY=$(cat config/master.key)'
+        refute_includes content, 'SECRET_KEY_BASE='
+      end
+
+      refute_gemfile 'dotenv-rails'
+      refute_file '.env.sample'
+    end
+
+    def assert_rails_tests_option
+      assert_gemfile 'rubocop-minitest'
+      refute_gemfile 'rubocop-rspec'
+      assert_file '.rubocop.yml', 'Minitest/'
+
+      refute_dir 'spec'
+      assert_file 'test/test_helper.rb' do |content|
+        assert_includes content, 'minitest/reporters'
+        assert_includes content, 'mocha'
+        assert_includes content, 'webmock'
+        assert_includes content, 'FactoryBot'
+      end
+      assert_dir 'test/factories'
+      assert_dir 'test/test_helpers'
+
+      assert_commit 'Configure tests'
     end
   end
 end

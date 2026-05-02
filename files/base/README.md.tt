@@ -22,7 +22,11 @@ TODO:
 1. Make sure tests pass (everything should be green):
 
     ```
+    <%- if rspec? -%>
     bin/rspec
+    <%- else -%>
+    bin/rails test
+    <%- end -%>
     ```
 
 <% end -%>

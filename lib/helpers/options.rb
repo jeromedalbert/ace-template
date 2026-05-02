@@ -54,6 +54,14 @@ module Options
     !options[:skip_test]
   end
 
+  def rspec?
+    tests? && !template_options[:rails_tests]
+  end
+
+  def factory_bot?
+    true
+  end
+
   def template_defaults?
     !template_options[:omakase]
   end
