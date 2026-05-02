@@ -290,6 +290,11 @@ module Template
               '- RAILS_MASTER_KEY',
               %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
     gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
+    if !template_options[:worker]
+      gsub_file 'config/deploy.yml',
+                /(logs: app logs -f)/,
+                '\1 --grep-options="--invert-match --extended-regexp" --grep="^[^ ]+ \{"'
+    end
     if server_db? || redis?
       append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
     end
