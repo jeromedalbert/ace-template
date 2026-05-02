@@ -79,7 +79,7 @@ module Template
 
   def format_code(files = '**/*')
     command = ["bundle exec stree write '#{files}'"]
-    command += File.read('../.streerc').split if !File.exist?('.streerc')
+    command += File.read("#{__dir__}/.streerc").split if !File.exist?('.streerc')
     run command.join(' '), capture: true, abort_on_failure: false
 
     if files == '**/*'
