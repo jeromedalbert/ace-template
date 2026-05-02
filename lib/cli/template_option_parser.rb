@@ -32,11 +32,11 @@ module CLI
 
       matches =
         @app.help_banner.scan(
-          /^  (?<name>[a-z_]+)(?:\[=(?<values>[a-z_|]*)\])? *# (?<description>.*)/
+          /^  (?<name>[a-z-]+)(?:\[=(?<values>[a-z\-|]*)\])? *# (?<description>.*)/
         )
 
       matches.each do |match|
-        name = match[0]
+        name = match[0].underscore
         values = match[1]&.split('|') || []
         @available_options[name] = Option.new(name: name, values: values, description: match[2])
       end
@@ -65,8 +65,13 @@ module CLI
       @selected_options_string =
         @template_options
           .map do |option_key, option_value|
-            (option_value == true) ? option_key : "#{option_key}=#{option_value}"
+            if option_value == true
+              option_key.dasherize
+            else
+              "#{option_key.dasherize}=#{option_value}"
+            end
           end
+          .sort
           .join(',')
     end
 
@@ -83,6 +88,7 @@ module CLI
         .split(',')
         .each do |raw_option|
           option_key, option_value = raw_option.split('=')
+          option_key = option_key.underscore
           option = @available_options[option_key]
           emit_error("Invalid template option: #{option_key}") if !option
           @template_options[option_key] = option_value || option.default_value
@@ -143,14 +149,19 @@ module CLI
       @app.options
     end
 
-    def to_flag(rails_option)
-      "--#{rails_option.to_s.dasherize}"
+    def to_flag(option)
+      display_value(option).prepend('--')
+    end
+
+    def display_value(option)
+      option.to_s.dasherize
     end
 
     def check_incompatible_options(template_option, rails_option:)
       if @template_options[template_option] && options[rails_option]
         emit_error(
-          "#{template_option} template option is incompatible with Rails #{to_flag(rails_option)} option"
+          "#{display_value(template_option)} template option is incompatible with " \
+            "Rails #{to_flag(rails_option)} option"
         )
       end
     end
@@ -158,7 +169,8 @@ module CLI
     def check_required_option(template_option, required_rails_option:)
       if @template_options[template_option] && !options[required_rails_option]
         emit_error(
-          "#{template_option} template option requires Rails #{to_flag(required_rails_option)} option"
+          "#{display_value(template_option)} template option requires " \
+            "Rails #{to_flag(required_rails_option)} option"
         )
       end
     end

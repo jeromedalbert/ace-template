@@ -80,7 +80,7 @@ module CLI
       option_is_current = option_index == @current_option_index && @current_suboption_index.nil?
       prefix = option_is_current ? yellow('‣ ') : '  '
       checkbox = selected?(option) ? '⬢' : '⬡'
-      text << "#{prefix}#{checkbox} #{option.name} - #{option.description}"
+      text << "#{prefix}#{checkbox} #{option.name.dasherize} - #{option.description}"
 
       if selected?(option) && option.values&.any?
         option.values.each_with_index do |suboption_value, suboption_index|

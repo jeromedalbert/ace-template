@@ -15,7 +15,7 @@ module Template
       you can provide template options manually with `-o` or interactively with `-i`.
 
     Template Options:
-      active_storage           # Install active storage
+      active-storage           # Install active storage
       all                      # All options except double, omakase, and worker
       auth[=rails|devise]      # Add authentication
                                # (defaults to rails)
@@ -28,8 +28,8 @@ module Template
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       redis                    # Add Redis
-      solid_dev                # Set up Solid adapters for development
-      solid_single             # Use a single database for all Solid adapters
+      solid-dev                # Set up Solid adapters for development
+      solid-single             # Use a single database for all Solid adapters
       squash                   # Squash all commits into a single "Initial commit"
       vcr                      # Add VCR gem to record test HTTP requests
       worker                   # Removes web code (requires Rails --api option)

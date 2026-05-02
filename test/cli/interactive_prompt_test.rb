@@ -14,8 +14,8 @@ module CLI
       run_prompt(prompt)
 
       assert_output <<~EOS
-        ‣ ⬡ option_1 - Option 1 description
-          ⬡ option_2 - Option 2 description
+        ‣ ⬡ option-1 - Option 1 description
+          ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -31,8 +31,8 @@ module CLI
       run_prompt(prompt, keypresses: 'j')
 
       assert_output <<~EOS
-          ⬡ option_1 - Option 1 description
-        ‣ ⬡ option_2 - Option 2 description
+          ⬡ option-1 - Option 1 description
+        ‣ ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -48,8 +48,8 @@ module CLI
       run_prompt(prompt, keypresses: 'jj')
 
       assert_output <<~EOS
-        ‣ ⬡ option_1 - Option 1 description
-          ⬡ option_2 - Option 2 description
+        ‣ ⬡ option-1 - Option 1 description
+          ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -66,9 +66,9 @@ module CLI
       selection = run_prompt(prompt, keypresses: ' j  j ')
 
       assert_output <<~EOS
-          ⬢ option_1 - Option 1 description
-          ⬡ option_2 - Option 2 description
-        ‣ ⬢ option_3 - Option 3 description
+          ⬢ option-1 - Option 1 description
+          ⬡ option-2 - Option 2 description
+        ‣ ⬢ option-3 - Option 3 description
       EOS
       assert_equal({ 'option_1' => true, 'option_3' => true }, selection)
     end
@@ -89,8 +89,8 @@ module CLI
       run_prompt(prompt)
 
       assert_output <<~EOS
-        ‣ ⬡ option_1 - Option 1 description
-          ⬡ option_2 - Option 2 description
+        ‣ ⬡ option-1 - Option 1 description
+          ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -110,10 +110,10 @@ module CLI
       run_prompt(prompt, keypresses: ' ')
 
       assert_output <<~EOS
-        ‣ ⬢ option_1 - Option 1 description
+        ‣ ⬢ option-1 - Option 1 description
                 ⬢ value_a
                 ⬡ value_b
-          ⬡ option_2 - Option 2 description
+          ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -133,10 +133,10 @@ module CLI
       run_prompt(prompt, keypresses: ' j')
 
       assert_output <<~EOS.indent(2)
-        ⬢ option_1 - Option 1 description
+        ⬢ option-1 - Option 1 description
             ‣ ⬢ value_a
               ⬡ value_b
-        ⬡ option_2 - Option 2 description
+        ⬡ option-2 - Option 2 description
       EOS
     end
 
@@ -156,10 +156,10 @@ module CLI
       selection = run_prompt(prompt, keypresses: ' jj ')
 
       assert_output <<~EOS.indent(2)
-        ⬢ option_1 - Option 1 description
+        ⬢ option-1 - Option 1 description
               ⬡ value_a
             ‣ ⬢ value_b
-        ⬡ option_2 - Option 2 description
+        ⬡ option-2 - Option 2 description
       EOS
       assert_equal({ 'option_1' => 'value_b' }, selection)
     end

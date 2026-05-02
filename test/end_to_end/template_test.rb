@@ -117,7 +117,7 @@ module EndToEnd
       postgres_user = ENV['CI'] ? 'postgres' : ENV['USER']
       @env = "DATABASE_URL=postgres://#{postgres_user}@localhost:5432/myapp_development"
 
-      output = run_rails_new('--database postgresql -o banana,solid_dev')
+      output = run_rails_new('--database postgresql -o banana,solid-dev')
 
       assert_template_done(output)
       assert_app_works
@@ -129,7 +129,7 @@ module EndToEnd
       postgres_user = ENV['CI'] ? 'postgres' : ENV['USER']
       @env = "DATABASE_URL=postgres://#{postgres_user}@localhost:5432/myapp_development"
 
-      output = run_rails_new('--database postgresql -o banana,solid_dev,solid_single')
+      output = run_rails_new('--database postgresql -o banana,solid-dev,solid-single')
 
       assert_template_done(output)
       assert_app_works
@@ -141,7 +141,7 @@ module EndToEnd
     def test_mysql_database_option
       @env = 'DATABASE_URL=mysql2://root@127.0.0.1:3306/myapp_development'
 
-      output = run_rails_new('--database mysql -o banana,solid_dev')
+      output = run_rails_new('--database mysql -o banana,solid-dev')
 
       assert_template_done(output)
       assert_app_works
@@ -152,7 +152,7 @@ module EndToEnd
     def test_mysql_database_option_with_solid_single_option
       @env = 'DATABASE_URL=mysql2://root@127.0.0.1:3306/myapp_development'
 
-      output = run_rails_new('--database mysql -o banana,solid_dev,solid_single')
+      output = run_rails_new('--database mysql -o banana,solid-dev,solid-single')
 
       assert_template_done(output)
       assert_app_works

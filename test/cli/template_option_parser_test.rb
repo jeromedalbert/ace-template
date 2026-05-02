@@ -55,7 +55,7 @@ module CLI
       result = @parser.parse(%w[new myapp -i])
 
       assert_equal({ 'banana' => true, 'auth' => 'rails' }, result.template_options)
-      assert_equal 'banana,auth=rails', result.selected_options_string
+      assert_equal 'auth=rails,banana', result.selected_options_string
     end
 
     def test_all_option
@@ -138,7 +138,7 @@ module CLI
       @parser = TemplateOptionParser.new(build_app(skip_active_storage: true))
 
       expect_error(
-        'active_storage template option is incompatible with Rails --skip-active-storage option'
+        'active-storage template option is incompatible with Rails --skip-active-storage option'
       )
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o active_storage]) }
@@ -147,7 +147,7 @@ module CLI
     def test_solid_dev_option_with_rails_skip_solid_option
       @parser = TemplateOptionParser.new(build_app(skip_solid: true))
 
-      expect_error('solid_dev template option is incompatible with Rails --skip-solid option')
+      expect_error('solid-dev template option is incompatible with Rails --skip-solid option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o solid_dev]) }
     end
@@ -155,7 +155,7 @@ module CLI
     def test_solid_single_option_with_rails_skip_solid_option
       @parser = TemplateOptionParser.new(build_app(skip_solid: true))
 
-      expect_error('solid_single template option is incompatible with Rails --skip-solid option')
+      expect_error('solid-single template option is incompatible with Rails --skip-solid option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o solid_single]) }
     end
