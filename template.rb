@@ -4,6 +4,10 @@ require 'active_support/core_ext/string'
 require 'bundler'
 require 'open3'
 
+# rubocop:disable Style/DisableCopsWithinSourceCodeDirective
+# rubocop:disable Lint/InterpolationCheck
+# rubocop:disable Style/MixinUsage
+
 module Template
   TEMPLATE_OPTIONS_BANNER = <<~EOS
     Template options:
@@ -76,7 +80,7 @@ module Template
       delete_line 'Gemfile', /gem "tzinfo-data".*/
     end
     if Bundler.current_ruby.mri? || Bundler.current_ruby.windows?
-      gsub_file 'Gemfile', /(  gem "debug"), platforms: .*,/, "\\1,"
+      gsub_file 'Gemfile', /(  gem "debug"), platforms: .*,/, '\1,'
     end
   end
 
@@ -261,7 +265,7 @@ module Template
     database_yml_content =
       File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
     databases_config =
-      Regexp.last_match(0).remove(' &primary_production').gsub(/primary_production/, 'default')
+      Regexp.last_match(0).remove(' &primary_production').gsub('primary_production', 'default')
 
     File.write 'config/database.yml', database_yml_content
     insert_into_file 'config/database.yml',
@@ -621,7 +625,7 @@ module Template
 
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
-    match = file.match(/(?<spaces> *)(<!-- )?(?<link><li.*li>)/)
+    match = file.match(/(?<spaces> *)(?:<!-- )?(?<link><li.*li>)/)
     link = match[:link].sub(/link_to [^,]*, [^, ]*/, "link_to 'Bananas', bananas_path")
 
     if template_options[:devise]
@@ -947,3 +951,5 @@ extend Template
 extend TemplateHelpers
 
 apply_template if !$PROGRAM_NAME.end_with?('rails-new')
+
+# rubocop:enable all
