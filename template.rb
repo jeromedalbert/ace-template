@@ -424,7 +424,7 @@ module Template
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
     match = file.match(/(?<spaces> *)(<!-- |  )(?<link><li.*li>)/)
-    link = match[:link].sub(/link_to '.*', \w*/, "link_to 'Bananas', bananas_path")
+    link = match[:link].sub(/link_to [^,]*, [^, ]*/, "link_to 'Bananas', bananas_path")
 
     if file.include?('<!--')
       gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
