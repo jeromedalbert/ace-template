@@ -102,7 +102,7 @@ module ConfigureRailsAuth
               "redirect_to after_authentication_path, notice: 'Signed in successfully.'"
 
     gsub_file 'app/controllers/sessions_controller.rb',
-              /(terminate_session\n).*/,
+              /(def destroy\n.*)    redirect_to \w*/m,
               "\\1\n    redirect_to root_path, notice: 'Signed out successfully.'"
 
     copy_file_from 'auth/rails_auth', 'spec/controllers/sessions_controller_spec.rb'
