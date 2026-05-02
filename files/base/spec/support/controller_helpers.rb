@@ -1,4 +1,4 @@
-module ControllerSpecHelper
+module ControllerHelpers
 end
 
-RSpec.configure { |c| c.include ControllerSpecHelper, type: :controller }
+RSpec.configure { |c| c.include ControllerHelpers, type: :controller }
