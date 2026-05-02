@@ -102,15 +102,19 @@ More configuration is required, and is not covered in these instructions.
       worker = 'bin/jobs'
     ```
 
-1. Deploy the app:
+1. Run the following commands:
 
     ```bash
+    # Commit fly.toml configuration and discard other unneeded files:
+    git add fly.toml && git checkout . && git clean -fd && git commit -m 'Add Fly configuration'
     # (Optional) Set any extra env vars with: fly secrets set MY_VAR=value
     fly deploy
     ```
 <% else -%>
 ```bash
 <%= fly_io_launch_command %>
+# Commit fly.toml configuration and discard other unneeded files:
+git add fly.toml && git checkout . && git clean -fd && git commit -m 'Add Fly configuration'
 # (Optional) Set any extra env vars with: fly secrets set MY_VAR=value
 fly deploy
 fly apps open
@@ -145,7 +149,7 @@ heroku create <%= app_uniqueish_name %> # Name must be unique
 heroku addons:add heroku-postgresql
 watch -n 10 heroku addons:info heroku-postgresql # Wait for Postgres addon state to be "created". This can take a while...
 <% end -%>
-# Specify Ruby version in Gemfile by executing the line below:
+# Specify Ruby version in Gemfile:
 awk '/source/ { print; print "\nruby file: \x27.ruby-version\x27" } !/source/' Gemfile > Gemfile.new && mv Gemfile.new Gemfile && bundle && git add --all && git commit -m 'Specify Ruby version for Heroku'
 # (Optional) Set any extra env vars with: heroku config:set MY_VAR=value
 git push heroku main
