@@ -131,11 +131,6 @@ module Template
     gsub_file 'config/application.rb',
               /^ *#\n *# config.*  end\n/m,
               partial('config/application.rb', :prepend_nl, append: "  end\n", indent: 4)
-    # Fix while waiting for https://github.com/rails/rails/issues/51768 to be fixed
-    if options[:skip_action_cable] && !template_options[:worker]
-      uncomment_lines 'config/application.rb', 'require "action_cable/engine"'
-      gsub_file 'config/application.rb', '"action_cable/engine"', "'action_cable/engine'"
-    end
 
     copy_file 'config/initializers/lograge.rb'
     gsub_file 'config/environments/production.rb',
