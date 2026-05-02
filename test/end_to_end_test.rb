@@ -12,11 +12,12 @@ class EndToEndTest < Minitest::Test
 
   private
 
-  def run_command(command, capture_errors: false)
+  def run_command(command, capture_errors: false, keypresses: nil)
     method = capture_errors ? :capture2e : :capture2
     command = "#{@env} #{command}" if @env
 
-    output, status = Bundler.with_original_env { Open3.send(method, command) }
+    output, status =
+      Bundler.with_original_env { Open3.send(method, command, stdin_data: keypresses) }
     raise_failed(output) if !status.success? && !capture_errors
 
     output
@@ -41,11 +42,14 @@ class EndToEndTest < Minitest::Test
     raise message
   end
 
-  def run_rails_new(options = '', capture_errors: false)
+  def run_rails_new(options = '', capture_errors: false, keypresses: nil)
     command = "rails new tmp/myapp -m #{File.expand_path('template.rb')}"
     command << " #{options}" if options.present?
+    output = nil
 
-    output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
+    if !reuse_app?
+      output = run_command(command, capture_errors: capture_errors, keypresses: keypresses)
+    end
 
     Dir.chdir('tmp/myapp') if Dir.exist?('tmp/myapp')
     output

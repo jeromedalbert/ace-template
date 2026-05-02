@@ -50,7 +50,7 @@ module CLI
     end
 
     def test_interactive_option
-      CLI::InteractivePrompt.any_instance.expects(:run).returns('banana' => true, 'auth' => 'rails')
+      CLI::InteractivePrompt.any_instance.stubs(:run).returns('banana' => true, 'auth' => 'rails')
 
       result = @parser.parse(%w[new myapp -i])
 

@@ -18,6 +18,14 @@ module EndToEnd
       assert_app_works
     end
 
+    def test_interactive_option
+      output = run_rails_new('-i', keypresses: "jjj \n")
+
+      assert_template_done(output)
+      assert_app_works
+      assert_banana_option
+    end
+
     def test_invalid_option
       output = run_rails_new('-o foo', capture_errors: true)
 
@@ -271,6 +279,19 @@ module EndToEnd
       assert_command_success 'bin/kamal config'
     end
 
+    def assert_banana_option
+      assert_file 'app/models/banana.rb', 'validates :name'
+      assert_file 'app/controllers/bananas_controller.rb'
+      assert_dir 'app/views/bananas'
+      assert_file 'config/routes.rb', 'resources :bananas'
+
+      assert_file 'spec/controllers/bananas_controller_spec.rb'
+      assert_file 'spec/models/banana_spec.rb'
+      assert_file 'spec/factories/bananas.rb'
+
+      assert_equal '0', run_command("bin/rails runner 'puts Banana.count'").strip
+    end
+
     def assert_app_deleted
       refute_equal 'myapp', File.basename(Dir.pwd)
     end
@@ -313,19 +334,6 @@ module EndToEnd
       assert_file 'spec/support/controller_helpers.rb', 'def authenticate'
 
       assert_equal '0', run_command("bin/rails runner 'puts User.count'").strip
-    end
-
-    def assert_banana_option
-      assert_file 'app/models/banana.rb', 'validates :name'
-      assert_file 'app/controllers/bananas_controller.rb'
-      assert_dir 'app/views/bananas'
-      assert_file 'config/routes.rb', 'resources :bananas'
-
-      assert_file 'spec/controllers/bananas_controller_spec.rb'
-      assert_file 'spec/models/banana_spec.rb'
-      assert_file 'spec/factories/bananas.rb'
-
-      assert_equal '0', run_command("bin/rails runner 'puts Banana.count'").strip
     end
 
     def assert_banana_in_header

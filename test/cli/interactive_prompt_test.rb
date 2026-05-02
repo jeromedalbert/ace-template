@@ -28,7 +28,7 @@ module CLI
           ]
         )
 
-      run_prompt(prompt, keypresses: ['j'])
+      run_prompt(prompt, keypresses: 'j')
 
       assert_output <<~EOS
           ⬡ option_1 - Option 1 description
@@ -45,7 +45,7 @@ module CLI
           ]
         )
 
-      run_prompt(prompt, keypresses: %w[j j])
+      run_prompt(prompt, keypresses: 'jj')
 
       assert_output <<~EOS
         ‣ ⬡ option_1 - Option 1 description
@@ -63,7 +63,7 @@ module CLI
           ]
         )
 
-      selection = run_prompt(prompt, keypresses: [' ', 'j', ' ', ' ', 'j', ' '])
+      selection = run_prompt(prompt, keypresses: ' j  j ')
 
       assert_output <<~EOS
           ⬢ option_1 - Option 1 description
@@ -107,7 +107,7 @@ module CLI
           ]
         )
 
-      run_prompt(prompt, keypresses: [' '])
+      run_prompt(prompt, keypresses: ' ')
 
       assert_output <<~EOS
         ‣ ⬢ option_1 - Option 1 description
@@ -130,7 +130,7 @@ module CLI
           ]
         )
 
-      run_prompt(prompt, keypresses: [' ', 'j'])
+      run_prompt(prompt, keypresses: ' j')
 
       assert_output <<~EOS.indent(2)
         ⬢ option_1 - Option 1 description
@@ -153,7 +153,7 @@ module CLI
           ]
         )
 
-      selection = run_prompt(prompt, keypresses: [' ', 'j', 'j', ' '])
+      selection = run_prompt(prompt, keypresses: ' jj ')
 
       assert_output <<~EOS.indent(2)
         ⬢ option_1 - Option 1 description
@@ -170,16 +170,16 @@ module CLI
 
       app.expects(:delete_created_app)
 
-      assert_raises(SystemExit) { run_prompt(prompt, keypresses: ['q']) }
+      assert_raises(SystemExit) { run_prompt(prompt, keypresses: 'q') }
     end
 
     private
 
     Option = TemplateOptionParser::Option
 
-    def run_prompt(prompt, keypresses: [])
+    def run_prompt(prompt, keypresses: '')
       selected_options = nil
-      TTY::Reader.any_instance.stubs(:read_keypress).returns(*keypresses, "\n")
+      TTY::Reader.any_instance.stubs(:read_keypress).returns(*keypresses.chars, "\n")
 
       io = capture_io { selected_options = prompt.run }
       @output = TTY::Reader::Line.sanitize(io.first)
