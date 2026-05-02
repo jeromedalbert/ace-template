@@ -3,30 +3,38 @@ require 'active_support/core_ext/array/conversions'
 require 'active_support/core_ext/string'
 
 module Template
-  TEMPLATE_OPTIONS_BANNER = <<~EOS
-    Template options:
-      -o, [--template-options=option1,option2,...]
-          # Available options:
-          #
-          #   - active_storage: install active storage
-          #   - all: all options except double, noskip, and worker
-          #   - auth[=rails|devise]: add authentication
-          #                          (defaults to rails)
-          #   - banana: scaffold an example Banana resource for demo purposes
-          #   - dependabot: enable GitHub Dependabot
-          #   - double: use double-quoted strings
-          #   - errors[=rollbar|sentry]: add error monitoring service
-          #                              (defaults to rollbar)
-          #   - generators: add improved scaffolding generators and templates
-          #   - noskip: do not skip Action Mailbox, Action Text, Jbuilder, and
-          #             Rails' test framework
-          #   - omakase: active_storage, auth, banana, squash, and vcr options
-          #   - pundit: add Pundit authorization
-          #   - redis: add Redis
-          #   - solid_dev: set up Solid adapters for development
-          #   - squash: squash all commits into a single "Initial commit"
-          #   - vcr: add VCR gem to record test HTTP requests
-          #   - worker: removes web code (requires Rails --api option)
+  HELP_BANNER = <<~EOS
+    ######################
+    ### Rails Template ###
+    ######################
+
+    Usage:
+      rails new APP_PATH -m /path/to/template.rb [-o option1,option2,...] [rails options]
+
+    Template Options:
+      active_storage           # Install active storage
+      all                      # All options except double, noskip, and worker
+      auth[=rails|devise]      # Add authentication
+                               # (defaults to rails)
+      banana                   # Scaffold an example Banana resource for demo purposes
+      dependabot               # Enable GitHub Dependabot
+      double                   # Use double-quoted strings
+      errors[=rollbar|sentry]  # Add error monitoring service
+                               # (defaults to rollbar)
+      generators               # Add improved scaffolding generators and templates
+      noskip                   # Do not skip Action Mailbox, Action Text, Jbuilder, and Rails' test framework
+      omakase                  # active_storage, auth, banana, squash, and vcr options
+      pundit                   # Add Pundit authorization
+      redis                    # Add Redis
+      solid_dev                # Set up Solid adapters for development
+      squash                   # Squash all commits into a single "Initial commit"
+      vcr                      # Add VCR gem to record test HTTP requests
+      worker                   # Removes web code (requires Rails --api option)
+
+    Examples:
+      rails new myapp -m /path/to/template.rb
+      rails new myapp -m /path/to/template.rb -o banana
+      rails new myapp -m /path/to/template.rb -o banana,auth,errors=sentry --css tailwind
   EOS
   REQUIRED_RAILS_VERSIONS = '>= 8.0'
   SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'

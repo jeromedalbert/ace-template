@@ -78,7 +78,7 @@ module Options
 
     show_help if @raw_template_options.in?(%w[h help template_options])
     ensure_valid_app_path
-    allowed_options = Template::TEMPLATE_OPTIONS_BANNER.scan(/- ([a-z_]*).*:/).flatten
+    allowed_options = Template::HELP_BANNER.scan(/^  ([a-z_]+).*#/).flatten
 
     @raw_template_options
       .split(',')
@@ -94,7 +94,7 @@ module Options
   def show_help
     delete_created_app
 
-    puts "\n#{Template::TEMPLATE_OPTIONS_BANNER}\n"
+    puts "\n#{Template::HELP_BANNER}\n"
 
     exit
   end
