@@ -11,8 +11,7 @@ gem 'listen'
 gem 'rspec-rails'
 <% end -%>
 <% if ace_template_defaults? && rubocop? -%>
-# Use commit that fixes a CLI option while waiting for next version of rubocop and standard
-gem 'rubocop', require: false, github: 'rubocop/rubocop', ref: '1e1df6f'
+gem 'rubocop', require: false
   <%- if factory_bot? -%>
 gem 'rubocop-factory_bot', require: false
   <%- end -%>
