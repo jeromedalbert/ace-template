@@ -143,8 +143,8 @@ module Actions
     @gem_paths ||= {}
 
     @gem_paths[gem_name] ||= `bundle show #{gem_name}`.chomp
-    gem_path = @gem_paths[gem_name]
 
+    gem_path = @gem_paths[gem_name]
     "#{gem_path}/#{file_path}"
   end
 

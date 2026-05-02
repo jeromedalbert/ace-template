@@ -39,8 +39,8 @@ module Template
       rails new myapp -m /path/to/template.rb -o banana,auth,errors=sentry --css tailwind
       rails new myapp -m /path/to/template.rb -i
   EOS
-  REQUIRED_RAILS_VERSIONS = '>= 8.0'
-  SUPPORTED_RAILS_VERSIONS = '~> 8.0.0'
+  REQUIRED_RAILS_VERSIONS = '>= 8.0.1'
+  SUPPORTED_RAILS_VERSIONS = ['~> 8.0.0', '~> 8.1.0']
   SUPPORTED_RUBY_VERSIONS = '~> 3.4.0'
 
   def apply_template
@@ -114,7 +114,7 @@ module Template
     end
     if !compatible_version?(rails_version, SUPPORTED_RAILS_VERSIONS)
       emit_support_warning(
-        supported: "Rails #{SUPPORTED_RAILS_VERSIONS}",
+        supported: "Rails #{SUPPORTED_RAILS_VERSIONS.to_sentence}",
         current: "Rails #{Rails.version}"
       )
     end
@@ -126,8 +126,12 @@ module Template
     end
   end
 
-  def compatible_version?(actual_version, version_range)
-    Gem::Requirement.new(version_range).satisfied_by?(Gem::Version.new(actual_version))
+  def compatible_version?(actual_version, version_ranges)
+    actual_version = Gem::Version.new(actual_version)
+
+    Array(version_ranges).any? do |version_range|
+      Gem::Requirement.new(version_range).satisfied_by?(actual_version)
+    end
   end
 
   def emit_required_error(required:, current:)

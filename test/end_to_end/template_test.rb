@@ -10,7 +10,7 @@ module EndToEnd
       assert_app_works
     end
 
-    def test_main_option
+    def test_rails_main
       output = run_rails_new('--main')
 
       assert_template_done(output)
@@ -18,8 +18,16 @@ module EndToEnd
       assert_app_works
     end
 
-    def test_edge_option
+    def test_rails_edge
       output = run_rails_new('--edge')
+
+      assert_template_done(output)
+      assert_default_setup
+      assert_app_works
+    end
+
+    def test_rails_8_0
+      output = run_rails_new(version: '8.0.1')
 
       assert_template_done(output)
       assert_default_setup

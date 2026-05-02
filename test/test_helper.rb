@@ -69,8 +69,13 @@ class EndToEndTest < Minitest::Test
     raise message
   end
 
-  def run_rails_new(options = '', capture_errors: false, keypresses: nil)
-    command = "rails new tmp/myapp -m #{File.expand_path('template.rb')}"
+  def run_rails_new(options = '', capture_errors: false, keypresses: nil, version: nil)
+    command = +'rails'
+    if version
+      ensure_rails_installed(version)
+      command << " _#{version}_"
+    end
+    command << " new tmp/myapp -m #{File.expand_path('template.rb')}"
     command << " #{options}" if options.present?
     output = nil
 
@@ -80,6 +85,10 @@ class EndToEndTest < Minitest::Test
 
     Dir.chdir('tmp/myapp') if Dir.exist?('tmp/myapp')
     output
+  end
+
+  def ensure_rails_installed(version)
+    run_command("gem install rails -v #{version} --conservative")
   end
 
   def reuse_app?

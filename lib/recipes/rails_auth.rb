@@ -80,9 +80,6 @@ module ConfigureRailsAuth
                      "    load_user || return\n\n",
                      after: "def update\n"
 
-    insert_into_file 'app/controllers/passwords_controller.rb',
-                     "nil\n",
-                     after: /redirect_to new_password_path.*\n/
     format_code 'app/controllers/passwords_controller.rb'
 
     copy_file_from 'auth/rails_auth', 'spec/controllers/passwords_controller_spec.rb'

@@ -84,7 +84,7 @@ jobs:
           bundler-cache: true
 
       - name: Install Rails
-        run: gem install rails -v '~> 8.0.0'
+        run: gem install rails -v '~> 8.1.0'
 
       - name: Configure Git
         run: |
