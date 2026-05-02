@@ -1,0 +1,5 @@
+<%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+<%%= image_tag <%= singular_name %>.<%= attribute.column_name %>, class: 'max-w-28' if <%= singular_name %>.<%= attribute.column_name %>.attached? %>
+<%- else -%>
+<%%= link_to <%= singular_name %>.<%= attribute.column_name %>.filename, <%= singular_name %>.<%= attribute.column_name %> if <%= singular_name %>.<%= attribute.column_name %>.attached? %>
+<%- end -%>

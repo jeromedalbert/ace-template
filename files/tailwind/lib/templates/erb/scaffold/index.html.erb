@@ -19,7 +19,25 @@
       <%% @<%= plural_table_name%>.each do |<%= singular_table_name %>| %>
         <tr id="<%%= dom_id banana %>">
           <%- attributes.each do |attribute| -%>
-          <td class="px-6 py-4"><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
+          <td class="px-6 py-4">
+          <%- if attribute.attachment? -%>
+            <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+            <%%= image_tag <%= singular_table_name %>.<%= attribute.column_name %>, class: 'max-w-28' if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
+            <%- else -%>
+            <%%= link_to <%= singular_table_name %>.<%= attribute.column_name %>.filename, attribute if <%= singular_table_name %>.<%= attribute.column_name %>.attached? %>
+            <%- end -%>
+          <%- elsif attribute.attachments? -%>
+            <%% <%= singular_table_name %>.<%= attribute.column_name %>.each do |<%= attribute.singular_name %>| %>
+              <%- if attribute.name.match?(/avatar|banner|image|logo|photo|picture/) -%>
+              <%%= image_tag <%= attribute.singular_name %>, class: 'max-w-28' %>
+              <%- else -%>
+              <%%= link_to <%= attribute.singular_name %>.filename, <%= attribute.singular_name %> %>
+              <%- end -%>
+            <%% end %>
+          <%- else -%>
+            <%%= <%= singular_table_name %>.<%= attribute.name %> %>
+          <%- end -%>
+          </td>
           <%- end -%>
           <td class="pl-6 py-4 text-right font-medium">
             <%%= link_to "Show", <%= singular_table_name %>, class: "ml-2 rounded-lg py-2 px-4 bg-gray-100 inline-block font-medium" %>

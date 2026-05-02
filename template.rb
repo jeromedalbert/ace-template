@@ -355,9 +355,8 @@ module Template
                        'ApplicationHelper',
                        partial('tailwind/app/helpers/application_helper.rb', indent: 2)
 
-    copy_file_from 'tailwind', 'app/views/pages/home.html.erb', force: true
     copy_file_from 'tailwind', 'lib/templates/erb/scaffold/index.html.erb'
-    directory_from 'tailwind', 'app/views/devise' if template_options[:devise]
+
     get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/show.html.erb.tt',
         'lib/templates/erb/scaffold/show.html.erb'
     gsub_file 'lib/templates/erb/scaffold/show.html.erb',
@@ -366,17 +365,34 @@ module Template
     gsub_file 'lib/templates/erb/scaffold/show.html.erb',
               %r{    <%% if notice.*    <%% end %>\n\n}m,
               ''
+
     get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
         'lib/templates/erb/scaffold/_form.html.erb'
     gsub_file 'lib/templates/erb/scaffold/_form.html.erb',
               %r{  <%% if.*errors.any.*  <%% end %>\n}m,
               partial('tailwind/lib/templates/erb/scaffold/_form.html.erb', indent: 2)
 
+    get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/partial.html.erb.tt',
+        'lib/templates/erb/scaffold/partial.html.erb'
+    gsub_file(
+      'lib/templates/erb/scaffold/partial.html.erb',
+      /(.*if attribute.attachment\?.*\n).*\n/,
+      '\1' + partial('tailwind/lib/templates/erb/scaffold/partial_attachment.html.erb', indent: 4)
+    )
+    gsub_file(
+      'lib/templates/erb/scaffold/partial.html.erb',
+      /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
+      '\1' + partial('tailwind/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
+    )
+
     copy_file_from 'tailwind', 'app/views/shared/_base_errors.html.erb'
     copy_file_from 'tailwind', 'config/initializers/field_errors.rb'
     insert_into_file 'config/tailwind.config.js',
                      partial('tailwind/config/tailwind.config.js', indent: 2),
                      before: '  theme: {'
+
+    copy_file_from 'tailwind', 'app/views/pages/home.html.erb', force: true
+    directory_from 'tailwind', 'app/views/devise' if template_options[:devise]
 
     commit 'Set up Tailwind'
   end
