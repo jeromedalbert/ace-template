@@ -85,6 +85,12 @@ module Actions
     gsub_file file_path, /\n\nend/, "\nend"
   end
 
+  def cleanup_binstub(binstub_name)
+    gsub_file "bin/#{binstub_name}", /# (.*\n)*?require/, 'require'
+    gsub_file "bin/#{binstub_name}", /\n\n/, "\n"
+    format_code "bin/#{binstub_name}"
+  end
+
   def copy_file_from(folder, file_path, ...)
     copy_file("#{folder}/#{file_path}", file_path, ...)
   end

@@ -5,7 +5,8 @@ if Rails.version == '8.0.0' && docker?
   insert_into_file '.dockerignore', ".kamal/secrets*\n", after: ".env.sample\n"
 end
 
-insert_into_file 'bin/kamal', partial('bin/kamal.rb', :append_nl), before: 'load Gem.bin_path'
+cleanup_binstub('kamal')
+insert_into_file 'bin/kamal', partial('bin/kamal.rb', :surround_nl), before: 'load Gem.bin_path'
 create_file 'config/deploy.production.yml', "{}\n"
 
 remove_comments 'config/deploy.yml'
@@ -20,12 +21,14 @@ gsub_file 'config/deploy.yml',
           '- RAILS_MASTER_KEY',
           %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
 gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
+
 gsub_file 'config/deploy.yml', %r{("bin/rails dbconsole)"}, '\1 --include-password"'
 if !template_options[:worker]
   gsub_file 'config/deploy.yml',
             /logs: app logs -f/,
             '\0 --grep-options="--invert-match --extended-regexp" --grep="^[^ ]+ \{"'
 end
+
 if server_db? || redis?
   append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
 end

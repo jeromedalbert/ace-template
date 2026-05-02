@@ -26,8 +26,10 @@ module SetupBaseConfiguration
     copy_file '.streerc'
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
-    generate_binstub('syntax_tree', 'stree')
+    run 'bundle binstubs syntax_tree'
+    cleanup_binstub('stree')
     remove_file 'bin/yarv', verbose: false
+
     template 'README.md.tt', force: true
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     if docker?
@@ -35,14 +37,6 @@ module SetupBaseConfiguration
     end
 
     empty_directory_with_keep_file 'app/services'
-  end
-
-  def generate_binstub(gem_name, bin_name = gem_name)
-    run "bundle binstubs #{gem_name}"
-
-    gsub_file "bin/#{bin_name}", /# (.*\n)*?require/, 'require'
-    gsub_file "bin/#{bin_name}", /\n\n/, "\n"
-    format_code "bin/#{bin_name}"
   end
 
   def setup_config_files
