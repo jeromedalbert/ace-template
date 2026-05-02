@@ -16,7 +16,7 @@ module Template
 
     Template Options:
       active-storage           # Install active storage
-      all                      # All options except double, omakase, and worker
+      all                      # All options except double, omakase, rails-*, and worker
       auth[=rails|devise]      # Add authentication
                                # (defaults to rails)
       banana                   # Scaffold an example Banana resource for demo purposes
@@ -27,6 +27,7 @@ module Template
       omakase                  # Use Rails defaults
       pundit                   # Add Pundit authorization
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
+      rails-creds              # Use Rails credentials to manage secrets
       redis                    # Add Redis
       solid-dev                # Set up Solid adapters for development
       solid-single             # Use a single database for all Solid adapters
@@ -56,7 +57,7 @@ module Template
       setup_base_configuration
       configure_dotenv
       configure_database
-      configure_rspec
+      configure_tests
       configure_kamal
       setup_views
       configure_optional_features
@@ -156,14 +157,14 @@ module Template
   end
 
   def configure_dotenv
-    apply 'lib/recipes/dotenv.rb'
+    apply 'lib/recipes/dotenv.rb' if dotenv?
   end
 
   def configure_database
     apply 'lib/recipes/database.rb' if active_record?
   end
 
-  def configure_rspec
+  def configure_tests
     apply 'lib/recipes/rspec.rb' if tests?
   end
 
@@ -218,7 +219,7 @@ module Template
 
   def prepare_database
     return if !active_record?
-    FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
+    FileUtils.cp('.env.sample', '.env') if dotenv? && server_db? && template_options[:solid_dev]
 
     output = run('rake db:drop', abort_on_failure: false, capture: true, verbose: false)
     if output.match?(/ConnectionNotEstablished|ConnectionError/)

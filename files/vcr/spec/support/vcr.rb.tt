@@ -4,7 +4,11 @@ VCR.configure do |config|
   config.configure_rspec_metadata!
 
   # Prevent writing sensitive data to cassette files
+  <%- if dotenv? -%>
   # config.filter_sensitive_data('<MY_API_KEY>') { ENV['MY_API_KEY'] }
+  <%- else -%>
+  # config.filter_sensitive_data('<MY_API_KEY>') { Rails.application.credentials.my_api_key }
+  <%- end -%>
 
   # Pretty print JSON body in cassettes files
   # Reference:

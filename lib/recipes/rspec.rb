@@ -22,7 +22,7 @@ insert_into_file 'spec/rails_helper.rb',
 add_before_end 'spec/rails_helper.rb', partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2)
 
 directory 'spec/support'
-copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
+template_from 'vcr', 'spec/support/vcr.rb.tt' if template_options[:vcr]
 
 if ci?
   gsub_file '.github/workflows/ci.yml',

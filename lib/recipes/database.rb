@@ -40,17 +40,30 @@ module ConfigureDatabase
   end
 
   def configure_solid_dev_dbs
-    database_yml_content =
-      File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, "  <<: *databases\n")
     databases_config =
-      Regexp.last_match(0).remove(' &primary_production').gsub('primary_production', 'default')
+      File
+        .read('config/database.yml')
+        .match(/(?<=production:\n).*/m)
+        .to_a
+        .first
+        .remove(' &primary_production')
+        .gsub('primary_production', 'default')
 
-    File.write 'config/database.yml', database_yml_content
-    insert_into_file 'config/database.yml',
-                     "databases: &databases\n#{databases_config}\n",
-                     before: 'development:'
-
-    gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
+    if dotenv? || sqlite3?
+      gsub_file 'config/database.yml', /production:.*/m, "production:\n  <<: *databases\n"
+      insert_into_file 'config/database.yml',
+                       "databases: &databases\n#{databases_config}\n",
+                       before: 'development:'
+      gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
+    else
+      databases_config.sub!(/url: .*cache.*/, "database: #{app_name}_development_cache")
+      databases_config.sub!(/url: .*queue.*/, "database: #{app_name}_development_queue")
+      databases_config.sub!(/url: .*cable.*/, "database: #{app_name}_development_cable")
+      databases_config.sub!(/url: .*/, "database: #{app_name}_development")
+      gsub_file 'config/database.yml',
+                /development:\n(  .*\n)*/,
+                "development:\n#{databases_config}"
+    end
   end
 
   def configure_sqlite

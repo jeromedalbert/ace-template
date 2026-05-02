@@ -18,6 +18,7 @@ module SetupBaseConfiguration
     remove_comments 'config/routes.rb'
 
     gsub_file '.gitignore', /$^\n^#.*/, ''
+    gsub_file '.dockerignore', /$^\n^#.*/, '' if docker?
     gsub_file 'config/routes.rb', /\n\n/, "\n"
     format_quotes(%w[config/locales/en.yml config/queue.yml], style: :single)
 
@@ -42,7 +43,7 @@ module SetupBaseConfiguration
   def setup_config_files
     gsub_file 'config/application.rb',
               /^ *#\n *# config.*  end\n/m,
-              partial('config/application_end.rb', :prepend_nl, append: "  end\n", indent: 4)
+              partial('config/application_end.rb.tt', :prepend_nl, append: "  end\n", indent: 4)
 
     if template_defaults?
       with_rails_options(skip_action_mailbox: true, skip_action_text: true, skip_test: true) do
@@ -64,23 +65,8 @@ module SetupBaseConfiguration
     copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
 
-    setup_solid_dev_config if template_options[:solid_dev]
-  end
-
-  def setup_solid_dev_config
-    remove_comments 'config/cable.yml'
-    delete_line 'config/cable.yml', /development:\n(  .*\n)*/
-    gsub_file 'config/cable.yml', 'production:', 'production: &production'
-    append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
-
-    gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
-    gsub_file 'config/cache.yml', /development:\n/, "\\0  database: cache\n"
-
-    insert_into_file(
-      'config/environments/development.rb',
-      partial('solid_dev/config/environments/development.rb.tt', :append_nl, indent: 2),
-      after: /config.active_job.*\n\n/
-    )
+    apply 'lib/recipes/rails_creds.rb' if template_options[:rails_creds]
+    apply 'lib/recipes/solid_dev.rb' if template_options[:solid_dev]
   end
 
   def configure_spring

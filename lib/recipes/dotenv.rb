@@ -1,7 +1,7 @@
 remove_file 'config/credentials.yml.enc'
 remove_file 'config/master.key'
 
-template '.env.sample.tt'
+template_from 'dotenv', '.env.sample.tt'
 insert_into_file '.gitignore', "!/.env.sample\n", after: ".env*\n"
 insert_into_file '.dockerignore', "!/.env.sample\n", after: ".env*\n" if docker?
 

@@ -4,7 +4,7 @@ destination =
   Thor::Options.new(_: Thor::Option.new(:destination, { aliases: '-d' })).parse(ARGV)['destination']
 if destination.nil?
   destination = 'production'
-  ARGV.push('-d', 'production')
+  ARGV.push('-d', 'production') if ARGV[0..1]&.join(' ') != 'secrets extract'
 end
 
 # Make environment variables accessible anywhere in config/deploy.yml with ENV['MY_VAR']

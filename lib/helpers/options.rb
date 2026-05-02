@@ -34,6 +34,10 @@ module Options
     !options[:skip_docker]
   end
 
+  def dotenv?
+    !template_options[:rails_creds]
+  end
+
   def kamal?
     !skip_kamal?
   end
@@ -80,6 +84,10 @@ module Options
 
   def redis?
     @has_redis ||= File.read('Gemfile').include?('redis')
+  end
+
+  def any_kamal_creds?
+    kamal? && template_options[:rails_creds] && (server_db? || redis?)
   end
 
   def with_rails_options(**rails_options)

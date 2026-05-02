@@ -1,0 +1,8 @@
+<% if template_options[:rails_creds] -%>
+local_config = Rails.root.join('config/local.rb')
+require local_config if File.exist?(local_config)
+
+<% end -%>
+config.time_zone = ENV['TIMEZONE'] || 'UTC'
+
+config.action_controller.include_all_helpers = false

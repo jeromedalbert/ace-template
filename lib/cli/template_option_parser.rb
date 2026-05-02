@@ -105,7 +105,9 @@ module CLI
 
     def imply_options
       if @template_options[:all]
-        add_template_options(@available_options.keys - %w[all double omakase worker])
+        add_template_options(
+          @available_options.keys.grep_v(/^(all|double|omakase|rails_.*|worker)$/)
+        )
         @template_options.delete(:all)
       end
 

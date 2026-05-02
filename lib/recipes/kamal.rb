@@ -1,6 +1,6 @@
 remove_file '.kamal/secrets'
 template '.kamal/secrets.production.tt'
-insert_into_file '.gitignore', ".kamal/secrets*\n", after: ".env.sample\n"
+insert_into_file '.gitignore', ".kamal/secrets*\n", after: ".env.sample\n" if dotenv?
 if Rails.version.to_f < 8.1 && docker?
   insert_into_file '.dockerignore', ".kamal/secrets*\n", after: ".env.sample\n"
 end
@@ -19,6 +19,7 @@ gsub_file 'config/deploy.yml', /^servers:\n(  .*\n)*/, partial('config/deploy_se
 
 secret_keys = +%q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys)
 secret_keys << " - ['KAMAL_REGISTRY_PASSWORD']" if Rails.version.to_f < 8.1
+secret_keys << " - ['SECRETS']" if template_options[:rails_creds]
 secret_keys << ' %>'
 gsub_file 'config/deploy.yml', '- RAILS_MASTER_KEY', secret_keys
 

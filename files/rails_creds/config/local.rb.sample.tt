@@ -1,0 +1,6 @@
+# Configuration and overrides for your local machine.
+
+<% if template_options[:solid_dev] -%>
+ENV['SOLID_QUEUE_IN_PUMA'] = 'true'
+<% end -%>
+ENV['TIMEZONE'] = '<%= timezone %>'

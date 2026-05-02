@@ -12,9 +12,14 @@ module ConfigureErrors
 
   def configure_rollbar
     run 'rails generate rollbar'
-
     remove_comments 'config/initializers/rollbar.rb'
     format_code 'config/initializers/rollbar.rb'
+
+    if template_options[:rails_creds]
+      gsub_file 'config/initializers/rollbar.rb',
+                "ENV['ROLLBAR_ACCESS_TOKEN']",
+                'Rails.application.credentials.rollbar_access_token'
+    end
 
     if active_job?
       inject_into_class 'app/jobs/application_job.rb',
@@ -31,6 +36,12 @@ module ConfigureErrors
     gsub_file 'config/initializers/sentry.rb',
               '[:active_support_logger]',
               '[:active_support_logger, :http_logger]'
+
+    if template_options[:rails_creds]
+      gsub_file 'config/initializers/sentry.rb',
+                "ENV['SENTRY_DSN']",
+                'Rails.application.credentials.sentry_dsn'
+    end
   end
 end
 

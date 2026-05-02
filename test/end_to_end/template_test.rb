@@ -81,6 +81,23 @@ module EndToEnd
       assert_errors_sentry_option
     end
 
+    def test_rails_creds_option
+      output = run_rails_new('-o rails-creds')
+
+      assert_template_done(output)
+      assert_app_works
+      assert_file 'config/credentials.yml.enc'
+      assert_file 'config/master.key'
+      assert_file 'config/local.rb.sample'
+      assert_file '.kamal/secrets.production' do |content|
+        assert_match(/SECRETS=\$\(/, content)
+        assert_includes content, 'RAILS_MASTER_KEY=$(cat config/master.key)'
+        refute_includes content, 'SECRET_KEY_BASE='
+      end
+      refute_gemfile 'dotenv-rails'
+      refute_file '.env.sample'
+    end
+
     def test_worker_option
       output = run_rails_new('-o worker --api')
 

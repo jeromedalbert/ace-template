@@ -50,18 +50,21 @@ module General
     indent = opts[:indent] || 0
 
     file_path =
-      file_path
-        .split('/')
-        .tap { |components| components[-1] = "_#{components[-1]}" }
-        .join('/')
-        .then { |path| find_in_source_paths(path) }
+      file_path.split('/').tap { |components| components[-1] = "_#{components[-1]}" }.join('/')
+    file_content = read_template(file_path)
 
+    prepend.to_s + indent(file_content, indent) + append.to_s
+  end
+
+  def read_template(file_path)
+    file_path = find_in_source_paths(file_path)
     file_content = File.read(file_path)
+
     if file_path.end_with?('.tt')
       file_content = ERB.new(file_content, trim_mode: '-').result(binding)
     end
 
-    prepend.to_s + indent(file_content, indent) + append.to_s
+    file_content
   end
 
   # Port of https://github.com/rails/rails/pull/56365 while waiting for it to
