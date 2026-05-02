@@ -512,49 +512,10 @@ module Template
     template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
 
     if template_options[:devise]
-      run 'rails generate migration AddUserToBananas user:belongs_to'
-      gsub_file find_file('db/migrate/*_add_user_to_bananas.rb'),
-                /add_.*/,
-                'add_belongs_to :bananas, :user'
-
-      inject_into_class 'app/models/user.rb',
-                        'User',
-                        partial('banana/app/models/user.rb', :append_nl, indent: 2)
-      copy_file_from 'banana', 'spec/models/user_spec.rb'
-      @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
-
-      inject_into_class 'app/controllers/bananas_controller.rb',
-                        'BananasController',
-                        "  before_action :authenticate\n\n"
-      gsub_file 'app/controllers/bananas_controller.rb',
-                '@bananas = Banana.all',
-                '@bananas = current_user.bananas'
-      gsub_file 'app/controllers/bananas_controller.rb',
-                '@banana = Banana.new(banana_params)',
-                '@banana = Banana.new(banana_params.merge(user: current_user))'
-      gsub_file 'app/controllers/bananas_controller.rb',
-                '@banana = Banana.find(',
-                '@banana = current_user.bananas.find('
-      gsub_file 'spec/controllers/bananas_controller_spec.rb',
-                /  let\(:banana\) { .*\n/,
-                partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
-
-      insert_into_file 'app/controllers/application_controller.rb',
-                       "\n  before_action :redirect_root_path\n\n",
-                       before: %r{  rescue_from.*|  def authenticate}m
-      if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
-        add_before_end 'app/controllers/application_controller.rb', "  private\n"
-      end
-      insert_into_file(
-        'app/controllers/application_controller.rb',
-        partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
-        after: /^  private\n/
-      )
-      format_code('app/controllers/application_controller.rb')
-      @banana_files << 'app/controllers/application_controller.rb'
+      link_banana_to_user
+    else
+      gsub_file 'config/routes.rb', /root to: .*/, "root to: 'bananas#index'"
     end
-
-    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
 
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
@@ -569,6 +530,51 @@ module Template
       gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
     end
     @banana_files << 'app/views/layouts/_header.html.erb'
+  end
+
+  def link_banana_to_user
+    run 'rails generate migration AddUserToBananas user:belongs_to'
+    gsub_file find_file('db/migrate/*_add_user_to_bananas.rb'),
+              /add_.*/,
+              'add_belongs_to :bananas, :user'
+
+    inject_into_class 'app/models/user.rb',
+                      'User',
+                      partial('banana/app/models/user.rb', :append_nl, indent: 2)
+    copy_file_from 'banana', 'spec/models/user_spec.rb'
+    @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
+
+    inject_into_class 'app/controllers/bananas_controller.rb',
+                      'BananasController',
+                      "  before_action :authenticate\n\n"
+    gsub_file 'app/controllers/bananas_controller.rb',
+              '@bananas = Banana.all',
+              '@bananas = current_user.bananas'
+    gsub_file 'app/controllers/bananas_controller.rb',
+              '@banana = Banana.new(banana_params)',
+              '@banana = Banana.new(banana_params.merge(user: current_user))'
+    gsub_file 'app/controllers/bananas_controller.rb',
+              '@banana = Banana.find(',
+              '@banana = current_user.bananas.find('
+    gsub_file 'spec/controllers/bananas_controller_spec.rb',
+              /  let\(:banana\) { .*\n/,
+              partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
+
+    insert_into_file 'app/controllers/application_controller.rb',
+                     "\n  before_action :redirect_root_path\n\n",
+                     before: %r{  rescue_from.*|  def authenticate}m
+    if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
+      add_before_end 'app/controllers/application_controller.rb', "  private\n"
+    end
+    insert_into_file(
+      'app/controllers/application_controller.rb',
+      partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
+      after: /^  private\n/
+    )
+    format_code('app/controllers/application_controller.rb')
+    @banana_files << 'app/controllers/application_controller.rb'
+
+    copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
   end
 
   def configure_worker
