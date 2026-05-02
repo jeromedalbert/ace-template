@@ -18,12 +18,14 @@ TODO:
     bin/setup --skip-server
     ```
 
+<% if tests? -%>
 1. Make sure tests pass (everything should be green):
 
     ```
     bin/rspec
     ```
 
+<% end -%>
 <% if template_options[:worker] -%>
 1. See if the app works by executing a service class:
 
@@ -79,8 +81,8 @@ and `KAMAL_REGISTRY_PASSWORD` variables set to your Docker Hub credentials in
 <% if mysql? -%>
 Fly.io does not work with MySQL out of the box.
 More configuration is required, and is not covered in these instructions.
-<% end -%>
 
+<% end -%>
 <% if template_options[:worker] -%>
 1. Initialize the Fly app:
 
@@ -113,24 +115,29 @@ fly apps open
 
 ### With Heroku
 
-<% if server_db? && solid? -%>
+<% if active_record? -%>
+  <%- if server_db? && solid? -%>
 Heroku does not work out of the box with Rails 8's default multiple databases.
 The instructions below only work for a single production database.
-<% end -%>
-<% if !postgresql? -%>
+  <%- end -%>
+  <%- if !postgresql? -%>
 Heroku does not work with non-Postgres databases out of the box.
 More configuration is required, and is not covered in these instructions.
-<% end -%>
+  <%- end -%>
 
+<% end -%>
 ```bash
 heroku create <%= app_uniqueish_name %> # Name must be unique
 <% if postgresql? -%>
 heroku addons:add heroku-postgresql
 watch -n 10 heroku addons:info heroku-postgresql # Wait for Postgres addon state to be "created". This can take a while...
 <% end -%>
-awk '/source/ { print; print "\nruby file: \x27.ruby-version\x27" } !/source/' Gemfile > Gemfile.new && mv Gemfile.new Gemfile && bundle && git add --all && git commit -m 'Specify ruby version for Heroku'
+# Specify Ruby version in Gemfile by executing the line below:
+awk '/source/ { print; print "\nruby file: \x27.ruby-version\x27" } !/source/' Gemfile > Gemfile.new && mv Gemfile.new Gemfile && bundle && git add --all && git commit -m 'Specify Ruby version for Heroku'
 # (Optional) Set any extra env vars with: heroku config:set MY_VAR=value
 git push heroku main
+<% if active_record? -%>
 heroku run rake db:migrate
+<% end -%>
 heroku open
 ```

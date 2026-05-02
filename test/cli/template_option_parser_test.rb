@@ -117,6 +117,32 @@ module CLI
       assert_raises(SystemExit) { @parser.parse(%w[new -o banana]) }
     end
 
+    def test_auth_option_with_rails_skip_active_record_option
+      @parser = TemplateOptionParser.new(build_app(skip_active_record: true))
+
+      expect_error('auth template option is incompatible with Rails --skip-active-record option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o auth]) }
+    end
+
+    def test_banana_option_with_rails_skip_active_record_option
+      @parser = TemplateOptionParser.new(build_app(skip_active_record: true))
+
+      expect_error('banana template option is incompatible with Rails --skip-active-record option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o banana]) }
+    end
+
+    def test_active_storage_option_with_rails_skip_active_storage_option
+      @parser = TemplateOptionParser.new(build_app(skip_active_storage: true))
+
+      expect_error(
+        'active_storage template option is incompatible with Rails --skip-active-storage option'
+      )
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o active_storage]) }
+    end
+
     def test_solid_dev_option_with_rails_skip_solid_option
       @parser = TemplateOptionParser.new(build_app(skip_solid: true))
 
@@ -125,7 +151,7 @@ module CLI
       assert_raises(SystemExit) { @parser.parse(%w[new -o solid_dev]) }
     end
 
-    def test_worker_option_without_api_option
+    def test_worker_option_without_rails_api_option
       expect_error('worker template option requires Rails --api option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o worker]) }

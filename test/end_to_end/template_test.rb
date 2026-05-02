@@ -104,6 +104,11 @@ module EndToEnd
       refute_file 'config/puma.rb'
       refute_file 'config/routes.rb'
 
+      refute_gemfile 'image_processing'
+      refute_gemfile 'puma'
+      refute_gemfile 'propshaft'
+      refute_gemfile 'thruster'
+
       assert_commit 'Remove web code'
     end
 
@@ -128,6 +133,17 @@ module EndToEnd
       assert_app_works
       assert_banana_option
       assert_solid_dev_option
+    end
+
+    def test_skip_options
+      output = run_rails_new('--minimal --skip-active-record --skip-asset-pipeline --skip-test')
+
+      assert_template_done(output)
+      assert_dotenv_config
+      assert_default_views
+
+      assert_command_success 'bin/rails boot'
+      assert_syntax_tree_formatting
     end
 
     private
@@ -284,13 +300,17 @@ module EndToEnd
       assert_command_success 'bin/rails boot'
       assert_command_success 'bin/rspec'
       assert_command_success 'bin/rubocop'
-      assert_command_success(
-        "bin/stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v templates)"
-      )
+      assert_syntax_tree_formatting
 
       secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
       File.write('.kamal/secrets.production', secrets)
       assert_command_success 'bin/kamal config'
+    end
+
+    def assert_syntax_tree_formatting
+      assert_command_success(
+        "bin/stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v templates)"
+      )
     end
 
     def assert_banana_option

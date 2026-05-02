@@ -118,29 +118,36 @@ module CLI
     end
 
     def ensure_compatible_options
-      if options[:skip_bundle]
-        emit_error 'This template is incompatible with Rails --skip-bundle option'
+      emit_template_incompatible_error('--skip-bundle') if options[:skip_bundle]
+      emit_template_incompatible_error('--skip-git') if options[:skip_git]
+
+      if options[:skip_active_record]
+        emit_incompatible_error('auth', '--skip-active-record') if @template_options[:auth]
+        emit_incompatible_error('banana', '--skip-active-record') if @template_options[:banana]
       end
-      emit_error 'This template is incompatible with Rails --skip-git option' if options[:skip_git]
 
       if @template_options[:active_storage] && options[:skip_active_storage]
-        emit_error 'active_storage template option is incompatible with Rails --skip-active-storage option'
+        emit_incompatible_error('active_storage', '--skip-active-storage')
       end
-
       if @template_options[:solid_dev] && options[:skip_solid]
-        emit_error 'solid_dev template option is incompatible with Rails --skip-solid option'
+        emit_incompatible_error('solid_dev', '--skip-solid')
       end
-
       if @template_options[:worker]
         emit_error 'worker template option requires Rails --api option' if !options[:api]
-        if options[:skip_active_job]
-          emit_error 'worker template option is incompatible with Rails --skip-active-job option'
-        end
+        emit_incompatible_error('worker', '--skip-active-job') if options[:skip_active_job]
       end
     end
 
     def options
       @app.options
+    end
+
+    def emit_template_incompatible_error(rails_option)
+      emit_error "This template is incompatible with Rails #{rails_option} option"
+    end
+
+    def emit_incompatible_error(template_option, rails_option)
+      emit_error "#{template_option} template option is incompatible with Rails #{rails_option} option"
     end
   end
 end

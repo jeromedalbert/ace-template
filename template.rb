@@ -87,9 +87,8 @@ module Template
       run "git clone https://github.com/jeromedalbert/ace-template #{base_dir}",
           capture: true,
           verbose: false
-      if (branch = __FILE__[%r{ace-template/(.+)/template.rb}, 1])
-        Dir.chdir(base_dir) { run "git checkout #{branch}", capture: true, verbose: false }
-      end
+      branch = __FILE__[%r{ace-template.*/(.+)/template.rb}, 1]
+      Dir.chdir(base_dir) { run "git checkout #{branch}", capture: true, verbose: false } if branch
     end
 
     source_paths.prepend("#{base_dir}/files/base", "#{base_dir}/files", base_dir)
@@ -163,7 +162,7 @@ module Template
   end
 
   def configure_rspec
-    apply 'lib/recipes/rspec.rb'
+    apply 'lib/recipes/rspec.rb' if tests?
   end
 
   def configure_kamal
@@ -171,7 +170,7 @@ module Template
   end
 
   def setup_views
-    apply 'lib/recipes/views.rb' if asset_pipeline?
+    apply 'lib/recipes/views.rb' if !options[:api]
   end
 
   def configure_optional_features

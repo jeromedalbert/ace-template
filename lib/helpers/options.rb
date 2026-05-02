@@ -46,6 +46,10 @@ module Options
     !skip_solid?
   end
 
+  def tests?
+    !options[:skip_test]
+  end
+
   def template_defaults?
     !template_options[:omakase]
   end
