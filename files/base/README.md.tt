@@ -24,7 +24,7 @@ TODO:
 1. See if the app works by executing a service class:
 
     ```
-    rails runner 'SayHello.new.perform'
+    bin/rails runner 'SayHello.new.perform'
     ```
 
     Or run `bin/dev` or `bin/jobs` to process background jobs.
@@ -69,12 +69,35 @@ Fly.io does not work with MySQL out of the box.
 More configuration is required, and is not covered in these instructions.
 <% end -%>
 
+<% if template_options[:worker] -%>
+1. Initialize the Fly app:
+
+    ```bash
+    DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %>
+    ```
+
+1. Open `fly.toml`, remove the `[http_service]` section, and add the following section:
+
+
+    ```
+    [processes]
+      worker = 'bin/jobs'
+    ```
+
+1. Deploy the app:
+
+    ```bash
+    # (Optional) Set any extra env vars with: fly secrets set MY_VAR=value
+    fly deploy
+    ```
+<% else -%>
 ```bash
-DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %> # Name must be unique
-# Optional: set any extra env vars with fly secrets set MY_VAR=value
+DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %>
+# (Optional) Set any extra env vars with: fly secrets set MY_VAR=value
 fly deploy
 fly apps open
 ```
+<% end -%>
 
 ### With Heroku
 
@@ -93,7 +116,7 @@ heroku create <%= app_uniqueish_name %> # Name must be unique
 heroku addons:add heroku-postgresql
 watch -n 10 heroku addons:info heroku-postgresql # Wait for Postgres addon state to be "created". This can take a while...
 <% end -%>
-# Optional: set any extra env vars with heroku config:set MY_VAR=value
+# (Optional) Set any extra env vars with: heroku config:set MY_VAR=value
 git push heroku main
 heroku run rake db:migrate
 heroku open
