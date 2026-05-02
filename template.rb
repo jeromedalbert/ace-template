@@ -128,6 +128,7 @@ module Template
     copy_file '.streerc'
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
+    gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     generate_binstub('syntax_tree', 'stree')
     empty_directory 'app/services'
