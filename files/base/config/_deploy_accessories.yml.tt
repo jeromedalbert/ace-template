@@ -1,5 +1,5 @@
 accessories:
-  <%- if postgresql? -%>
+  <%- if db.postgresql? -%>
   db:
     image: postgres:17
     host: <%%= ENV['DB_HOST'] %>
@@ -11,6 +11,17 @@ accessories:
         - POSTGRES_PASSWORD
     directories:
       - data:/var/lib/postgresql/data
+  <%- elsif db.mysql? -%>
+  db:
+    image: mysql:8
+    host: <%%= ENV['DB_HOST'] %>
+    port: 3306
+    env:
+      secret:
+        - MYSQL_ROOT_HOST
+        - MYSQL_ROOT_PASSWORD
+    directories:
+      - data:/var/lib/mysql
   <%- end -%>
   <%- if redis? -%>
   redis:

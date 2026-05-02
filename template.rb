@@ -7,7 +7,7 @@ require 'open3'
 module Template
   SUPPORTED_RAILS_VERSIONS = '~> 8.0.0.alpha'
   SUPPORTED_RUBY_VERSIONS = '~> 3.3.0'
-  SUPPORTED_DATABASES = %w[postgresql sqlite3]
+  SUPPORTED_DATABASES = %w[postgresql sqlite3 mysql]
 
   def apply_template
     configure_gemfile
@@ -189,17 +189,29 @@ module Template
   end
 
   def configure_database
-    return if !postgresql?
+    return if skip_active_record?
 
+    if server_db?
+      configure_server_db
+    elsif sqlite3?
+      configure_sqlite
+    end
+
+    commit 'Configure database'
+  end
+
+  def configure_server_db
     gsub_file 'config/database.yml',
               /database: #{app_name}_production$/,
               "url: <%= ENV['DATABASE_URL'] %>"
     gsub_file 'config/database.yml',
               /database: #{app_name}_production_(.*)/,
               "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
-    delete_line 'config/database.yml', /^ *username: .*/
-    delete_line 'config/database.yml', /^ *password: .*/
+    delete_line 'config/database.yml', /^ *username:.*/
+    delete_line 'config/database.yml', /^ *password:.*/
     gsub_file 'config/database.yml', '"', "'"
+
+    insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
 
     if template_options[:solid_dev]
       database_yml_content =
@@ -212,8 +224,6 @@ module Template
                        before: 'development:'
       gsub_file 'config/database.yml', /development:\n(  .*\n)*/, "development:\n  <<: *databases\n"
     end
-
-    commit 'Configure database'
   end
 
   def configure_rspec
@@ -280,7 +290,7 @@ module Template
               '- RAILS_MASTER_KEY',
               %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
     gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
-    if postgresql? || redis?
+    if server_db? || redis?
       append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
     end
     append_to_file 'config/deploy.yml', partial('config/deploy_end.yml.tt', :prepend_nl)
@@ -682,8 +692,12 @@ module TemplateHelpers
     @template_options
   end
 
-  def postgresql?
-    options[:database] == 'postgresql'
+  def db
+    options[:database].inquiry
+  end
+
+  def server_db?
+    !skip_active_record? && !sqlite3?
   end
 
   def redis?
