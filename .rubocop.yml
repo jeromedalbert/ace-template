@@ -32,6 +32,8 @@ Layout/ArgumentAlignment:
   Enabled: false
 Layout/EmptyLineBetweenDefs:
   AllowAdjacentOneLineDefs: true
+Layout/EmptyLinesAfterModuleInclusion:
+  Enabled: false
 Layout/MultilineOperationIndentation:
   Enabled: false
 Layout/LineLength:
