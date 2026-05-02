@@ -3,11 +3,11 @@ require 'rails_helper'
 describe SayHello do
   describe '#perform' do
     before do
-      allow(Rails.logger).to receive(:info)
+      allow(STDOUT).to receive(:puts)
 
       SayHello.new.perform
     end
 
-    it { expect(Rails.logger).to have_received(:info).with('Hello world!') }
+    it { expect(STDOUT).to have_received(:puts).with('Hello world!') }
   end
 end

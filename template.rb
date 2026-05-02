@@ -706,7 +706,7 @@ module Template
 
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
 
-    File.write 'Procfile.dev', "jobs: bin/jobs\n"
+    File.write 'Procfile.dev', "worker: bin/jobs\n"
     gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
     gsub_file 'Dockerfile', /CMD .*/, 'CMD ["bin/jobs"]'
     gsub_file 'bin/docker-entrypoint', 'running the rails server', 'processing jobs'
