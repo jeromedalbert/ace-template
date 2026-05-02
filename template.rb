@@ -131,8 +131,9 @@ module Template
     configure_auth if template_options[:auth]
     apply 'lib/recipes/pundit.rb' if template_options[:pundit]
 
-    if asset_pipeline? && options[:css].in?(%w[tailwind bootstrap])
-      apply "lib/recipes/#{options[:css]}.rb"
+    if asset_pipeline?
+      apply 'lib/recipes/tailwind.rb' if options[:css] == 'tailwind'
+      apply 'lib/recipes/bootstrap.rb' if options[:css] == 'bootstrap'
     end
 
     configure_generators

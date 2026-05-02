@@ -2,7 +2,8 @@ module ConfigureErrors
   def perform
     return if !template_options[:errors].in?(%w[rollbar sentry])
 
-    send("configure_#{template_options[:errors]}")
+    configure_rollbar if template_options[:errors] == 'rollbar'
+    configure_sentry if template_options[:errors] == 'sentry'
 
     commit "Configure #{template_options[:errors].capitalize}"
   end
