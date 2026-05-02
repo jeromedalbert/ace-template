@@ -325,7 +325,7 @@ module EndToEnd
     def assert_app_works
       assert_command_success 'bin/rails boot'
       assert_command_success 'bin/rspec'
-      assert_command_success 'bin/rubocop'
+      assert_command_success 'bin/rubocop --config .rubocop.yml'
       assert_syntax_tree_formatting
 
       secrets = File.read('.kamal/secrets.production').gsub("=\n", "=test\n")
