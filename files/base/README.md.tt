@@ -115,15 +115,24 @@ fly apps open
 
 ### With Heroku
 
-<% if active_record? -%>
-  <%- if server_db? && solid? -%>
-Heroku does not work out of the box with Rails 8's default multiple databases.
-The instructions below only work for a single production database.
-  <%- end -%>
-  <%- if !postgresql? -%>
+<% if multiple_dbs? -%>
+Heroku does not work out of the box with Rails 8's multiple database schemas:
+
+- The quickest option is to recreate your app with the `solid_single` template
+  option, which will configure the Solid Cable/Cache/Queue adapters to use a
+  single database. This can be fine for small apps, but under heavier loads,
+  congestion and constant calls to the Solid tables may impact performance for
+  other tables.
+- You could create extra databases in Heroku for each of the Solid adapters.
+- If you are not planning to use the Solid adapters, you should create your app
+  with the `--skip-solid` option.
+
+The instructions below only work for a single database.
+
+<% end -%>
+<% if !postgresql? -%>
 Heroku does not work with non-Postgres databases out of the box.
 More configuration is required, and is not covered in these instructions.
-  <%- end -%>
 
 <% end -%>
 ```bash

@@ -66,9 +66,13 @@ module Actions
     say("\n#{message}\n\n", :green)
   end
 
-  def commit(message = 'Initial commit', files: '--all')
+  def commit(message = 'Initial commit', files: '--all', errors: true)
     if `git status --porcelain`.empty?
-      emit_critical_error %(Cannot commit with message "#{message}": there are no files to commit.)
+      if errors
+        emit_critical_error %(Cannot commit with message "#{message}": there are no files to commit.)
+      else
+        return
+      end
     end
 
     run "git add #{files}"

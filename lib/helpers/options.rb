@@ -58,6 +58,10 @@ module Options
     options[:database]
   end
 
+  def server_db?
+    active_record? && !sqlite3?
+  end
+
   def postgresql?
     db == 'postgresql'
   end
@@ -66,8 +70,12 @@ module Options
     db.match?(/mysql|trilogy|mariadb/)
   end
 
-  def server_db?
-    active_record? && !sqlite3?
+  def single_db?
+    skip_solid? || template_options[:solid_single]
+  end
+
+  def multiple_dbs?
+    !single_db?
   end
 
   def redis?

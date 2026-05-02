@@ -65,6 +65,7 @@ module EndToEnd
       assert_pundit_option
       assert_redis_option
       assert_solid_dev_option
+      assert_solid_single_option
       assert_squash_option
       assert_vcr_option
     end
@@ -124,6 +125,19 @@ module EndToEnd
       assert_solid_dev_option
     end
 
+    def test_postgresql_database_option_with_solid_single_option
+      postgres_user = ENV['CI'] ? 'postgres' : ENV['USER']
+      @env = "DATABASE_URL=postgres://#{postgres_user}@localhost:5432/myapp_development"
+
+      output = run_rails_new('--database postgresql -o banana,solid_dev,solid_single')
+
+      assert_template_done(output)
+      assert_app_works
+      assert_banana_option
+      assert_solid_dev_option
+      assert_solid_single_option
+    end
+
     def test_mysql_database_option
       @env = 'DATABASE_URL=mysql2://root@127.0.0.1:3306/myapp_development'
 
@@ -133,6 +147,18 @@ module EndToEnd
       assert_app_works
       assert_banana_option
       assert_solid_dev_option
+    end
+
+    def test_mysql_database_option_with_solid_single_option
+      @env = 'DATABASE_URL=mysql2://root@127.0.0.1:3306/myapp_development'
+
+      output = run_rails_new('--database mysql -o banana,solid_dev,solid_single')
+
+      assert_template_done(output)
+      assert_app_works
+      assert_banana_option
+      assert_solid_dev_option
+      assert_solid_single_option
     end
 
     def test_skip_options
@@ -444,6 +470,14 @@ module EndToEnd
 
       assert_file 'config/environments/development.rb', ':solid_queue'
       assert_equal '0', run_command("bin/rails runner 'puts SolidQueue::Job.count'").strip
+    end
+
+    def assert_solid_single_option
+      refute_file 'db/cable_schema.rb'
+      refute_file 'db/cache_schema.rb'
+      refute_file 'db/queue_schema.rb'
+
+      assert_file Dir['db/migrate/*_create_solid_queue_tables.rb'].first
     end
 
     def assert_squash_option

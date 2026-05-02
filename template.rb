@@ -29,6 +29,7 @@ module Template
       quick                    # Get started quickly with a basic app (active_storage, auth, banana, squash, and vcr options)
       redis                    # Add Redis
       solid_dev                # Set up Solid adapters for development
+      solid_single             # Use a single database for all Solid adapters
       squash                   # Squash all commits into a single "Initial commit"
       vcr                      # Add VCR gem to record test HTTP requests
       worker                   # Removes web code (requires Rails --api option)
@@ -185,7 +186,9 @@ module Template
     configure_generators
     apply 'lib/recipes/active_storage.rb' if template_options[:active_storage]
     apply 'lib/recipes/errors.rb' if template_options[:errors]
+    apply 'lib/recipes/solid_single.rb' if template_options[:solid_single]
     apply 'lib/recipes/worker.rb' if template_options[:worker]
+
     apply 'lib/recipes/double_quotes.rb' if template_options[:double]
   end
 

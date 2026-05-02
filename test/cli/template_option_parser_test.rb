@@ -71,6 +71,7 @@ module CLI
           'pundit' => true,
           'redis' => true,
           'solid_dev' => true,
+          'solid_single' => true,
           'squash' => true,
           'vcr' => true
         },
@@ -149,6 +150,14 @@ module CLI
       expect_error('solid_dev template option is incompatible with Rails --skip-solid option')
 
       assert_raises(SystemExit) { @parser.parse(%w[new -o solid_dev]) }
+    end
+
+    def test_solid_single_option_with_rails_skip_solid_option
+      @parser = TemplateOptionParser.new(build_app(skip_solid: true))
+
+      expect_error('solid_single template option is incompatible with Rails --skip-solid option')
+
+      assert_raises(SystemExit) { @parser.parse(%w[new -o solid_single]) }
     end
 
     def test_worker_option_without_rails_api_option

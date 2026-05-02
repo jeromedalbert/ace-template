@@ -1,4 +1,6 @@
 # Process background jobs with Solid Queue
 config.active_job.queue_adapter = :solid_queue
+<% if !template_options[:solid_single] -%>
 config.solid_queue.connects_to = { database: { writing: :queue } }
+<% end -%>
 config.solid_queue.logger = ActiveSupport::TaggedLogging.logger(STDOUT)

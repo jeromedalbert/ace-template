@@ -118,23 +118,24 @@ module CLI
     end
 
     def ensure_compatible_options
-      emit_template_incompatible_error('--skip-bundle') if options[:skip_bundle]
-      emit_template_incompatible_error('--skip-git') if options[:skip_git]
+      check_incompatible_option(:skip_bundle)
+      check_incompatible_option(:skip_git)
 
-      if options[:skip_active_record]
-        emit_incompatible_error('auth', '--skip-active-record') if @template_options[:auth]
-        emit_incompatible_error('banana', '--skip-active-record') if @template_options[:banana]
-      end
+      check_incompatible_options(:auth, rails_option: :skip_active_record)
+      check_incompatible_options(:banana, rails_option: :skip_active_record)
 
-      if @template_options[:active_storage] && options[:skip_active_storage]
-        emit_incompatible_error('active_storage', '--skip-active-storage')
-      end
-      if @template_options[:solid_dev] && options[:skip_solid]
-        emit_incompatible_error('solid_dev', '--skip-solid')
-      end
-      if @template_options[:worker]
-        emit_error 'worker template option requires Rails --api option' if !options[:api]
-        emit_incompatible_error('worker', '--skip-active-job') if options[:skip_active_job]
+      check_incompatible_options(:active_storage, rails_option: :skip_active_storage)
+
+      check_incompatible_options(:solid_dev, rails_option: :skip_solid)
+      check_incompatible_options(:solid_single, rails_option: :skip_solid)
+
+      check_incompatible_options(:worker, rails_option: :skip_active_job)
+      check_required_option(:worker, required_rails_option: :api)
+    end
+
+    def check_incompatible_option(rails_option)
+      if options[rails_option]
+        emit_error "This template is incompatible with Rails #{to_flag(rails_option)} option"
       end
     end
 
@@ -142,12 +143,24 @@ module CLI
       @app.options
     end
 
-    def emit_template_incompatible_error(rails_option)
-      emit_error "This template is incompatible with Rails #{rails_option} option"
+    def to_flag(rails_option)
+      "--#{rails_option.to_s.dasherize}"
     end
 
-    def emit_incompatible_error(template_option, rails_option)
-      emit_error "#{template_option} template option is incompatible with Rails #{rails_option} option"
+    def check_incompatible_options(template_option, rails_option:)
+      if @template_options[template_option] && options[rails_option]
+        emit_error(
+          "#{template_option} template option is incompatible with Rails #{to_flag(rails_option)} option"
+        )
+      end
+    end
+
+    def check_required_option(template_option, required_rails_option:)
+      if @template_options[template_option] && !options[required_rails_option]
+        emit_error(
+          "#{template_option} template option requires Rails #{to_flag(required_rails_option)} option"
+        )
+      end
     end
   end
 end

@@ -57,7 +57,7 @@ module SetupBaseConfiguration
     gsub_file 'config/environments/production.rb',
               '.logger(STDOUT)',
               '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
-    format_code('config/environments/production.rb')
+    format_code 'config/environments/production.rb'
 
     copy_file 'config/recurring.yml', force: true if solid?
     copy_file 'config/initializers/lograge.rb'
@@ -77,7 +77,7 @@ module SetupBaseConfiguration
 
     insert_into_file(
       'config/environments/development.rb',
-      partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
+      partial('solid_dev/config/environments/development.rb.tt', :append_nl, indent: 2),
       after: /config.active_job.*\n\n/
     )
   end

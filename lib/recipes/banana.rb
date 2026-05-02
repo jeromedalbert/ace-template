@@ -85,7 +85,7 @@ module ScaffoldBanana
       )
     end
 
-    format_code('app/controllers/application_controller.rb')
+    format_code 'app/controllers/application_controller.rb'
     @banana_files << 'app/controllers/application_controller.rb'
   end
 

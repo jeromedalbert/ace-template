@@ -5,6 +5,8 @@ module ConfigureDatabase
     elsif sqlite3?
       configure_sqlite
     end
+
+    commit 'Configure database', errors: false
   end
 
   private
@@ -13,11 +15,6 @@ module ConfigureDatabase
     gsub_file 'config/database.yml',
               /database: #{app_name}_production$/,
               "url: <%= ENV['DATABASE_URL'] %>"
-    gsub_file 'config/database.yml',
-              /database: #{app_name}_production_(.*)/,
-              "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
-    format_quotes('config/database.yml', style: :single)
-
     delete_line 'config/database.yml', /^ *username:.*/
     delete_line 'config/database.yml', /^ *password:.*/
     if mysql?
@@ -26,12 +23,23 @@ module ConfigureDatabase
                        after: /^  (pool|max_connections): .*\n/
     end
 
-    configure_solid_dev_db if template_options[:solid_dev]
+    if single_db?
+      gsub_file 'config/database.yml', /^production:\n.*/m, <<~EOS
+        production:
+          <<: *default
+          url: <%= ENV['DATABASE_URL'] %>
+      EOS
+    else
+      gsub_file 'config/database.yml',
+                /database: #{app_name}_production_(.*)/,
+                "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
+    end
 
-    commit 'Configure database'
+    format_quotes('config/database.yml', style: :single)
+    configure_solid_dev_dbs if template_options[:solid_dev] && multiple_dbs?
   end
 
-  def configure_solid_dev_db
+  def configure_solid_dev_dbs
     database_yml_content =
       File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, "  <<: *databases\n")
     databases_config =
@@ -46,12 +54,16 @@ module ConfigureDatabase
   end
 
   def configure_sqlite
-    return if !template_options[:solid_dev]
-
-    configure_solid_dev_db
-    gsub_file 'config/database.yml', %r{(    database: storage/)production}, '\1<%= Rails.env %>'
-
-    commit 'Configure database'
+    if single_db?
+      gsub_file 'config/database.yml', /^production:\n.*/m, <<~EOS
+        production:
+          <<: *default
+          database: storage/production.sqlite3
+      EOS
+    elsif template_options[:solid_dev]
+      configure_solid_dev_dbs
+      gsub_file 'config/database.yml', %r{(    database: storage/)production}, '\1<%= Rails.env %>'
+    end
   end
 end
 
