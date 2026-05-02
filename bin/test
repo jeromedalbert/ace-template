@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+require 'bundler/setup'
+
+args = ARGV
+if args.empty? || args.first.start_with?('-')
+  ruby_code =
+    Dir['test/**/*_test.rb', 'test/**/test_*.rb'].uniq.map { |file| "require '#{file}'" }.join('; ')
+  args.prepend('-e', ruby_code, '--')
+end
+
+system('ruby', '-Itest:.', '-w', *args)
