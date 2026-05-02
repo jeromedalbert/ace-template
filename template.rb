@@ -139,6 +139,7 @@ module Template
     setup_base_files
     setup_config_files
     configure_spring
+    configure_ci if ci?
     install_active_storage if active_storage?
 
     commit 'Set up base configuration'
@@ -216,6 +217,26 @@ module Template
 
     copy_file 'config/spring.rb'
     gsub_file 'config/environments/test.rb', 'enable_reloading = false', 'enable_reloading = true'
+  end
+
+  def configure_ci
+    github_ci_content =
+      URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
+    self.options = options.merge(skip_test: false)
+    github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
+    File.write '.github/workflows/ci.yml', github_ci_content
+
+    remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
+    gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
+    gsub_file '.github/workflows/ci.yml', '[ main ]', '[main]'
+    gsub_file '.github/workflows/ci.yml', /Scan for common Rails .*/, 'Run Brakeman'
+    gsub_file '.github/workflows/ci.yml',
+              /Scan for .* JavaScript dependencies/,
+              'Audit JavaScript dependencies'
+    gsub_file '.github/workflows/ci.yml', /Lint code .*/, 'Run Rubocop'
+    insert_into_file '.github/workflows/ci.yml',
+                     partial('.github/workflows/ci.yml', :prepend_nl, indent: 6),
+                     after: %r{run: bin/rubocop.*\n}
   end
 
   def install_active_storage
@@ -313,13 +334,6 @@ module Template
     copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
 
     if ci?
-      github_ci_content =
-        URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
-      self.options = options.merge(skip_test: false)
-      github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
-      File.write '.github/workflows/ci.yml', github_ci_content
-      remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
-      gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
       gsub_file '.github/workflows/ci.yml',
                 %r{ *run: bin/rails db:test.*\n},
                 partial('spec/.github/workflows/ci.yml', indent: 8)
@@ -601,16 +615,17 @@ module Template
   end
 
   def add_generators
-    gsub_file 'config/application.rb',
-              /config.autoload_lib.*/,
-              'config.autoload_lib(ignore: %w[assets generators tasks templates])',
-              verbose: false
-
     template_from 'generators', 'config/initializers/generators.rb.tt', verbose: false
     directory_from 'generators', 'lib/generators', verbose: false
     directory_from 'generators', 'lib/templates', verbose: false
 
-    @generator_files = %w[config/application.rb config/initializers lib]
+    gsub_file 'config/application.rb',
+              /config.autoload_lib.*/,
+              'config.autoload_lib(ignore: %w[assets generators tasks templates])',
+              verbose: false
+    gsub_file '.github/workflows/ci.yml', 'Rakefile)', 'Rakefile | grep -v templates)'
+
+    @generator_files = %w[config/initializers lib config/application.rb .github/workflows/ci.yml]
   end
 
   def scaffold_banana
