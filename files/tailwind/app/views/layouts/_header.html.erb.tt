@@ -3,16 +3,18 @@
     <%%= link_to '<%= app_title %>', root_path, class: 'text-xl' %>
 
     <nav>
-      <%- if template_options[:devise] -%>
-      <%% if current_user.nil? %>
-        <%%= link_to 'Log in', login_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %>
-        <%%= link_to 'Sign up', signup_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %>
-      <%% else %>
-        <%%= link_to 'Log out', logout_path, method: :delete, class: 'ml-8 text-lg text-gray-500 hover:text-black' %>
-      <%% end %>
-      <%- else -%>
-      <!-- <%%= link_to 'Page', 'http://google.com', class: 'ml-8 text-lg text-gray-500 hover:text-black' %> -->
-      <%- end -%>
+      <ul>
+        <%- if template_options[:devise] -%>
+        <%% if current_user.nil? %>
+          <li class="inline"><%%= link_to 'Log in', login_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li>
+          <li class="inline"><%%= link_to 'Sign up', signup_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li>
+        <%% else %>
+          <li class="inline"><%%= link_to 'Log out', logout_path, method: :delete, class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li>
+        <%% end %>
+        <%- else -%>
+        <!-- <li class="inline"><%%= link_to 'Page', 'http://google.com', class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li> -->
+        <%- end -%>
+      </ul>
     </nav>
   </div>
 </div>

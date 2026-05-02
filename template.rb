@@ -395,15 +395,9 @@ module Template
     add_generators
     scaffold_banana if template_options[:banana]
 
-    if template_options[:generators]
-      commit('Set up generators', files: 'config/application.rb config/initializers lib')
-    end
-    if template_options[:banana]
-      commit(
-        'Create Banana resource',
-        files: '$(git ls-files --others "*banana*") config/routes.rb'
-      )
-    end
+    commit('Set up generators', files: @generator_files.join(' ')) if template_options[:generators]
+    commit('Create Banana resource', files: @banana_files.join(' ')) if template_options[:banana]
+
     if !template_options[:generators]
       run 'git reset HEAD --hard && git clean -fd', capture: true, verbose: false
     end
@@ -418,11 +412,28 @@ module Template
     template_from 'generators', 'config/initializers/generators.rb.tt', verbose: false
     directory_from 'generators', 'lib/generators', verbose: false
     directory_from 'generators', 'lib/templates', verbose: false
+
+    @generator_files = %w[config/application.rb config/initializers lib]
   end
 
   def scaffold_banana
     run 'rails generate scaffold Banana name length:integer weight:integer'
     inject_into_class 'app/models/banana.rb', 'Banana', "  validates :name, presence: true\n"
+    @banana_files = ["$(git ls-files --others '*banana*')", 'config/routes.rb']
+
+    return if !File.exist?('app/views/layouts/_header.html.erb')
+    file = File.read('app/views/layouts/_header.html.erb')
+    match = file.match(/(?<spaces> *)(<!-- |  )(?<link><li.*li>)/)
+    link = match[:link].sub(/link_to '.*', \w*/, "link_to 'Bananas', bananas_path")
+
+    if file.include?('<!--')
+      gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
+    else
+      insert_into_file 'app/views/layouts/_header.html.erb',
+                       "#{match[:spaces]}#{link}\n",
+                       after: /<ul>\n/
+    end
+    @banana_files << 'app/views/layouts/_header.html.erb'
   end
 
   def finish
