@@ -392,7 +392,12 @@ module Template
                        'ApplicationHelper',
                        partial('bootstrap/app/helpers/application_helper.rb', indent: 2)
 
-    directory_from 'bootstrap', 'lib/templates/erb/scaffold'
+    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/_form.html.erb'
+    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/edit.html.erb'
+    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/index.html.erb'
+    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/new.html.erb'
+    copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/show.html.erb'
+
     get 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
         'lib/templates/erb/scaffold/partial.html.erb'
     gsub_file(
@@ -405,8 +410,6 @@ module Template
       /(.*elsif attribute.attachments\?.*\n.*\n).*\n/,
       '\1' + partial('bootstrap/lib/templates/erb/scaffold/partial_attachments.html.erb', indent: 6)
     )
-    remove_file 'lib/templates/erb/scaffold/_partial_attachment.html.erb', verbose: false
-    remove_file 'lib/templates/erb/scaffold/_partial_attachments.html.erb', verbose: false
 
     copy_file_from 'bootstrap', 'app/views/shared/_base_errors.html.erb'
     copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
