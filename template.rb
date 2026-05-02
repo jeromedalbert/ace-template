@@ -578,7 +578,7 @@ module Template
 
   def finalize
     run 'rake db:drop'
-    run 'bin/setup'
+    run 'bin/setup --skip-server'
     commit('Add schema')
 
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]

@@ -11,7 +11,7 @@ TODO:
 1. Install dependencies and set up the app:
 
     ```
-    bin/setup
+    bin/setup --skip-server
     ```
 
 1. Make sure tests pass (everything should be green):
