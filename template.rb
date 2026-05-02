@@ -220,6 +220,19 @@ module Template
     directory 'spec/support'
     copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
 
+    if !options[:skip_ci]
+      github_ci_content =
+        URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
+      self.options = options.merge(skip_test: false)
+      github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
+      File.write('.github/workflows/ci.yml', github_ci_content)
+      remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
+      gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
+      gsub_file '.github/workflows/ci.yml',
+                %r{ *run: bin/rails db:test.*\n},
+                partial('files/rspec/.github/workflows/ci.yml', indent: 8)
+    end
+
     commit 'Configure RSpec'
   end
 
@@ -525,7 +538,7 @@ module Template
 
       insert_into_file 'app/controllers/application_controller.rb',
                        "\n  before_action :redirect_root_path\n\n",
-                       before: /  rescue_from.*|  def authenticate/m
+                       before: %r{  rescue_from.*|  def authenticate}m
       if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
         add_before_end 'app/controllers/application_controller.rb', "  private\n"
       end
@@ -639,10 +652,14 @@ module TemplateHelpers
     run "git commit -m '#{message}'", capture: true
   end
 
-  def remove_comments(file)
+  def remove_comments(file, remove_yml_extra_lines: true)
     gsub_file file, /^ *#.*\n/, ''
+
     gsub_file file, /\n{3,}/, "\n\n"
-    gsub_file file, /\n{2,}(  .*)/, "\n\\1" if File.extname(file) == '.yml'
+    if File.extname(file) == '.yml' && remove_yml_extra_lines
+      gsub_file file, /\n{2,}(  .*)/, "\n\\1"
+    end
+
     gsub_file file, /\A\n+/, ''
     gsub_file file, /^\n+\z/, ''
     gsub_file file, /\n\nend/, "\nend"
