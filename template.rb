@@ -132,13 +132,14 @@ module Template
               /^ *#\n *# config.*  end\n/m,
               partial('config/application.rb', :prepend_nl, append: "  end\n", indent: 4)
 
-    copy_file 'config/initializers/lograge.rb'
-    gsub_file 'config/environments/production.rb',
-              /.tap { \|logger\| .*\n/,
-              partial('config/environments/production.rb')
-
     add_before_end 'config/environments/development.rb',
                    partial('config/environments/development.rb', :prepend_nl, indent: 2)
+
+    copy_file 'config/initializers/lograge.rb'
+    gsub_file 'config/environments/production.rb',
+              '.logger(STDOUT)',
+              '.logger(STDOUT, formatter: ->(severity, _, _, msg) { "#{severity} #{msg}\n" })'
+    format_code('config/environments/production.rb')
 
     copy_file 'config/initializers/redis.rb' if redis?
   end
