@@ -11,7 +11,7 @@ module Template
           # Available options:
           #
           #   - all: all options except worker
-          #   - banana: scaffold a dummy Banana resource for demo purposes
+          #   - banana: scaffold an example Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
           #   - errors[=rollbar|sentry]: add error monitoring service
