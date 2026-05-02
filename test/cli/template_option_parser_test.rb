@@ -7,10 +7,9 @@ module CLI
     end
 
     def test_help_option
-      app = build_app(api: true)
-      @parser = TemplateOptionParser.new(app)
+      @parser = TemplateOptionParser.new(build_app(api: true))
 
-      app.expects(:show_help).raises(SystemExit)
+      @app.expects(:show_help).raises(SystemExit)
 
       assert_raises(SystemExit) { @parser.parse(%w[new myapp -o help]) }
     end
@@ -150,17 +149,6 @@ module CLI
     end
 
     private
-
-    def build_app(app_path = 'myapp', **rails_options)
-      app_generator = Rails::Generators::AppGenerator.new([app_path], rails_options)
-
-      app_generator.extend(Template)
-      app_generator.extend(General)
-      app_generator.extend(Actions)
-      app_generator.extend(Options)
-
-      app_generator
-    end
 
     def expect_error(message)
       @parser.expects(:emit_error).with(regexp_matches(/#{message}/)).raises(SystemExit)

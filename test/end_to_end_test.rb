@@ -10,6 +10,8 @@ class EndToEndTest < Minitest::Test
     @env = nil
   end
 
+  private
+
   def run_command(command, capture_errors: false)
     method = capture_errors ? :capture2e : :capture2
     command = "#{@env} #{command}" if @env
@@ -20,16 +22,33 @@ class EndToEndTest < Minitest::Test
     output
   end
 
-  def assert_command_success(command)
-    run_command(command)
+  def raise_failed(output)
+    decoration = '#' * 30
+    message = 'Command failed.'
+
+    message = <<~EOS if output.present?
+      #{message}
+
+      #{decoration}###############{decoration}
+      #{decoration} STDOUT START #{decoration}
+      #{decoration}###############{decoration}\n
+      #{output}
+      #{decoration}#############{decoration}
+      #{decoration} STDOUT END #{decoration}
+      #{decoration}#############{decoration}
+    EOS
+
+    raise message
   end
 
-  def assert_template_output(expected, output)
-    assert_match(expected, output) if !ENV['REUSE_APP']
-  end
+  def run_rails_new(options = '', capture_errors: false)
+    command = "rails new myapp -m #{File.expand_path('template.rb')}"
+    command << " #{options}" if options.present?
 
-  def assert_template_done(output)
-    assert_template_output('Done!', output)
+    output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
+
+    Dir.chdir('myapp') if Dir.exist?('myapp')
+    output
   end
 
   def reuse_app?
@@ -42,6 +61,14 @@ class EndToEndTest < Minitest::Test
     end
 
     false
+  end
+
+  def assert_command_success(command)
+    run_command(command)
+  end
+
+  def assert_output(expected, output)
+    assert_match(expected, output) if !ENV['REUSE_APP']
   end
 
   def assert_file(file_path, *contents)
@@ -89,26 +116,5 @@ class EndToEndTest < Minitest::Test
 
   def commits
     @commits ||= run_command('git log --pretty=format:%s').split("\n")
-  end
-
-  private
-
-  def raise_failed(output)
-    decoration = '#' * 30
-    message = 'Command failed.'
-
-    message = <<~EOS if output.present?
-      #{message}
-
-      #{decoration}###############{decoration}
-      #{decoration} STDOUT START #{decoration}
-      #{decoration}###############{decoration}\n
-      #{output}
-      #{decoration}#############{decoration}
-      #{decoration} STDOUT END #{decoration}
-      #{decoration}#############{decoration}
-    EOS
-
-    raise message
   end
 end
