@@ -98,14 +98,14 @@ module SetupBaseConfiguration
       insert_into_file '.github/_dependabot.yml',
                        "# Rename this file to dependabot.yml to enable Dependabot updates\n",
                        before: /\A/
-    end
 
-    github_ci_content =
-      File.read(gem_file('railties', 'lib/rails/generators/rails/app/templates/github/ci.yml.tt'))
-    with_rails_options(skip_test: false) do
-      github_ci_content = ERB.new(github_ci_content, trim_mode: '-').result(binding)
+      github_ci_content =
+        File.read(gem_file('railties', 'lib/rails/generators/rails/app/templates/github/ci.yml.tt'))
+      with_rails_options(skip_test: false) do
+        github_ci_content = ERB.new(github_ci_content, trim_mode: '-').result(binding)
+      end
+      File.write '.github/workflows/ci.yml', github_ci_content
     end
-    File.write '.github/workflows/ci.yml', github_ci_content
 
     remove_comments '.github/workflows/ci.yml', remove_yml_extra_lines: false
     gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
@@ -118,6 +118,15 @@ module SetupBaseConfiguration
     insert_into_file '.github/workflows/ci.yml',
                      partial('.github/workflows/ci.yml', :prepend_nl, indent: 6),
                      after: %r{run: bin/rubocop.*\n}
+
+    if File.exist?('config/ci.rb')
+      gsub_file 'config/ci.rb', 'Style: Ruby', 'Style: Rubocop' if rubocop?
+      insert_into_file(
+        'config/ci.rb',
+        %(  step 'Style: SyntaxTree', 'bin/stree check $(git ls-files "*.rb" Gemfile Rakefile)'\n),
+        after: %r{bin/rubocop.*\n}
+      )
+    end
   end
 end
 
