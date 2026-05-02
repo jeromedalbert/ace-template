@@ -158,6 +158,7 @@ module Template
     apply 'lib/recipes/rails_auth.rb' if template_options[:auth] == 'rails'
     apply 'lib/recipes/devise.rb' if template_options[:auth] == 'devise'
 
+    copy_file_from 'auth', 'spec/factories/users.rb', force: true
     add_before_end 'spec/rails_helper.rb',
                    partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)
   end

@@ -5,7 +5,6 @@ remove_comments 'app/models/user.rb'
 add_before_end 'app/models/user.rb',
                partial('auth/devise/app/models/user.rb', :prepend_nl, indent: 2)
 remove_file 'spec/models/user_spec.rb'
-copy_file_from 'auth/devise', 'spec/factories/users.rb', force: true
 gsub_file 'config/routes.rb', "  devise_for :users\n", ''
 insert_into_file 'config/routes.rb',
                  partial('auth/devise/config/routes.rb', :prepend_nl, indent: 2),
