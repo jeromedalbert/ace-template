@@ -53,7 +53,7 @@ module Template
   private
 
   def initialize
-    apply 'template_helpers.rb'
+    apply 'lib/helpers.rb'
     parse_template_options
   end
 

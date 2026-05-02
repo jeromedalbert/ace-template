@@ -1,4 +1,4 @@
-module TemplateHelpers
+module Helpers
   attr_accessor :template_options
 
   def parse_template_options
@@ -209,4 +209,4 @@ module TemplateHelpers
   end
 end
 
-extend TemplateHelpers
+extend Helpers
