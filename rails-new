@@ -7,6 +7,7 @@ TEMPLATE_OPTIONS = <<~EOS
         # Available options:
         #
         #   - banana: scaffold a dummy Banana resource for demo purposes
+        #   - dependabot: enable GitHub Dependabot
         #   - devise: add Devise authentication
         #   - generators: add custom generators for improved scaffolding
         #   - pundit: add Pundit authorization

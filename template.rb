@@ -112,6 +112,8 @@ module Template
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     empty_directory 'app/services'
 
+    remove_file '.github/dependabot.yml' if !template_options[:dependabot]
+
     if !File.exist?('bin/dev')
       @single_server = true
       get 'https://raw.githubusercontent.com/rails/jsbundling-rails/main/lib/install/dev', 'bin/dev'
