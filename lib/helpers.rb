@@ -17,13 +17,13 @@ module Helpers
     raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
     raw_options = raw_options.parse(ARGV)['template_options']
     return if raw_options.nil? || raw_options == 'template_options'
-    allowed_options = Template::TEMPLATE_OPTIONS_BANNER.scan(/- ([a-z-]*).*:/).flatten
+    allowed_options = Template::TEMPLATE_OPTIONS_BANNER.scan(/- ([a-z_]*).*:/).flatten
 
     raw_options
       .split(',')
       .each do |option|
         option_key, option_value = option.split('=')
-        if !option_key.in?(allowed_options)
+        if !option_key.underscore.in?(allowed_options)
           emit_critical_error("Invalid template option: #{option_key}")
         end
         @template_options[option_key.underscore.to_sym] = option_value || true
@@ -31,6 +31,7 @@ module Helpers
 
     if @template_options[:all]
       @template_options.merge!(
+        auth: true,
         dependabot: true,
         errors: true,
         generators: true,
@@ -41,9 +42,10 @@ module Helpers
       )
     end
     if @template_options[:omakase]
-      @template_options.merge!(banana: true, devise: true, squash: true, vcr: true)
+      @template_options.merge!(auth: true, banana: true, squash: true, vcr: true)
     end
     @template_options[:solid_dev] = true if @template_options[:worker] && solid?
+    set_multi_option_default(:auth, 'devise')
     set_multi_option_default(:errors, 'rollbar')
 
     if @template_options[:worker] && !options[:api]
@@ -51,9 +53,9 @@ module Helpers
     end
     if @template_options[:solid_dev]
       if skip_solid?
-        emit_critical_error 'solid-dev template option is incompatible with Rails --skip-solid option'
+        emit_critical_error 'solid_dev template option is incompatible with Rails --skip-solid option'
       elsif !options[:database].in?(Template::SUPPORTED_DATABASES)
-        emit_critical_error 'solid-dev template option currently only works for ' \
+        emit_critical_error 'solid_dev template option currently only works for ' \
                               "#{Template::SUPPORTED_DATABASES.to_sentence}."
       end
     end
@@ -75,10 +77,6 @@ module Helpers
 
   def redis?
     @has_redis ||= File.read('Gemfile').include?('redis')
-  end
-
-  def active_storage?
-    !skip_active_storage?
   end
 
   def action_cable?
@@ -124,17 +122,17 @@ module Helpers
     run "git commit -m '#{message}'", capture: true
   end
 
-  def remove_comments(file, remove_yml_extra_lines: true)
-    delete_line file, /^ *#.*/
+  def remove_comments(file_path, remove_yml_extra_lines: true)
+    delete_line file_path, /^ *#.*/
 
-    gsub_file file, /\n{3,}/, "\n\n"
-    if File.extname(file) == '.yml' && remove_yml_extra_lines
-      gsub_file file, /\n{2,}(  .*)/, "\n\\1"
+    gsub_file file_path, /\n{3,}/, "\n\n"
+    if File.extname(file_path) == '.yml' && remove_yml_extra_lines
+      gsub_file file_path, /\n{2,}(  .*)/, "\n\\1"
     end
 
-    gsub_file file, /\A\n+/, ''
-    gsub_file file, /^\n+\z/, ''
-    gsub_file file, /\n\nend/, "\nend"
+    gsub_file file_path, /\A\n+/, ''
+    gsub_file file_path, /^\n+\z/, ''
+    gsub_file file_path, /\n\nend/, "\nend"
   end
 
   def run(command, config = {})
@@ -164,8 +162,17 @@ module Helpers
     insert_into_file file_path, content, before: /^end\n\z/
   end
 
-  def delete_line(file_path, line_regex)
-    gsub_file file_path, /^#{line_regex}\n/, ''
+  def delete_line(file_path, line_pattern)
+    gsub_file file_path, /^#{line_pattern}\n/, ''
+  end
+
+  def move_line(file_path, line_pattern, *nl_opts, **opts)
+    line = File.read(file_path)[/^#{line_pattern}/]
+    line.prepend("\n") if nl_opts.include?(:prepend_nl) || nl_opts.include?(:surround_nl)
+    line << "\n" if nl_opts.include?(:prepend_nl) || nl_opts.include?(:surround_nl)
+
+    delete_line file_path, line_pattern
+    insert_into_file file_path, line, opts
   end
 
   def format_quotes(files, style:)
@@ -211,6 +218,10 @@ module Helpers
     Dir[pattern].first
   end
 
+  def get_rails_file(gem_name, file_path, destination)
+    get(rails_file(gem_name, file_path), destination)
+  end
+
   def rails_file(gem_name, file_path)
     gem_version = Bundler.definition.specs[gem_name].first.version
     version_path = options.main? ? 'main' : "refs/tags/v#{gem_version}"
@@ -218,8 +229,30 @@ module Helpers
     "https://raw.githubusercontent.com/rails/#{gem_name}/#{version_path}/#{file_path}"
   end
 
-  def get_rails_file(gem_name, file_path, destination)
-    get(rails_file(gem_name, file_path), destination)
+  def move_block(file_path, block_start, **options)
+    block = File.read(file_path)[ruby_block_regex(block_start)]
+
+    delete_block(file_path, block_start)
+    insert_into_file file_path, block, options
+  end
+
+  def ruby_block_regex(block_start)
+    spaces_count = block_start[/^ */].length
+    spaces = ' ' * spaces_count
+
+    /#{Regexp.escape(block_start)}\n((#{spaces}  .*\n)*)#{spaces}end\n\n?/
+  end
+
+  def delete_block(file_path, block_start)
+    gsub_file file_path, ruby_block_regex(block_start), ''
+  end
+
+  def split_var_from_condition(file_path, variable)
+    gsub_file file_path, /( *)if (#{variable} = .*)/, "\\1\\2\n\n\\1if #{variable}"
+  end
+
+  def insert_blank_line(file_path, line_pattern)
+    gsub_file file_path, /#{line_pattern}/, "\\0\n"
   end
 end
 

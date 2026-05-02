@@ -9,6 +9,7 @@ on:
 
 jobs:
   lint:
+    name: Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -27,6 +28,7 @@ jobs:
         run: bundle exec stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v files)
 
   test:
+    name: "Test ${{ matrix.ci_node_index }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:

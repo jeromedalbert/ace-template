@@ -1,7 +1,8 @@
 gem 'dotenv-rails'
 gem 'factory_bot_rails'
 gem 'listen'
-gem 'rspec-rails'
+# Use main branch while waiting for next version that has better Rails 8 support
+gem 'rspec-rails', github: 'rspec/rspec-rails', branch: 'main'
 gem 'rubocop', require: false
 gem 'rubocop-factory_bot', require: false
 gem 'rubocop-obsession', require: false

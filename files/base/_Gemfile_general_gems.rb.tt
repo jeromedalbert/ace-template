@@ -1,6 +1,6 @@
 gem 'awesome_print'
-<% if template_options[:devise] -%>
-# Using main branch while waiting for next version that includes a Rails 8 fix
+<% if template_options[:auth] == 'devise' -%>
+# Use main branch while waiting for next version that includes a Rails 8 fix
 gem 'devise', github: 'heartcombo/devise', branch: 'main'
 <% end -%>
 <% if template_options[:pundit] -%>

@@ -1,7 +1,7 @@
 require 'rails_helper'
 
 describe Banana do
-  <%- if template_options[:devise] -%>
+  <%- if template_options[:auth] -%>
   it { should belong_to :user }
 
   <%- end -%>

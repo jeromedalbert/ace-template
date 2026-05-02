@@ -4,7 +4,7 @@
 
     <nav>
       <ul>
-        <%- if template_options[:devise] -%>
+        <%- if template_options[:auth] -%>
         <%% if current_user.nil? %>
           <li class="inline"><%%= link_to 'Log in', login_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li>
           <li class="inline"><%%= link_to 'Sign up', signup_path, class: 'ml-8 text-lg text-gray-500 hover:text-black' %></li>

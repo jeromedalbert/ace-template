@@ -10,18 +10,20 @@ module Template
       -o, [--template-options=option1,option2,...]
           # Available options:
           #
+          #   - active_storage: install active storage
           #   - all: all options except double and worker
+          #   - auth[=rails|devise]: add authentication
+          #                          (defaults to rails)
           #   - banana: scaffold an example Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
-          #   - devise: add Devise authentication
           #   - double: use double-quoted strings
           #   - errors[=rollbar|sentry]: add error monitoring service
           #                              (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
-          #   - omakase: banana, devise, squash, and vcr options
+          #   - omakase: auth, banana, squash, and vcr options
           #   - pundit: add Pundit authorization
           #   - redis: add Redis
-          #   - solid-dev: set up Solid adapters for development
+          #   - solid_dev: set up Solid adapters for development
           #   - squash: squash all commits into a single "Initial commit"
           #   - vcr: add VCR gem to record test HTTP requests
           #   - worker: removes web code (requires --api)
@@ -58,7 +60,8 @@ module Template
   end
 
   def configure_gemfile
-    uncomment_lines 'Gemfile', /gem "image_processing"/ if active_storage?
+    uncomment_lines 'Gemfile', /gem "image_processing"/ if options[:active_storage]
+    uncomment_lines 'Gemfile', /gem "bcrypt"/ if template_options[:auth] == 'rails'
     remove_comments 'Gemfile'
     gsub_file 'Gemfile', /(^ *(gem|group) .*$)\n\n/, "\\1\n"
     gsub_file 'Gemfile', /group :development, :test do/, "\n\\0"
@@ -130,9 +133,11 @@ module Template
     command += File.read("#{__dir__}/.streerc").split if !File.exist?('.streerc')
     run command.join(' '), capture: true, abort_on_failure: false
 
-    if files == '**/*'
-      run 'bundle exec rubocop -A --only Bundler/OrderedGems --config /dev/null', capture: true
-    end
+    format_rubocop('--only Bundler/OrderedGems --config /dev/null') if files == '**/*'
+  end
+
+  def format_rubocop(options = '')
+    run "bundle exec rubocop -A #{options}", capture: true
   end
 
   def setup_base_configuration
@@ -140,7 +145,6 @@ module Template
     setup_config_files
     configure_spring
     configure_ci if ci?
-    install_active_storage if active_storage?
 
     commit 'Set up base configuration'
   end
@@ -243,14 +247,6 @@ module Template
     insert_into_file '.github/workflows/ci.yml',
                      partial('.github/workflows/ci.yml', :prepend_nl, indent: 6),
                      after: %r{run: bin/rubocop.*\n}
-  end
-
-  def install_active_storage
-    run 'rails active_storage:install'
-
-    migration_file = find_file('db/migrate/*_create_active_storage_tables*.rb')
-    gsub_file migration_file, 't.references', 't.belongs_to'
-    format_code migration_file
   end
 
   def configure_dotenv
@@ -424,7 +420,7 @@ module Template
     copy_file 'app/controllers/pages_controller.rb'
     template 'app/views/pages/home.html.erb.tt'
 
-    if !template_options[:banana] || template_options[:devise]
+    if !template_options[:banana] || template_options[:auth]
       copy_file 'spec/controllers/pages_controller_spec.rb'
     end
   end
@@ -439,7 +435,7 @@ module Template
   end
 
   def configure_optional_features
-    configure_devise if template_options[:devise]
+    configure_auth if template_options[:auth]
     configure_pundit if template_options[:pundit]
 
     if asset_pipeline?
@@ -448,10 +444,19 @@ module Template
     end
 
     configure_generators
+    install_active_storage if options[:active_storage]
     configure_errors if template_options[:errors]
     configure_worker if template_options[:worker]
 
     configure_double_quotes if template_options[:double]
+  end
+
+  def configure_auth
+    configure_devise if template_options[:auth] == 'devise'
+    apply 'rails_auth' if template_options[:auth] == 'rails'
+
+    add_before_end 'spec/rails_helper.rb',
+                   partial('auth/spec/rails_helper.rb', :prepend_nl, indent: 2)
   end
 
   def configure_devise
@@ -460,14 +465,14 @@ module Template
 
     remove_comments 'app/models/user.rb'
     add_before_end 'app/models/user.rb',
-                   partial('devise/app/models/user.rb', :prepend_nl, indent: 2)
+                   partial('auth/devise/app/models/user.rb', :prepend_nl, indent: 2)
     remove_file 'spec/models/user_spec.rb'
-    copy_file_from 'devise', 'spec/factories/users.rb', force: true
+    copy_file_from 'auth/devise', 'spec/factories/users.rb', force: true
     gsub_file 'config/routes.rb', "  devise_for :users\n", ''
     insert_into_file 'config/routes.rb',
-                     partial('devise/config/routes.rb', :prepend_nl, indent: 2),
+                     partial('auth/devise/config/routes.rb', :prepend_nl, indent: 2),
                      after: /root to: .*\n/
-    copy_file_from 'devise', 'app/models/current.rb', force: true
+    copy_file_from 'auth/devise', 'app/models/current.rb', force: true
 
     migration_file = find_file('db/migrate/*_devise_create_users.rb')
     delete_line migration_file, /^ *##.*\n(^ *#.*\n)+/
@@ -476,12 +481,12 @@ module Template
 
     add_before_end(
       'app/controllers/application_controller.rb',
-      partial('files/devise/app/controllers/application_controller.rb', :prepend_nl, indent: 2)
+      partial('files/auth/devise/app/controllers/application_controller.rb', :prepend_nl, indent: 2)
     )
     insert_into_file 'spec/support/controller_helpers.rb',
-                     partial('devise/spec/support/controller_helpers.rb', indent: 2),
+                     partial('auth/devise/spec/support/controller_helpers.rb', indent: 2),
                      before: /end\n/
-    add_before_end 'spec/rails_helper.rb', partial('devise/spec/rails_helper.rb', indent: 2)
+    add_before_end 'spec/rails_helper.rb', partial('auth/devise/spec/rails_helper.rb', indent: 2)
 
     commit 'Configure Devise'
   end
@@ -573,7 +578,7 @@ module Template
                      before: '  theme: {'
 
     template_from 'tailwind', 'app/views/pages/home.html.erb.tt', force: true
-    directory_from 'tailwind', 'app/views/devise' if template_options[:devise]
+    directory_from 'tailwind', 'app/views/devise' if template_options[:auth] == 'devise'
 
     commit 'Set up Tailwind'
   end
@@ -615,7 +620,7 @@ module Template
     copy_file_from 'bootstrap', 'config/initializers/field_errors.rb'
 
     template_from 'bootstrap', 'app/views/pages/home.html.erb.tt', force: true
-    directory_from 'bootstrap', 'app/views/devise' if template_options[:devise]
+    directory_from 'bootstrap', 'app/views/devise' if template_options[:auth] == 'devise'
 
     directory_from 'bootstrap', 'app/assets/stylesheets/base'
     directory_from 'bootstrap', 'app/assets/stylesheets/components'
@@ -667,7 +672,7 @@ module Template
                       partial('banana/app/models/banana.rb.tt', indent: 2)
     template_from 'banana', 'spec/models/banana_spec.rb.tt', force: true, verbose: false
 
-    if template_options[:devise]
+    if template_options[:auth]
       link_banana_to_user
     else
       gsub_file 'config/routes.rb', /root to: .*/, "root to: 'bananas#index'"
@@ -678,7 +683,7 @@ module Template
     match = file.match(/(?<spaces> *)(?:<!-- )?(?<link><li.*li>)/)
     link = match[:link].sub(/link_to [^,]*, [^, ]*/, "link_to 'Bananas', bananas_path")
 
-    if template_options[:devise]
+    if template_options[:auth]
       insert_into_file 'app/views/layouts/_header.html.erb',
                        "#{match[:spaces]}#{link}\n",
                        before: /.*Log out/
@@ -729,6 +734,14 @@ module Template
     @banana_files << 'app/controllers/application_controller.rb'
 
     copy_file_from 'banana', 'app/policies/banana_policy.rb' if template_options[:pundit]
+  end
+
+  def install_active_storage
+    run 'rails active_storage:install'
+
+    migration_file = find_file('db/migrate/*_create_active_storage_tables*.rb')
+    gsub_file migration_file, 't.references', 't.belongs_to'
+    format_code migration_file
   end
 
   def configure_errors
@@ -816,7 +829,7 @@ module Template
   end
 
   def source_paths
-    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__] + super
+    ["#{__dir__}/files/base", "#{__dir__}/files", __dir__, "#{__dir__}/lib/recipes"] + super
   end
 end
 

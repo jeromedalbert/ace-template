@@ -32,16 +32,16 @@ class TemplateTest < Minitest::Test
   end
 
   def test_solid_dev_option_with_skip_solid_option
-    output = run_rails_new('-o solid-dev --skip-solid', capture_errors: true)
+    output = run_rails_new('-o solid_dev --skip-solid', capture_errors: true)
 
-    assert_match(/solid-dev .* option is incompatible with Rails --skip-solid/, output)
+    assert_match(/solid_dev .* option is incompatible with Rails --skip-solid/, output)
     assert_includes output, 'aborted'
   end
 
   def test_solid_dev_option_with_incompatible_database_option
-    output = run_rails_new('-o solid-dev --database trilogy', capture_errors: true)
+    output = run_rails_new('-o solid_dev --database trilogy', capture_errors: true)
 
-    assert_match(/solid-dev .* option .* only works for .*/, output)
+    assert_match(/solid_dev .* option .* only works for .*/, output)
     assert_includes output, 'aborted'
   end
 
@@ -55,7 +55,7 @@ class TemplateTest < Minitest::Test
     assert_banana_linked_to_user
     assert_tailwind_css_option
     assert_dependabot_option
-    assert_devise_option
+    assert_devise_auth_option
     assert_devise_in_views
     assert_rollbar_errors_option
     assert_generators_option
@@ -106,7 +106,7 @@ class TemplateTest < Minitest::Test
   def test_postgresql_database_option
     @env = 'DATABASE_URL=postgres://postgres@localhost:5432/myapp_development'
 
-    output = run_rails_new('--database postgresql -o banana,solid-dev')
+    output = run_rails_new('--database postgresql -o banana,solid_dev')
 
     assert_template_done(output)
     assert_app_works
@@ -117,7 +117,7 @@ class TemplateTest < Minitest::Test
   def test_mysql_database_option
     @env = 'DATABASE_URL=mysql2://root@127.0.0.1:3306/myapp_development'
 
-    output = run_rails_new('--database mysql -o banana,solid-dev')
+    output = run_rails_new('--database mysql -o banana,solid_dev')
 
     assert_template_done(output)
     assert_app_works
@@ -179,7 +179,7 @@ class TemplateTest < Minitest::Test
 
   def assert_formatted_gemfile
     refute_gemfile "\n\n\n"
-    refute_gemfile '#'
+    assert File.read('Gemfile').count('#') <= 2
 
     assert_gemfile(/kamal.*puma.*rails/m)
     assert_gemfile(/brakeman.*debug/m)
@@ -348,7 +348,7 @@ class TemplateTest < Minitest::Test
     assert_file '.github/dependabot.yml'
   end
 
-  def assert_devise_option
+  def assert_devise_auth_option
     assert_gemfile 'devise'
     assert_file 'app/models/user.rb'
     assert_file 'config/routes.rb' do |content|
