@@ -2,8 +2,9 @@ accessories:
   <%- if db.postgresql? -%>
   db:
     image: postgres:17
-    host: <%%= ENV['DB_HOST'] %>
-    port: 5432
+    host: <%%= ENV['SERVER_IP'] %>
+    # Change to 5432 to expose port to the world instead of just local network.
+    port: 127.0.0.1:5432:5432
     env:
       secret:
         - POSTGRES_DB
@@ -14,20 +15,27 @@ accessories:
   <%- elsif db.mysql? -%>
   db:
     image: mysql:8
-    host: <%%= ENV['DB_HOST'] %>
-    port: 3306
+    host: <%%= ENV['SERVER_IP'] %>
+    # Change to 3306 to expose port to the world instead of just local network.
+    port: 127.0.0.1:3306:3306
     env:
       secret:
         - MYSQL_ROOT_HOST
         - MYSQL_ROOT_PASSWORD
+        - MYSQL_DATABASE
+        - MYSQL_USER
+        - MYSQL_PASSWORD
+    files:
+      - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
     directories:
       - data:/var/lib/mysql
   <%- end -%>
   <%- if redis? -%>
   redis:
     image: redis:7
-    host: <%%= ENV['REDIS_HOST'] %>
-    port: 6379
+    host: <%%= ENV['SERVER_IP'] %>
+    # Change to 6379 to expose port to the world instead of just local network.
+    port: 127.0.0.1:6379:6379
     cmd: "/bin/sh -c 'redis-server --requirepass $REDIS_PASSWORD'"
     env:
       secret:

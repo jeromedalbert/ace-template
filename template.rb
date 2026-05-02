@@ -272,7 +272,7 @@ module Template
   end
 
   def configure_kamal
-    return if !File.exist?('bin/kamal')
+    return if skip_kamal?
 
     remove_file '.kamal/secrets'
     template '.kamal/secrets.production.tt'
@@ -294,6 +294,7 @@ module Template
               '- RAILS_MASTER_KEY',
               %q(<%= Dotenv.parse(".kamal/secrets.#{ENV['KAMAL_DESTINATION']}").keys - ['KAMAL_REGISTRY_PASSWORD'] %>)
     gsub_file 'config/deploy.yml', %r{ *clear:\n *SOLID_QUEUE_IN_PUMA.*\n$}, ''
+    gsub_file 'config/deploy.yml', %r{("bin/rails dbconsole)"}, '\1 --include-password"'
     if !template_options[:worker]
       gsub_file 'config/deploy.yml',
                 /(logs: app logs -f)/,
@@ -306,6 +307,9 @@ module Template
 
     gsub_file 'config/environments/production.rb', 'assume_ssl = true', 'assume_ssl = false'
     gsub_file 'config/environments/production.rb', 'force_ssl = true', 'force_ssl = false'
+
+    template 'db/production.sql.tt' if db.mysql? && !skip_solid?
+
     commit 'Configure Kamal'
   end
 
