@@ -240,6 +240,7 @@ module Template
   end
 
   def configure_sqlite
+    FileUtils.touch('a')
     return if template_options[:solid_dev]
   end
 
@@ -668,7 +669,7 @@ module Template
   end
 
   def finalize
-    FileUtils.cp('.env.sample', '.env') if template_options[:solid_dev]
+    FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
     run 'rake db:drop'
     run 'bin/setup --skip-server'
     run 'rails db:migrate' # Doing this while waiting for a potential fix on Rails main
@@ -711,8 +712,13 @@ module TemplateHelpers
     if @template_options[:worker] && !options[:api]
       emit_critical_error 'worker template option requires Rails --api option'
     end
-    if @template_options[:solid_dev] && skip_solid?
-      emit_critical_error 'solid-dev template option is incompatible with Rails --skip-solid option'
+    if @template_options[:solid_dev]
+      if skip_solid?
+        emit_critical_error 'solid-dev template option is incompatible with Rails --skip-solid option'
+      elsif !options[:database].in?(Template::SUPPORTED_DATABASES)
+        emit_critical_error 'solid-dev template option currently only works for ' \
+                              "#{Template::SUPPORTED_DATABASES.to_sentence}."
+      end
     end
 
     @template_options
