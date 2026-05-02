@@ -119,7 +119,7 @@ module Template
     gsub_file 'config/application.rb',
               /^ *#\n *# config.*  end\n/m,
               partial('config/application.rb', :prepend_nl, append: "  end\n", indent: 4)
-    # Fix while waiting for resolution of https://github.com/rails/rails/issues/51768
+    # Fix while waiting for https://github.com/rails/rails/issues/51768 to be fixed
     if options[:skip_action_cable] && !template_options[:worker]
       uncomment_lines 'config/application.rb', 'require "action_cable/engine"'
       gsub_file 'config/application.rb', '"action_cable/engine"', "'action_cable/engine'"
@@ -130,9 +130,8 @@ module Template
               /.tap { \|logger\| .*\n/,
               partial('config/environments/production.rb')
 
-    insert_into_file 'config/environments/development.rb',
-                     partial('config/environments/development.rb', :prepend_nl, indent: 2),
-                     before: /end\n\z/
+    add_before_end 'config/environments/development.rb',
+                   partial('config/environments/development.rb', :prepend_nl, indent: 2)
 
     copy_file 'config/initializers/redis.rb' if redis?
   end
@@ -195,9 +194,8 @@ module Template
     insert_into_file 'spec/rails_helper.rb',
                      partial('spec/rails_helper_requires.rb', :prepend_nl),
                      after: "require 'rspec/rails'\n"
-    insert_into_file 'spec/rails_helper.rb',
-                     partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2),
-                     before: /end\n\z/
+    add_before_end 'spec/rails_helper.rb',
+                   partial('spec/rails_helper_end.rb', :prepend_nl, indent: 2)
 
     commit 'Configure RSpec'
   end
@@ -283,9 +281,8 @@ module Template
     run 'rails generate devise User'
 
     remove_comments 'app/models/user.rb'
-    insert_into_file 'app/models/user.rb',
-                     partial('devise/app/models/user.rb', :prepend_nl, indent: 2),
-                     before: /end\n\z/
+    add_before_end 'app/models/user.rb',
+                   partial('devise/app/models/user.rb', :prepend_nl, indent: 2)
     remove_file 'spec/models/user_spec.rb'
     copy_file_from 'devise', 'spec/factories/users.rb', force: true
     gsub_file 'config/routes.rb', "  devise_for :users\n", ''
@@ -298,15 +295,14 @@ module Template
     gsub_file migration_file, /.*class/m, 'class'
     gsub_file migration_file, %r{ *# add_index.*. end}m, '  end'
 
-    inject_into_class 'app/controllers/application_controller.rb',
-                      'ApplicationController',
-                      "  alias_method :authenticate, :authenticate_user!\n"
+    add_before_end(
+      'app/controllers/application_controller.rb',
+      partial('files/devise/app/controllers/application_controller.rb', :prepend_nl, indent: 2)
+    )
     insert_into_file 'spec/support/controller_helpers.rb',
                      partial('devise/spec/support/controller_helpers.rb', indent: 2),
-                     before: /end\n\n/
-    insert_into_file 'spec/rails_helper.rb',
-                     partial('devise/spec/rails_helper.rb', indent: 2),
-                     before: /end\n\z/
+                     before: /end\n/
+    add_before_end 'spec/rails_helper.rb', partial('devise/spec/rails_helper.rb', indent: 2)
 
     commit 'Configure Devise'
   end
@@ -317,16 +313,20 @@ module Template
                      partial('pundit/app/policies/application_policy.rb', :append_nl, indent: 2),
                      before: %r{  class Scope}
 
-    inject_into_class 'app/controllers/application_controller.rb',
-                      'ApplicationController',
-                      "  include Pundit::Authorization\n\n"
-    insert_into_file 'app/controllers/application_controller.rb',
-                     partial(
-                       'files/pundit/app/controllers/application_controller.rb',
-                       :prepend_nl,
-                       indent: 2
-                     ),
-                     before: /end\n\z/
+    inject_into_class(
+      'app/controllers/application_controller.rb',
+      'ApplicationController',
+      partial('pundit/app/controllers/application_controller_start.rb', :append_nl, indent: 2)
+    )
+    insert_into_file(
+      'app/controllers/application_controller.rb',
+      partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
+      before: /  def authenticate/
+    )
+    add_before_end(
+      'app/controllers/application_controller.rb',
+      partial('files/pundit/app/controllers/application_controller_end.rb', :prepend_nl, indent: 2)
+    )
 
     commit 'Configure Pundit'
   end
@@ -409,7 +409,6 @@ module Template
     remove_file 'config/puma.rb'
     remove_file 'config/initializers/cors.rb'
     remove_file 'spec/support/controller_helpers.rb'
-    remove_file 'spec/support/controller_helpers.rb'
 
     gsub_file 'Procfile.dev', /^web: .*\n/, ''
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
@@ -468,13 +467,11 @@ module Template
       copy_file_from 'banana', 'spec/models/user_spec.rb'
       @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
-      inject_into_class 'app/controllers/bananas_controller.rb',
-                        'BananasController',
-                        partial(
-                          'banana/app/controllers/bananas_controller_start.rb',
-                          :append_nl,
-                          indent: 2
-                        )
+      inject_into_class(
+        'app/controllers/bananas_controller.rb',
+        'BananasController',
+        partial('banana/app/controllers/bananas_controller_start.rb', :append_nl, indent: 2)
+      )
       gsub_file 'app/controllers/bananas_controller.rb',
                 /@bananas = .*\n/,
                 partial('banana/app/controllers/bananas_controller_index.rb')
@@ -487,13 +484,11 @@ module Template
     end
 
     if template_options[:pundit]
-      insert_into_file 'app/controllers/bananas_controller.rb',
-                       partial(
-                         'banana/app/controllers/bananas_controller_load.rb',
-                         :prepend_nl,
-                         indent: 4
-                       ),
-                       after: /@banana = Banana.find.*\n/
+      insert_into_file(
+        'app/controllers/bananas_controller.rb',
+        partial('banana/app/controllers/bananas_controller_load.rb', :prepend_nl, indent: 4),
+        after: /@banana = Banana.find.*\n/
+      )
       copy_file_from 'banana', 'app/policies/banana_policy.rb'
     end
 
@@ -606,6 +601,10 @@ module TemplateHelpers
 
   def template_from(folder, file_path, ...)
     template("#{folder}/#{file_path}", file_path.chomp('.tt'), ...)
+  end
+
+  def add_before_end(file_path, content)
+    insert_into_file file_path, content, before: /^end\n\z/
   end
 
   def timezone
