@@ -59,6 +59,8 @@ Metrics/ParameterLists:
 
 Minitest/AssertPredicate:
   Enabled: false
+Minitest/EmptyLineBeforeAssertionMethods:
+  Enabled: false
 Minitest/MultipleAssertions:
   Enabled: false
 Minitest/RefutePredicate:

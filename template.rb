@@ -61,7 +61,7 @@ module Template
     uncomment_lines 'Gemfile', /gem "image_processing"/ if active_storage?
     remove_comments 'Gemfile'
     gsub_file 'Gemfile', /(^ *(gem|group) .*$)\n\n/, "\\1\n"
-    gsub_file 'Gemfile', /(group :development, :test do)/, "\n\\1"
+    gsub_file 'Gemfile', /group :development, :test do/, "\n\\0"
 
     insert_into_file 'Gemfile',
                      partial('Gemfile_general_gems.rb', :append_nl),
@@ -166,7 +166,7 @@ module Template
     copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
 
-    empty_directory 'app/services'
+    empty_directory_with_keep_file 'app/services'
   end
 
   def generate_binstub(gem_name, bin_name = gem_name)
@@ -194,19 +194,23 @@ module Template
     copy_file 'config/initializers/lograge.rb'
     copy_file 'config/initializers/redis.rb' if redis?
 
-    if template_options[:solid_dev]
-      gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
-      insert_into_file(
-        'config/environments/development.rb',
-        partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
-        after: /config.active_job.*\n\n/
-      )
+    setup_solid_dev_config if template_options[:solid_dev]
+  end
 
-      remove_comments 'config/cable.yml'
-      delete_line 'config/cable.yml', /development:\n(  .*\n)*/
-      gsub_file 'config/cable.yml', 'production:', 'production: &production'
-      append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
-    end
+  def setup_solid_dev_config
+    remove_comments 'config/cable.yml'
+    delete_line 'config/cable.yml', /development:\n(  .*\n)*/
+    gsub_file 'config/cable.yml', 'production:', 'production: &production'
+    append_to_file 'config/cable.yml', "\ndevelopment:\n  <<: *production\n"
+
+    gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
+    gsub_file 'config/cache.yml', /development:\n/, "\\0  database: cache\n"
+
+    insert_into_file(
+      'config/environments/development.rb',
+      partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
+      after: /config.active_job.*\n\n/
+    )
   end
 
   def configure_spring
@@ -291,7 +295,7 @@ module Template
 
   def configure_solid_dev_db
     database_yml_content =
-      File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, '  <<: *databases')
+      File.read('config/database.yml').sub(/(?<=production:\n)(  .*\n)*/, "  <<: *databases\n")
     databases_config =
       Regexp.last_match(0).remove(' &primary_production').gsub('primary_production', 'default')
 
@@ -315,7 +319,7 @@ module Template
   def configure_rspec
     run 'rails generate rspec:install'
     copy_file '.rspec', force: true
-    empty_directory 'spec/factories'
+    empty_directory_with_keep_file 'spec/factories'
     gsub_file 'config/application.rb',
               /( *g\..*\n)(    end)/,
               '\1' + partial('config/application_rspec.rb', indent: 6) + '\2'
@@ -326,7 +330,7 @@ module Template
 
     remove_comments 'spec/rails_helper.rb'
     format_code 'spec/rails_helper.rb'
-    gsub_file 'spec/rails_helper.rb', /(^RSpec.configure)/, "\n\\1"
+    gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\n\\0"
     gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
     insert_into_file 'spec/rails_helper.rb',
                      partial('spec/rails_helper_requires.rb.tt', :prepend_nl),
@@ -372,8 +376,8 @@ module Template
     gsub_file 'config/deploy.yml', %r{("bin/rails dbconsole)"}, '\1 --include-password"'
     if !template_options[:worker]
       gsub_file 'config/deploy.yml',
-                /(logs: app logs -f)/,
-                '\1 --grep-options="--invert-match --extended-regexp" --grep="^[^ ]+ \{"'
+                /logs: app logs -f/,
+                '\0 --grep-options="--invert-match --extended-regexp" --grep="^[^ ]+ \{"'
     end
     if server_db? || redis?
       append_to_file 'config/deploy.yml', partial('config/deploy_accessories.yml.tt', :prepend_nl)
@@ -415,8 +419,11 @@ module Template
                      after: "Rails.application.routes.draw do\n"
 
     copy_file 'app/controllers/pages_controller.rb'
-    copy_file 'spec/controllers/pages_controller_spec.rb'
     template 'app/views/pages/home.html.erb.tt'
+
+    if !template_options[:banana] || template_options[:devise]
+      copy_file 'spec/controllers/pages_controller_spec.rb'
+    end
   end
 
   def setup_icons
@@ -672,6 +679,7 @@ module Template
                       'User',
                       partial('banana/app/models/user.rb', :append_nl, indent: 2)
     copy_file_from 'banana', 'spec/models/user_spec.rb'
+    template_from 'banana', 'spec/factories/bananas.rb.tt', force: true
     @banana_files.push('app/models/user.rb', 'spec/models/user_spec.rb')
 
     inject_into_class 'app/controllers/bananas_controller.rb',
@@ -723,11 +731,14 @@ module Template
       gsub_file 'config/initializers/sentry.rb',
                 '[:active_support_logger]',
                 '[:active_support_logger, :http_logger]'
+    else
+      return
     end
+
+    commit "Configure #{template_options[:errors].capitalize}"
   end
 
   def configure_worker
-    create_file 'config/routes.rb', "\n", force: true
     remove_dir 'app/controllers'
     remove_dir 'app/views'
     remove_dir 'public'
@@ -735,15 +746,16 @@ module Template
 
     remove_file 'config.ru'
     remove_file 'config/puma.rb'
+    remove_file 'config/routes.rb'
     remove_file 'config/initializers/cors.rb'
     remove_file 'spec/support/controller_helpers.rb'
 
     comment_lines 'config/application.rb', "require 'action_controller/railtie'"
 
     File.write 'Procfile.dev', "worker: bin/jobs\n"
-    gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
     gsub_file 'Dockerfile', /# Start server.*/, '# Start background jobs'
     gsub_file 'Dockerfile', /EXPOSE .*\nCMD .*/, 'CMD ["bin/jobs"]'
+    gsub_file 'bin/dev', /exec .*/, "exec 'bin/jobs', *ARGV"
     gsub_file 'bin/docker-entrypoint', 'running the rails server', 'processing jobs'
     gsub_file 'bin/docker-entrypoint', %r{if .*bin/rails.*then}, 'if [ $1 == "bin/jobs" ]; then'
 
@@ -778,7 +790,7 @@ module Template
     FileUtils.cp('.env.sample', '.env') if server_db? && template_options[:solid_dev]
     run 'rake db:drop'
     run 'bin/setup --skip-server'
-    run 'rails db:migrate' # Doing this while waiting for a potential fix on Rails main
+    run 'rails db:migrate'
     commit('Add schema')
 
     run 'git reset $(git commit-tree HEAD^{tree} -m "Initial commit")' if template_options[:squash]

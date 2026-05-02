@@ -1,6 +1,17 @@
 module Helpers
   attr_accessor :template_options
 
+  private
+
+  def emit_critical_error(message)
+    say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
+    abort
+  end
+
+  def solid?
+    !skip_solid?
+  end
+
   def parse_template_options
     @template_options = {}
     raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
@@ -80,10 +91,6 @@ module Helpers
 
   def ci?
     !skip_ci?
-  end
-
-  def solid?
-    !skip_solid?
   end
 
   def partial(file_path, *nl_opts, **opts)
@@ -194,11 +201,6 @@ module Helpers
 
   def emit_warning(message)
     say("\n[WARNING] #{message}\n\n", :yellow)
-  end
-
-  def emit_critical_error(message)
-    say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
-    abort
   end
 
   def emit_success(message)

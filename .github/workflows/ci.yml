@@ -20,17 +20,37 @@ jobs:
           ruby-version: 3.3.5
           bundler-cache: true
 
-      - name: Run rubocop
-        run: bundle exec rubocop '*.rb' 'test/*.rb' Gemfile Rakefile
+      - name: Run Rubocop
+        run: bundle exec rubocop $(git ls-files '*.rb' Gemfile Rakefile | grep -v files)
 
       - name: Run SyntaxTree
-        run: bundle exec stree check '*.rb' 'test/*.rb' Gemfile Rakefile
+        run: bundle exec stree check $(git ls-files '*.rb' Gemfile Rakefile | grep -v files)
 
   test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         ruby-version: [3.3.5]
+    services:
+      redis:
+        image: redis
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: --health-cmd="pg_isready" --health-interval=10s --health-timeout=5s --health-retries=3
+      mysql:
+        image: mysql
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: true
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
