@@ -465,6 +465,7 @@ module Template
     insert_into_file 'config/routes.rb',
                      partial('devise/config/routes.rb', :prepend_nl, indent: 2),
                      after: /root to: .*\n/
+    copy_file_from 'devise', 'app/models/current.rb', force: true
 
     migration_file = find_file('db/migrate/*_devise_create_users.rb')
     delete_line migration_file, /^ *##.*\n(^ *#.*\n)+/
@@ -498,9 +499,12 @@ module Template
                       "  include Pundit::Authorization\n\n"
     insert_into_file(
       'app/controllers/application_controller.rb',
-      partial('pundit/app/controllers/application_controller_middle.rb', :append_nl, indent: 2),
+      "  rescue_from Pundit::NotAuthorizedError, with: :render_not_authorized\n\n",
       before: /^(  def authenticate.*|end)/m
     )
+    if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
+      add_before_end 'app/controllers/application_controller.rb', "  private\n"
+    end
     add_before_end(
       'app/controllers/application_controller.rb',
       partial('files/pundit/app/controllers/application_controller_end.rb', :prepend_nl, indent: 2)
@@ -700,15 +704,12 @@ module Template
               partial('banana/spec/controllers/bananas_controller_spec.rb', indent: 2)
 
     insert_into_file 'app/controllers/application_controller.rb',
-                     "\n  before_action :redirect_root_path\n\n",
-                     before: %r{  rescue_from.*|  def authenticate}m
-    if !File.read('app/controllers/application_controller.rb').match?(/^  private/)
-      add_before_end 'app/controllers/application_controller.rb', "  private\n"
-    end
+                     "  before_action :redirect_root_path\n\n",
+                     after: /before_action .*\n/
     insert_into_file(
       'app/controllers/application_controller.rb',
       partial('files/banana/app/controllers/application_controller.rb', :prepend_nl, indent: 2),
-      after: /^  private\n/
+      after: /def set_current_variables\n.*\n. end\n/
     )
     format_code('app/controllers/application_controller.rb')
     @banana_files << 'app/controllers/application_controller.rb'
