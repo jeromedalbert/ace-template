@@ -7,10 +7,12 @@ require:
   - standard
   - standard-custom
   - standard-performance
+  - standard-rails
 
 inherit_gem:
   standard: config/base.yml
   standard-performance: config/base.yml
+  standard-rails: config/base.yml
   standard-custom: config/base.yml
   syntax_tree: config/rubocop.yml
 
