@@ -25,7 +25,8 @@ module Helpers
         generators: true,
         omakase: true,
         pundit: true,
-        redis: true
+        redis: true,
+        solid_dev: true
       )
     end
     if @template_options[:omakase]
