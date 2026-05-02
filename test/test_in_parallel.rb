@@ -1,15 +1,22 @@
 require 'minitest'
 
-def Minitest.autorun = nil
-Dir["#{__dir__}/*_test.rb"].each { |test_file| require test_file }
-
 class ParallelTestRunner
-  def perform
+  def perform(test_files)
+    require_files(test_files)
+
     status = Minitest.run(['-n', "/#{tests_for_current_node.join('|')}/"])
+
     exit(status)
   end
 
   private
+
+  def require_files(test_files)
+    def Minitest.autorun = nil
+    $LOAD_PATH.prepend(__dir__)
+
+    test_files.each { |test_file| require File.expand_path(test_file) }
+  end
 
   def tests_for_current_node
     node_index = ENV['CI_NODE_INDEX'].to_i
@@ -26,4 +33,4 @@ class ParallelTestRunner
   end
 end
 
-ParallelTestRunner.new.perform
+ParallelTestRunner.new.perform(ARGV) if __FILE__ == $PROGRAM_NAME

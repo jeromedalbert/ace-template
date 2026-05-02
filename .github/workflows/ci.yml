@@ -26,8 +26,27 @@ jobs:
       - name: Run SyntaxTree
         run: bundle exec rake stree:check
 
-  test:
-    name: "Test ${{ matrix.ci_node_index }}"
+  unit_tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: [3.4.5]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rake test:unit
+
+  end_to_end_tests:
+    name: "E2E Test ${{ matrix.ci_node_index }}"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -76,4 +95,4 @@ jobs:
         env:
           CI_NODE_TOTAL: ${{ matrix.ci_node_total }}
           CI_NODE_INDEX: ${{ matrix.ci_node_index }}
-        run: bundle exec ruby test/test_in_parallel.rb
+        run: bundle exec rake test:end_to_end

@@ -1,6 +1,6 @@
-require_relative 'test_helper'
+require 'end_to_end_test'
 
-class TemplateTest < Minitest::Test
+class TemplateTest < EndToEndTest
   def test_template
     output = run_rails_new
 
@@ -17,7 +17,7 @@ class TemplateTest < Minitest::Test
     assert_app_works
   end
 
-  def test_invalid_o_option
+  def test_invalid_option
     output = run_rails_new('-o foo', capture_errors: true)
 
     assert_includes output, 'Invalid template option: foo'
@@ -84,7 +84,8 @@ class TemplateTest < Minitest::Test
   end
 
   def test_postgresql_database_option
-    @env = 'DATABASE_URL=postgres://postgres@localhost:5432/myapp_development'
+    postgres_user = ENV['CI'] ? 'postgres' : ENV['USER']
+    @env = "DATABASE_URL=postgres://#{postgres_user}@localhost:5432/myapp_development"
 
     output = run_rails_new('--database postgresql -o banana,solid_dev')
 

@@ -1,12 +1,4 @@
 require 'test_helper'
-require 'rails/generators/rails/app/app_generator'
-require_relative '../../lib/cli/template_option_parser'
-require_relative '../../lib/cli/interactive_prompt'
-
-eval(File.read("#{__dir__}/../../template.rb").gsub("\n\napply_template\n", ''))
-require_relative '../../lib/helpers/general'
-require_relative '../../lib/helpers/actions'
-require_relative '../../lib/helpers/options'
 
 module CLI
   class TemplateOptionParserTest < Minitest::Test
