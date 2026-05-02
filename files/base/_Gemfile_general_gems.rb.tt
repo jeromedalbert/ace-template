@@ -6,7 +6,7 @@ gem 'devise', github: 'heartcombo/devise', branch: 'main'
 <% if template_options[:pundit] -%>
 gem 'pundit'
 <% end -%>
-<% if template_options[:redis] && skip_action_cable? -%>
+<% if template_options[:redis] && !File.read('Gemfile').include?('redis') -%>
 gem 'redis'
 <% end -%>
 <% if template_options[:errors] == 'rollbar' -%>
