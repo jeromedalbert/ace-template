@@ -43,10 +43,9 @@
 
 1. If on macOS, make sure Docker Desktop is running
 
-1. Run the following:
+1. Set up the server:
 
     ```
-    bin/kamal env push
     bin/kamal setup
     ```
 
