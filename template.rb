@@ -14,7 +14,8 @@ module Template
           #   - banana: scaffold a dummy Banana resource for demo purposes
           #   - dependabot: enable GitHub Dependabot
           #   - devise: add Devise authentication
-          #   - errors[=rollbar|sentry]: add error monitoring service (defaults to rollbar)
+          #   - errors[=rollbar|sentry]: add error monitoring service
+          #                              (defaults to rollbar)
           #   - generators: add custom generators for improved scaffolding
           #   - omakase: banana, devise, squash, and vcr options
           #   - pundit: add Pundit authorization
