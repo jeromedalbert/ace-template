@@ -59,6 +59,11 @@ TODO:
 
 ### With Fly.io
 
+<% if db.mysql? -%>
+Fly.io does not work with MySQL out of the box.
+More configuration is required, and is not covered in these instructions.
+<% end -%>
+
 ```bash
 DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %> # Name must be unique
 # Optional: set any extra env vars with fly secrets set MY_VAR=value
@@ -73,8 +78,8 @@ Heroku does not work out of the box with Rails 8's default multiple databases.
 The instructions below only work for a single production database.
 <% end -%>
 <% if !db.postgresql? -%>
-Heroku does not work out of the box for non-Postgres databases. The instructions
-below do not cover their setup.
+Heroku does not work with non-Postgres databases out of the box.
+More configuration is required, and is not covered in these instructions.
 <% end -%>
 
 ```bash
