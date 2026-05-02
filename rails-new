@@ -27,7 +27,6 @@ command = [
   '--skip-active-storage',
   '--skip-jbuilder',
   '--skip-test',
-  '--main',
   *other_args
 ]
 
