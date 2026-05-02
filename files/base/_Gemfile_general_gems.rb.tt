@@ -3,6 +3,9 @@ gem 'awesome_print'
 # Using main branch while waiting for next version that includes a Rails 8 fix
 gem 'devise', github: 'heartcombo/devise', branch: 'main'
 <% end -%>
+<% if template_options[:errors] == 'honeybadger' -%>
+gem 'honeybadger'
+<% end -%>
 <% if template_options[:pundit] -%>
 gem 'pundit'
 <% end -%>
