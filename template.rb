@@ -50,7 +50,7 @@ module Template
       gsub_file 'Gemfile', /gem "tzinfo-data".*\n/, ''
     end
     if Bundler.current_ruby.mri? || Bundler.current_ruby.windows?
-      gsub_file 'Gemfile', /(  gem "debug").*\n/, "\\1\n"
+      gsub_file 'Gemfile', /(  gem "debug"), platforms: .*,/, "\\1,"
     end
   end
 
