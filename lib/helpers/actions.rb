@@ -26,12 +26,19 @@ module Actions
   end
 
   def emit_critical_error(message)
-    say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
+    delete_created_app
+
+    say("\n[ERROR] #{message}\n\n", :red)
+
     abort
   end
 
   def emit_warning(message)
     say("\n[WARNING] #{message}\n\n", :yellow)
+  end
+
+  def emit_info(message)
+    say("\n[INFO] #{message}\n\n")
   end
 
   def emit_success(message)

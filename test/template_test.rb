@@ -21,28 +21,24 @@ class TemplateTest < Minitest::Test
     output = run_rails_new('-o foo', capture_errors: true)
 
     assert_includes output, 'Invalid template option: foo'
-    assert_includes output, 'aborted'
   end
 
   def test_worker_option_without_api_option
     output = run_rails_new('-o worker', capture_errors: true)
 
     assert_match(/worker .* option requires .* --api option/, output)
-    assert_includes output, 'aborted'
   end
 
   def test_solid_dev_option_with_skip_solid_option
     output = run_rails_new('-o solid_dev --skip-solid', capture_errors: true)
 
     assert_match(/solid_dev .* option is incompatible with Rails --skip-solid/, output)
-    assert_includes output, 'aborted'
   end
 
   def test_solid_dev_option_with_incompatible_database_option
     output = run_rails_new('-o solid_dev --database trilogy', capture_errors: true)
 
     assert_match(/solid_dev .* option .* only works for .*/, output)
-    assert_includes output, 'aborted'
   end
 
   def test_all_and_tailwind_options
@@ -131,10 +127,10 @@ class TemplateTest < Minitest::Test
   def run_rails_new(options = '', capture_errors: false)
     command = "rails new myapp -m #{File.expand_path('template.rb')}"
     command << " #{options}" if options.present?
+
     output = reuse_app? ? nil : run_command(command, capture_errors: capture_errors)
 
-    assert_dir 'myapp'
-    Dir.chdir('myapp')
+    Dir.chdir('myapp') if Dir.exist?('myapp')
     output
   end
 

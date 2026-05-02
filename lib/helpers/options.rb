@@ -53,14 +53,18 @@ module Options
 
   def parse_options
     @template_options = {}
-    raw_options = Thor::Options.new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
-    raw_options = raw_options.parse(ARGV)['template_options']
-    return if raw_options.nil?
-    show_help if raw_options.in?(%w[help h template_options])
+    @raw_template_options =
+      Thor::Options
+        .new(_: Thor::Option.new(:template_options, { aliases: '-o' }))
+        .parse(ARGV)
+        .dig('template_options')
+    return if @raw_template_options.nil?
 
+    show_help if @raw_template_options.in?(%w[h help template_options])
+    ensure_valid_app_path
     allowed_options = Template::TEMPLATE_OPTIONS_BANNER.scan(/- ([a-z_]*).*:/).flatten
 
-    raw_options
+    @raw_template_options
       .split(',')
       .each do |option|
         option_key, option_value = option.split('=')

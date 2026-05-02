@@ -35,6 +35,7 @@ module Template
     initialize
     configure_gemfile
     check_supported_software
+    emit_pre_bundle_message
 
     after_bundle do
       format_code
@@ -101,6 +102,13 @@ module Template
 
   def emit_support_warning(supported:, current:)
     emit_warning "This template only officially supports #{supported}. You are using #{current}."
+  end
+
+  def emit_pre_bundle_message
+    message = "Generating app `#{app_name}`"
+    message << " with template options `#{@raw_template_options}`" if @raw_template_options
+
+    emit_info message
   end
 
   def setup_base_configuration
