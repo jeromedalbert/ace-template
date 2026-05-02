@@ -20,6 +20,13 @@ module Actions
     end
   end
 
+  def say_status(status, message, log_status = true)
+    log_status = false if @last_said_status == "#{status} #{message}"
+
+    super
+    @last_said_status = "#{status} #{message}"
+  end
+
   def format_code(files = nil)
     if template_options[:omakase]
       format_rubocop(files)
