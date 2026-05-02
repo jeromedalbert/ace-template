@@ -225,7 +225,9 @@ module Template
 
   def configure_ci
     github_ci_content =
-      URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
+      URI.parse(
+        rails_file('rails', 'railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt')
+      ).open
     self.options = options.merge(skip_test: false)
     github_ci_content = ERB.new(github_ci_content.read, trim_mode: '-').result(binding)
     File.write '.github/workflows/ci.yml', github_ci_content
@@ -527,8 +529,11 @@ module Template
 
     copy_file_from 'tailwind', 'lib/templates/erb/scaffold/index.html.erb'
 
-    get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/show.html.erb.tt',
-        'lib/templates/erb/scaffold/show.html.erb'
+    get_rails_file(
+      'tailwindcss-rails',
+      'lib/generators/tailwindcss/scaffold/templates/show.html.erb.tt',
+      'lib/templates/erb/scaffold/show.html.erb'
+    )
     gsub_file 'lib/templates/erb/scaffold/show.html.erb',
               %r{    <div.*button_to "Destroy.*.   </div>\n}m,
               ''
@@ -536,14 +541,20 @@ module Template
               %r{    <%% if notice.*    <%% end %>\n\n}m,
               ''
 
-    get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
-        'lib/templates/erb/scaffold/_form.html.erb'
+    get_rails_file(
+      'tailwindcss-rails',
+      'lib/generators/tailwindcss/scaffold/templates/_form.html.erb.tt',
+      'lib/templates/erb/scaffold/_form.html.erb'
+    )
     gsub_file 'lib/templates/erb/scaffold/_form.html.erb',
               %r{  <%% if.*errors.any.*  <%% end %>\n}m,
               partial('tailwind/lib/templates/erb/scaffold/_form.html.erb', indent: 2)
 
-    get 'https://raw.githubusercontent.com/rails/tailwindcss-rails/main/lib/generators/tailwindcss/scaffold/templates/partial.html.erb.tt',
-        'lib/templates/erb/scaffold/partial.html.erb'
+    get_rails_file(
+      'tailwindcss-rails',
+      'lib/generators/tailwindcss/scaffold/templates/partial.html.erb.tt',
+      'lib/templates/erb/scaffold/partial.html.erb'
+    )
     gsub_file(
       'lib/templates/erb/scaffold/partial.html.erb',
       /(.*if attribute.attachment\?.*\n).*\n/,
@@ -584,8 +595,11 @@ module Template
     copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/new.html.erb'
     copy_file_from 'bootstrap', 'lib/templates/erb/scaffold/show.html.erb'
 
-    get 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
-        'lib/templates/erb/scaffold/partial.html.erb'
+    get_rails_file(
+      'rails',
+      'railties/lib/rails/generators/erb/scaffold/templates/partial.html.erb.tt',
+      'lib/templates/erb/scaffold/partial.html.erb'
+    )
     gsub_file(
       'lib/templates/erb/scaffold/partial.html.erb',
       /(.*if attribute.attachment\?.*\n).*\n/,

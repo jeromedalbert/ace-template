@@ -210,6 +210,17 @@ module Helpers
   def find_file(pattern)
     Dir[pattern].first
   end
+
+  def rails_file(gem_name, file_path)
+    gem_version = Bundler.definition.specs[gem_name].first.version
+    version_path = options.main? ? 'main' : "refs/tags/v#{gem_version}"
+
+    "https://raw.githubusercontent.com/rails/#{gem_name}/#{version_path}/#{file_path}"
+  end
+
+  def get_rails_file(gem_name, file_path, destination)
+    get(rails_file(gem_name, file_path), destination)
+  end
 end
 
 extend Helpers
