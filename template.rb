@@ -60,21 +60,21 @@ module Template
   end
 
   def check_supported_software
-    rails_version = Gem::Version.new(Rails.version[/\d+.\d+.\d+/])
-    if !Gem::Requirement.new(REQUIRED_RAILS_VERSIONS).satisfied_by?(rails_version)
+    rails_version = Rails.version[/\d+.\d+.\d+/]
+
+    if !compatible_version?(rails_version, REQUIRED_RAILS_VERSIONS)
       emit_required_error(
         required: "Rails #{REQUIRED_RAILS_VERSIONS}",
         current: "Rails #{Rails.version}"
       )
     end
-    if !Gem::Requirement.new(SUPPORTED_RAILS_VERSIONS).satisfied_by?(rails_version)
+    if !compatible_version?(rails_version, SUPPORTED_RAILS_VERSIONS)
       emit_support_warning(
         supported: "Rails #{SUPPORTED_RAILS_VERSIONS}",
         current: "Rails #{Rails.version}"
       )
     end
-
-    if !Gem::Requirement.new(SUPPORTED_RUBY_VERSIONS).satisfied_by?(Gem::Version.new(RUBY_VERSION))
+    if !compatible_version?(RUBY_VERSION, SUPPORTED_RUBY_VERSIONS)
       emit_support_warning(
         supported: "Ruby #{SUPPORTED_RUBY_VERSIONS}",
         current: "Ruby #{RUBY_VERSION}"
@@ -84,6 +84,10 @@ module Template
     if !options[:database].in?(SUPPORTED_DATABASES)
       emit_support_warning(supported: SUPPORTED_DATABASES.to_sentence, current: options[:database])
     end
+  end
+
+  def compatible_version?(actual_version, version_range)
+    Gem::Requirement.new(version_range).satisfied_by?(Gem::Version.new(actual_version))
   end
 
   def emit_required_error(required:, current:)
@@ -128,12 +132,12 @@ module Template
     copy_file '.streerc'
     remove_file '.github/dependabot.yml' if !template_options[:dependabot]
 
-    gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
-    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
     generate_binstub('syntax_tree', 'stree')
-    empty_directory 'app/services'
-
     template 'README.md.tt', force: true
+    copy_file 'Procfile.dev' if !File.exist?('Procfile.dev')
+    gsub_file 'Dockerfile', 'BUNDLE_WITHOUT="development"', 'BUNDLE_WITHOUT="development:test"'
+
+    empty_directory 'app/services'
   end
 
   def generate_binstub(gem_name, bin_name = gem_name)
@@ -147,20 +151,17 @@ module Template
   def setup_config_files
     gsub_file 'config/application.rb',
               /^ *#\n *# config.*  end\n/m,
-              partial('config/application.rb', :prepend_nl, append: "  end\n", indent: 4)
+              partial('config/application_end.rb', :prepend_nl, append: "  end\n", indent: 4)
 
     add_before_end 'config/environments/development.rb',
-                   partial('config/environments/development.rb', :prepend_nl, indent: 2)
+                   partial('config/environments/development_end.rb', :prepend_nl, indent: 2)
     if template_options[:solid_dev]
       gsub_file 'config/environments/development.rb', ':memory_store', ':solid_cache_store'
-      insert_into_file 'config/environments/development.rb', after: /config.active_job.*\n\n/ do
-        <<-EOS
-  config.active_job.queue_adapter = :solid_queue
-  config.solid_queue.connects_to = { database: { writing: :queue } }
-  config.solid_queue.logger = ActiveSupport::TaggedLogging.logger(STDOUT)
-
-        EOS
-      end
+      insert_into_file(
+        'config/environments/development.rb',
+        partial('solid_dev/config/environments/development.rb', :append_nl, indent: 2),
+        after: /config.active_job.*\n\n/
+      )
     end
 
     gsub_file 'config/environments/production.rb',
@@ -219,10 +220,10 @@ module Template
     gsub_file 'config/database.yml',
               /database: #{app_name}_production_(.*)/,
               "url: <%= URI.parse(ENV['DATABASE_URL']).tap { |u| u.path += '_\\1' } if ENV['DATABASE_URL'] %>"
-    delete_line 'config/database.yml', /^ *username:.*/
-    delete_line 'config/database.yml', /^ *password:.*/
     gsub_file 'config/database.yml', '"', "'"
 
+    delete_line 'config/database.yml', /^ *username:.*/
+    delete_line 'config/database.yml', /^ *password:.*/
     insert_into_file 'config/database.yml', "  username: root\n", after: /pool: .*\n/ if db.mysql?
     configure_solid_dev if template_options[:solid_dev]
 
@@ -266,7 +267,7 @@ module Template
 
     remove_comments 'spec/rails_helper.rb'
     format_code 'spec/rails_helper.rb'
-    gsub_file 'spec/rails_helper.rb', /^RSpec.configure/, "\nRSpec.configure"
+    gsub_file 'spec/rails_helper.rb', /(^RSpec.configure)/, "\n\\1"
     gsub_file 'spec/rails_helper.rb', /(^  config.*)\n\n/, "\\1\n"
     insert_into_file 'spec/rails_helper.rb',
                      partial('spec/rails_helper_requires.rb.tt', :prepend_nl),
@@ -277,7 +278,7 @@ module Template
     directory 'spec/support'
     copy_file_from 'vcr', 'spec/support/vcr.rb' if template_options[:vcr]
 
-    if !options[:skip_ci]
+    if ci?
       github_ci_content =
         URI.open 'https://raw.githubusercontent.com/rails/rails/main/railties/lib/rails/generators/rails/app/templates/github/ci.yml.tt'
       self.options = options.merge(skip_test: false)
@@ -287,7 +288,7 @@ module Template
       gsub_file '.github/workflows/ci.yml', /\n+( *(steps|services):)/, "\n\\1"
       gsub_file '.github/workflows/ci.yml',
                 %r{ *run: bin/rails db:test.*\n},
-                partial('files/rspec/.github/workflows/ci.yml', indent: 8)
+                partial('spec/.github/workflows/ci.yml', indent: 8)
     end
 
     commit 'Configure RSpec'
@@ -336,7 +337,7 @@ module Template
   end
 
   def setup_views
-    return if options[:skip_asset_pipeline]
+    return if skip_asset_pipeline?
     define_layout
     add_homepage
     setup_icons
@@ -379,7 +380,7 @@ module Template
     configure_devise if template_options[:devise]
     configure_pundit if template_options[:pundit]
 
-    if !options[:skip_asset_pipeline]
+    if asset_pipeline?
       setup_tailwind if options[:css] == 'tailwind'
       setup_bootstrap if options[:css] == 'bootstrap'
     end
@@ -752,6 +753,14 @@ module TemplateHelpers
     !skip_action_cable?
   end
 
+  def asset_pipeline?
+    !skip_asset_pipeline?
+  end
+
+  def ci?
+    !skip_ci?
+  end
+
   def solid?
     !skip_solid?
   end
@@ -855,9 +864,9 @@ module TemplateHelpers
     say("\n[WARNING] #{message}\n\n", :yellow)
   end
 
-  def emit_critical_error(error_message)
-    say("\n[ERROR] #{error_message}\nApp generation aborted.\n\n", :red)
-    exit 1
+  def emit_critical_error(message)
+    say("\n[ERROR] #{message}\nApp generation aborted.\n\n", :red)
+    abort
   end
 
   def emit_success(message)
