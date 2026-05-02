@@ -523,25 +523,24 @@ module Template
     end
 
     if template_options[:pundit]
-      insert_into_file(
-        'app/controllers/bananas_controller.rb',
-        partial('banana/app/controllers/bananas_controller_load.rb', :prepend_nl, indent: 4),
-        after: /@banana = Banana.find.*\n/
-      )
+      gsub_file 'app/controllers/bananas_controller.rb',
+                /@banana = Banana.find.*\n/,
+                partial('banana/app/controllers/bananas_controller_load.rb')
+
       copy_file_from 'banana', 'app/policies/banana_policy.rb'
     end
 
     return if !File.exist?('app/views/layouts/_header.html.erb')
     file = File.read('app/views/layouts/_header.html.erb')
-    match = file.match(/(?<spaces> *)(<!-- |  )(?<link><li.*li>)/)
+    match = file.match(/(?<spaces> *)(<!-- )?(?<link><li.*li>)/)
     link = match[:link].sub(/link_to [^,]*, [^, ]*/, "link_to 'Bananas', bananas_path")
 
-    if file.include?('<!--')
-      gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
-    else
+    if template_options[:devise]
       insert_into_file 'app/views/layouts/_header.html.erb',
                        "#{match[:spaces]}#{link}\n",
-                       after: /<ul>\n/
+                       before: /.*Log out/
+    else
+      gsub_file 'app/views/layouts/_header.html.erb', %r{ *<!-- .*}, "#{match[:spaces]}#{link}"
     end
     @banana_files << 'app/views/layouts/_header.html.erb'
   end
