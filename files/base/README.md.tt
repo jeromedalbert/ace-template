@@ -52,7 +52,7 @@ TODO:
 ### With Fly.io
 
 ```bash
-DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_name.dasherize %> # Name must be unique
+DISABLE_SPRING=true fly launch --no-deploy --yes --name <%= app_uniqueish_name.dasherize %> # Name must be unique
 fly secrets set SECRET_KEY_BASE=$(ruby -rsecurerandom -e "puts SecureRandom.hex(64)")
 fly deploy
 fly apps open
@@ -61,7 +61,7 @@ fly apps open
 ### With Heroku
 
 ```bash
-heroku create <%= app_name %> # Name must be unique
+heroku create <%= app_uniqueish_name %> # Name must be unique
 <% if postgresql? -%>
 heroku addons:add heroku-postgresql
 # Wait for Postgres addon state to be "created". This can take a while...

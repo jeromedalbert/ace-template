@@ -1,5 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext/array/conversions'
+require 'active_support/core_ext/string'
 require 'bundler'
 require 'open3'
 
@@ -718,6 +719,18 @@ module TemplateHelpers
 
   def app_title
     app_name.sub(/([^[:punct:]])app$/, '\1 app').titleize
+  end
+
+  def app_uniqueish_name
+    delimiter = app_name[/[_-]/]
+    unprefixed_name = app_name.remove(/^(my|cool|great|amazing)#{delimiter}?/)
+    stripped_name = unprefixed_name.parameterize.remove('-', /app$/)
+
+    if stripped_name.in?(['', 'test', 'sample', 'blog', 'project'])
+      "#{Etc.getlogin}#{delimiter}#{unprefixed_name}"
+    else
+      app_name
+    end
   end
 
   def find_file(pattern)
