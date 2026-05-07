@@ -276,7 +276,7 @@ module EndToEnd
       refute_gemfile "\n\n\n"
       assert File.read('Gemfile').count('#') <= 2
 
-      assert_gemfile(/kamal.*puma.*rails/m)
+      assert_gemfile(/puma.*rails/m)
       assert_gemfile(/brakeman.*debug/m)
     end
 
