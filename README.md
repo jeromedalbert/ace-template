@@ -2,21 +2,22 @@
 
 A Rails application template to generate full-featured web apps fast:
 
-- ⚡️ Go from `rails new` to deployed in less than 5 minutes.
+- Go from `rails new` to deployed in **less than 5 minutes**.
   Demos: [self-hosted server](https://www.youtube.com/watch?v=kCXugP63Cqc) |
   [Fly.io](https://www.youtube.com/watch?v=2PsQQIbSsg0) |
   [Heroku](https://www.youtube.com/watch?v=iY_kVYGbbRk).
-- ✍️ Automated, yet looks handcrafted. Thoughtful code diffs are applied in just the right places.
-- 🕹️ Use interactive mode or command-line options for extra customization.
-- 🔀 Use carefully curated defaults or the omakase default Rails way.
-- 🔄 Designed to keep up with future versions of Rails. Tested daily against Rails `main`.
+- Designed to keep up with future versions of Rails. Tested
+  [daily](.github/workflows/ci.yml#L8) against Rails `main`.
+- Automated yet thoughtful. Code diffs are applied in just the right places.
+- Use interactive mode or command-line options for extra customization.
+- Use carefully curated defaults or the omakase default Rails way.
 
 Ship your idea in record time, or learn how modern Rails 8+ apps are structured
-and deployed. See [list of features](#features).
+and deployed. See [list of features](#features) and [why I made this](#why-ace-template).
 
 <br>
 
-[![Screenshot of an app generated with Ace Template](https://raw.githubusercontent.com/jeromedalbert/files/main/ace-template/generated_app.png)](https://www.youtube.com/watch?v=kCXugP63Cqc)
+[![Preview of Ace Template's interactive mode](https://raw.githubusercontent.com/jeromedalbert/files/main/ace-template/interactive_mode.png)](https://www.youtube.com/watch?v=kCXugP63Cqc)
 
 ## Usage
 
@@ -27,8 +28,7 @@ rails new myapp -m https://raw.githubusercontent.com/jeromedalbert/ace-template/
 ```
 
 It gets more interesting with options! You can choose template options
-[interactively](https://raw.githubusercontent.com/jeromedalbert/files/main/ace-template/interactive_mode.png)
-with `-i`:
+interactively with `-i`:
 
 ```bash
 rails new myapp -i -m https://raw.githubusercontent.com/jeromedalbert/ace-template/stable/template.rb
@@ -73,33 +73,6 @@ The previous example can now be shortened to `rn myapp -o banana --css tailwind`
 - Supports most `rails new` options like `--api`, `--skip-*`, `--main`,
   `--edge`, etc.
 
-#### Options
-
-- `banana`: scaffolds an example "Banana" resource for quick demos or as a
-  starting point.
-- `authentication`: adds authentication that is ready to go with login
-  **and signup** pages, either with
-  [Rails authentication](https://guides.rubyonrails.org/security.html#authentication)
-  or [Devise](https://github.com/heartcombo/devise).
-- `omakase`: uses Rails [omakase](https://rubyonrails.org/doctrine#omakase)
-  defaults instead of Ace Template's defaults.
-- `solid-dev`: configures [Solid Cable](https://github.com/rails/solid_cable),
-  [Solid Cache](https://github.com/rails/solid_cache),
-  and [Solid Queue](https://github.com/rails/solid_queue) to work in development.
-- `worker`: removes web code, for apps like bots or scheduled scripts that do
-  not need to be accessible with a web page.
-- `errors`: adds an error monitoring service (either [Rollbar](https://rollbar.com/)
-  or [Sentry](https://sentry.io/)).
-- `pundit`: adds [Pundit](https://github.com/varvet/pundit) authorization.
-- `redis`: adds Redis.
-- `vcr`: adds the [VCR](https://github.com/vcr/vcr) gem to record test HTTP requests.
-
-See [`-o help`](template.rb#L17) for the full list of options.
-
-Options can **synergize** with each other. For example if both `banana` and
-`authentication` are selected, bananas will belong to a user and logged in users
-will only have access to their own bananas.
-
 #### Default gems
 
 - `IRB` and ruby `debug` are kept as defaults for interactive Ruby sessions.
@@ -135,20 +108,49 @@ will only have access to their own bananas.
 
 If you prefer to stick to Rails defaults, use the `omakase` template option.
 
+#### Options
+
+- `banana`: scaffolds an example "Banana" resource for quick demos or as a
+  starting point.
+- `authentication`: adds authentication that is ready to go with login
+  **and signup** pages, either with
+  [Rails authentication](https://guides.rubyonrails.org/security.html#authentication)
+  or [Devise](https://github.com/heartcombo/devise).
+- `omakase`: uses Rails [omakase](https://rubyonrails.org/doctrine#omakase)
+  defaults instead of Ace Template's defaults.
+- `solid-dev`: configures [Solid Cable](https://github.com/rails/solid_cable),
+  [Solid Cache](https://github.com/rails/solid_cache),
+  and [Solid Queue](https://github.com/rails/solid_queue) to work in development.
+- `worker`: removes web code, for apps like bots or scheduled scripts that do
+  not need to be accessible with a web page.
+- `errors`: adds an error monitoring service (either [Rollbar](https://rollbar.com/)
+  or [Sentry](https://sentry.io/)).
+- `pundit`: adds [Pundit](https://github.com/varvet/pundit) authorization.
+- `redis`: adds Redis.
+- `vcr`: adds the [VCR](https://github.com/vcr/vcr) gem to record test HTTP requests.
+
+See [`-o help`](template.rb#L17) for the full list of options.
+
+Options can **synergize** with each other. For example if both `banana` and
+`authentication` are selected, bananas will belong to a user and logged in users
+will only have access to their own bananas.
+
 ## Why Ace Template?
 
-I made most of this template in the pre-AI era for my personal use.
-I think it is still relevant today, as it provides a solid foundation designed
-with care by a human. It is predictable, token-free, and the generated app
-becomes a mini harness of sorts that leads by example.
+My goal with this template is to have both quality and speed, where you can
+quickly deploy an app for a demo or an interview, while having a solid
+foundation with polished internals.
 
-I recently added some finishing touches and open-sourced the project, in the
-hope that some people find it useful as a productivity or learning tool.
+The template runs with `rails new` and it is just plain Rails with some
+sprinkles. This is not a heavier SaaS starter kit.
 
-A goal of this template is to be simple and to the point. I wanted it to run
-via the familiar `rails new` command with no extra dependencies. It provides
-extra options, but this is not a heavier SaaS starter kit. It's just plain
-Rails, with some sprinkles!
+Ace Template is also built to stay up to date. Partials are preferred over
+whole files, and end-to-end tests run on a [cron
+schedule](.github/workflows/ci.yml#L8) against Rails `main` with alerts on
+failures, so fixes are proactive and require minimal focused effort.
+Most other templates are too static and become completely out of date after
+5-10 years, needing a full rewrite or significant maintenance effort. Here's
+hoping Ace Template still works flawlessly in 15 years (famous last words)!
 
 ## Contributing
 
