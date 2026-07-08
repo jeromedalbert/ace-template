@@ -145,14 +145,6 @@ class EndToEndTest < Minitest::Test
     @css_framework ||= Dir['**/tailwind/application.css', '**/application.bootstrap.scss'].any?
   end
 
-  def test_folder
-    rspec? ? 'spec' : 'test'
-  end
-
-  def test_data_folder
-    factory_bot? ? 'factories' : 'fixtures'
-  end
-
   def with_clean_env
     run_command('bin/rails db:environment:set RAILS_ENV=test')
     with_clean_rubocop { yield }
@@ -205,5 +197,13 @@ class EndToEndTest < Minitest::Test
     end
 
     false
+  end
+
+  def test_folder
+    rspec? ? 'spec' : 'test'
+  end
+
+  def test_data_folder
+    factory_bot? ? 'factories' : 'fixtures'
   end
 end
