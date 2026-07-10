@@ -6,7 +6,7 @@ A Rails application template to generate full-featured web apps fast:
   Demos: [self-hosted server](https://www.youtube.com/watch?v=kCXugP63Cqc) |
   [Fly.io](https://www.youtube.com/watch?v=2PsQQIbSsg0) |
   [Heroku](https://www.youtube.com/watch?v=iY_kVYGbbRk).
-- Designed to keep up with future versions of Rails. Tested
+- Designed to keep up with future versions of Rails. This repo is tested
   [daily](.github/workflows/ci.yml#L8) against Rails `main`.
 - Automated yet thoughtful. Code diffs are applied in just the right places.
 - Use interactive mode or command-line options for extra customization.
@@ -17,7 +17,7 @@ and deployed. See [list of features](#features) and [why I made this](#why-ace-t
 
 <br>
 
-[![Preview of Ace Template's interactive mode](https://raw.githubusercontent.com/jeromedalbert/files/main/ace-template/interactive_mode.png)](https://www.youtube.com/watch?v=kCXugP63Cqc)
+![Preview of Ace Template's interactive mode](https://raw.githubusercontent.com/jeromedalbert/files/main/ace-template/interactive_mode.png)
 
 ## Usage
 
@@ -144,8 +144,8 @@ foundation with polished internals.
 The template runs with `rails new` and it is just plain Rails with some
 sprinkles. This is not a heavier SaaS starter kit.
 
-Ace Template is also built to stay up to date. Partials are preferred over
-whole files, and end-to-end tests run on a [cron
+Ace Template is also built to stay up to date. It internally uses partials
+instead of whole files. End-to-end tests run on a [cron
 schedule](.github/workflows/ci.yml#L8) against Rails `main` with alerts on
 failures, so fixes are proactive and require minimal focused effort.
 Most other templates are too static and become completely out of date after
