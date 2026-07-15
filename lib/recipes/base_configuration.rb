@@ -125,7 +125,10 @@ module SetupBaseConfiguration
   end
 
   def setup_omakase_rubocop
-    append_to_file '.rubocop.yml', partial('omakase/rubocop.yml', :prepend_nl)
+    append_to_file '.rubocop.yml', "\nAllCops:\n" if !File.read('.rubocop.yml').include?('AllCops:')
+    insert_into_file '.rubocop.yml',
+                     partial('omakase/rubocop.yml', indent: 2),
+                     after: /^AllCops:\n(  .*\n)*/
   end
 
   def configure_spring
