@@ -20,9 +20,7 @@ or inserted into the destination app.
 Rails template development has its own quirks, so we recommend bookmarking the
 following resources for reference:
 
-- [Rails Application Templates](https://edgeguides.rubyonrails.org/rails_application_templates.html)
-  Rails guide
-- [Creating and Customizing Rails Generators & Templates](https://guides.rubyonrails.org/generators.html)
+- [Rails Generators & Templates](https://guides.rubyonrails.org/generators.html)
   Rails guide, particularly the "Application Templates" and "Rails Generators
   API" sections
 - [Thor actions](https://www.rubydoc.info/gems/thor/Thor/Actions) API doc
