@@ -133,7 +133,7 @@ module ConfigureRailsAuth
                      after: /root to: .*\n/
 
     move_line 'config/routes.rb',
-              %r{  resource :session\n  resources :passwords.*},
+              %r{  resource :session.*\n  resources :passwords.*},
               :surround_nl,
               after: /root to: .*\n/
     insert_into_file 'config/routes.rb', "  resource :registrations\n", after: /resource :session\n/
